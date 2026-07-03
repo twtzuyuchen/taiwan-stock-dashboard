@@ -73,6 +73,38 @@ def build_context(stock_id: str, stock_name: str, watch_cfg: dict, analysis: dic
         {"name": "綜合風險", "light": composite_light, "status": LIGHT_LABELS[composite_light]},
     ]
 
+    signals = analysis.get("signals", {})
+    ma_cross = signals.get("ma_cross", {})
+    score_transition = signals.get("score_transition", {})
+    cost_breach = signals.get("cost_breach", {})
+
+    def _signal_class(light):
+        return light or "neutral"
+
+    signal_cards = [
+        {
+            "name": "均線黃金／死亡交叉",
+            "kind": "事件型",
+            "text": ma_cross.get("text", "資料不足"),
+            "light": _signal_class(ma_cross.get("light")),
+            "active": ma_cross.get("signal") is not None,
+        },
+        {
+            "name": "評分區間轉換",
+            "kind": "事件型",
+            "text": score_transition.get("text", "資料不足"),
+            "light": _signal_class(score_transition.get("light")),
+            "active": score_transition.get("signal") is not None,
+        },
+        {
+            "name": "主力成本防守價",
+            "kind": "狀態型",
+            "text": cost_breach.get("text", "資料不足"),
+            "light": _signal_class(cost_breach.get("light")),
+            "active": cost_breach.get("breached") is True,
+        },
+    ]
+
     return dict(
         is_demo=is_demo,
         stock_id=stock_id,
@@ -109,6 +141,7 @@ def build_context(stock_id: str, stock_name: str, watch_cfg: dict, analysis: dic
         total_days=inst.get("total_days", lookback_days),
         lights=lights,
         scoring_limit_note="未觸發主力中期或基本面限制" if composite >= 50 else "評分受基本面／籌碼轉弱限制，建議降低部位",
+        signal_cards=signal_cards,
     )
 
 
@@ -143,6 +176,23 @@ def demo_analysis(stock_id: str) -> dict:
         },
         "technical": {"trend": "偏多", "bias_pct": 8.3, "bias_safe": True, "score": 65, "light": "yellow"},
         "fundamental": {"revenue_yoy_pct": 18.4, "per_percentile": 42.0, "score": 78, "light": "green"},
+        "signals": {
+            "ma_cross": {
+                "signal": "golden_cross",
+                "text": "黃金交叉：5日均線上穿20日均線，偏多訊號",
+                "light": "green",
+            },
+            "score_transition": {
+                "signal": "upgrade",
+                "text": "評分轉強：由「區間」轉為「布局」",
+                "light": "green",
+            },
+            "cost_breach": {
+                "breached": False,
+                "text": "現價仍在主力估算成本之上，尚未跌破防守價",
+                "light": "green",
+            },
+        },
     }
 
 
@@ -151,6 +201,7 @@ def main():
     parser.add_argument("--config", default="config/config.yaml")
     parser.add_argument("--stock", required=True)
     parser.add_argument("--cache-dir", default="output/cache")
+    parser.add_argument("--state-dir", default="state")
     parser.add_argument("--template-dir", default="templates")
     parser.add_argument("--output-dir", default="output")
     parser.add_argument("--demo", action="store_true", help="使用示範資料，不需連網")
@@ -162,7 +213,7 @@ def main():
     if args.demo:
         analysis = demo_analysis(args.stock)
     else:
-        analysis = analyze_stock(args.stock, config, args.cache_dir)
+        analysis = analyze_stock(args.stock, config, args.cache_dir, args.state_dir)
 
     out_path = render(args.stock, config, analysis, args.template_dir, args.output_dir, is_demo=args.demo)
     print(f"儀表板已產出: {out_path}")

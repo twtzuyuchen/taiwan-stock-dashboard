@@ -118,6 +118,35 @@
   .cost-item .value.pos { color: var(--good); }
   .cost-item .value.neg { color: var(--critical); }
 
+  .signal-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  @media (max-width: 760px) { .signal-grid { grid-template-columns: 1fr; } }
+  .signal-card {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+    background: var(--surface-1);
+  }
+  .signal-card.active { border-width: 2px; }
+  .signal-card.active.green { border-color: var(--good); }
+  .signal-card.active.red { border-color: var(--critical); }
+  .signal-card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .signal-card .name { font-size: 14px; font-weight: 700; }
+  .signal-card .kind-tag {
+    font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px;
+    background: var(--gridline); color: var(--text-secondary);
+  }
+  .signal-card .signal-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+  .signal-card .signal-dot.green { background: var(--good); }
+  .signal-card .signal-dot.yellow { background: var(--warning); }
+  .signal-card .signal-dot.red { background: var(--critical); }
+  .signal-card .signal-dot.neutral { background: var(--text-muted); }
+  .signal-card .signal-text { font-size: 13.5px; line-height: 1.6; color: var(--text-primary); }
+  .signal-card .signal-text.neutral { color: var(--text-secondary); }
+
   .footnote { font-size: 12.5px; color: var(--text-muted); line-height: 1.8; margin-top: 8px; }
   .demo-banner {
     background: var(--warning-bg);
@@ -134,16 +163,18 @@
 <div class="wrap">
 
   
+  <div class="demo-banner">⚠ 這是示範資料（非即時真實行情），僅用於展示儀表板版型與計算邏輯。接上 FinMind token 並於可連外環境執行 fetch_data.py 後，會顯示真實數據。</div>
+  
 
   <div class="card header-grid">
     <div>
       <div class="eyebrow">台股波段 AI Agent HTML 圖像化報告</div>
       <div class="title-row">
         <h1>2330 台積電</h1>
-        <span class="tag caution">區間操作</span>
+        <span class="tag ">建議布局</span>
       </div>
       <div class="meta">
-        分析週期：3-6個月｜風險偏好：穩健｜持股狀態：是｜產出時間：2026-07-03 14:11
+        分析週期：3-6個月｜風險偏好：穩健｜持股狀態：是｜產出時間：2026-07-03 14:15
       </div>
     </div>
     <div>
@@ -159,7 +190,7 @@
         
         <tr><td class="k">經營績效 CSV 日期</td><td class="v">2026-07-03</td></tr>
         
-        <tr><td class="k">SIGNAL_SUMMARY</td><td class="v">2026-07-03T14:11:52</td></tr>
+        <tr><td class="k">SIGNAL_SUMMARY</td><td class="v">2026-07-03T14:15:18</td></tr>
         
       </table>
     </div>
@@ -170,27 +201,27 @@
     <div class="score-grid">
       <div class="score-item">
         <div class="label">綜合評分</div>
-        <div class="score-value"><span class="num">44/100</span><span class="dot yellow"></span></div>
+        <div class="score-value"><span class="num">89/100</span><span class="dot green"></span></div>
       </div>
       <div class="score-item">
         <div class="label">風險等級</div>
-        <div class="score-value"><span class="pill yellow">中</span></div>
+        <div class="score-value"><span class="pill green">低</span></div>
       </div>
       <div class="score-item">
         <div class="label">籌碼乾淨度</div>
-        <div class="score-value"><span class="num">25/100</span><span class="dot red"></span></div>
+        <div class="score-value"><span class="num">100/100</span><span class="dot green"></span></div>
       </div>
       <div class="score-item">
         <div class="label">主力布局分數</div>
-        <div class="score-value"><span class="num">37/100</span><span class="dot red"></span></div>
+        <div class="score-value"><span class="num">92/100</span><span class="dot green"></span></div>
       </div>
       <div class="score-item">
         <div class="label">技術趨勢</div>
-        <div class="score-value"><span class="pill yellow">資料不足</span></div>
+        <div class="score-value"><span class="pill yellow">偏多</span></div>
       </div>
       <div class="score-item">
         <div class="label">技術線型</div>
-        <div class="score-value"><span class="pill yellow">普通</span></div>
+        <div class="score-value"><span class="pill green">良好</span></div>
       </div>
       <div class="score-item">
         <div class="label">長期均線乖離</div>
@@ -198,7 +229,7 @@
       </div>
       <div class="score-item">
         <div class="label">基本面催化</div>
-        <div class="score-value"><span class="pill yellow">留意</span></div>
+        <div class="score-value"><span class="pill green">良好</span></div>
       </div>
     </div>
     <div class="footnote">
@@ -212,19 +243,19 @@
     <div class="cost-panel">
       <div class="cost-item">
         <div class="label">估算主力成本</div>
-        <div class="value">2507.81 元</div>
+        <div class="value">68.40 元</div>
       </div>
       <div class="cost-item">
         <div class="label">現價</div>
-        <div class="value">2445.00 元</div>
+        <div class="value">71.20 元</div>
       </div>
       <div class="cost-item">
         <div class="label">浮盈／浮虧</div>
-        <div class="value neg">-2.50%</div>
+        <div class="value pos">+4.09%</div>
       </div>
       <div class="cost-item">
         <div class="label">近 10 交易日買超天數</div>
-        <div class="value">3 / 10 天</div>
+        <div class="value">7 / 10 天</div>
       </div>
     </div>
     <div class="footnote">
@@ -239,20 +270,20 @@
       
       <div class="light-item">
         <div class="name">融資浮額清洗</div>
-        <div class="dot red"></div>
-        <div class="status red">警示</div>
+        <div class="dot green"></div>
+        <div class="status green">良好</div>
       </div>
       
       <div class="light-item">
         <div class="name">籌碼集中度</div>
-        <div class="dot red"></div>
-        <div class="status red">警示</div>
+        <div class="dot green"></div>
+        <div class="status green">良好</div>
       </div>
       
       <div class="light-item">
         <div class="name">主力承接</div>
-        <div class="dot red"></div>
-        <div class="status red">警示</div>
+        <div class="dot green"></div>
+        <div class="status green">良好</div>
       </div>
       
       <div class="light-item">
@@ -269,18 +300,59 @@
       
       <div class="light-item">
         <div class="name">基本面催化</div>
-        <div class="dot yellow"></div>
-        <div class="status yellow">留意</div>
+        <div class="dot green"></div>
+        <div class="status green">良好</div>
       </div>
       
       <div class="light-item">
         <div class="name">綜合風險</div>
-        <div class="dot yellow"></div>
-        <div class="status yellow">留意</div>
+        <div class="dot green"></div>
+        <div class="status green">良好</div>
       </div>
       
     </div>
-    <div class="footnote">評分限制：評分受基本面／籌碼轉弱限制，建議降低部位</div>
+    <div class="footnote">評分限制：未觸發主力中期或基本面限制</div>
+  </div>
+
+  <div class="card">
+    <h2>4. 買賣訊號</h2>
+    <div class="signal-grid">
+      
+      <div class="signal-card active green">
+        <div class="signal-card-head">
+          <span class="name">均線黃金／死亡交叉</span>
+          <span class="kind-tag">事件型</span>
+        </div>
+        <div class="signal-text ">
+          <span class="signal-dot green"></span>黃金交叉：5日均線上穿20日均線，偏多訊號
+        </div>
+      </div>
+      
+      <div class="signal-card active green">
+        <div class="signal-card-head">
+          <span class="name">評分區間轉換</span>
+          <span class="kind-tag">事件型</span>
+        </div>
+        <div class="signal-text ">
+          <span class="signal-dot green"></span>評分轉強：由「區間」轉為「布局」
+        </div>
+      </div>
+      
+      <div class="signal-card  green">
+        <div class="signal-card-head">
+          <span class="name">主力成本防守價</span>
+          <span class="kind-tag">狀態型</span>
+        </div>
+        <div class="signal-text neutral">
+          <span class="signal-dot green"></span>現價仍在主力估算成本之上，尚未跌破防守價
+        </div>
+      </div>
+      
+    </div>
+    <div class="footnote">
+      事件型訊號（均線交叉、評分區間轉換）只在「發生變化的當天」出現，隔天若沒有新變化就會顯示「無訊號」；
+      狀態型訊號（主力成本防守價）只要條件持續成立就會一直顯示，不是只出現一次。三者皆為規則式計算，僅供研判參考，不構成投資建議。
+    </div>
   </div>
 
 </div>

@@ -53,6 +53,7 @@ def run(config_path: str, demo: bool = False) -> None:
     output_dir = config.get("output", {}).get("dashboard_dir", "output")
     template_dir = "templates"
     cache_dir = f"{output_dir}/cache"
+    state_dir = config.get("output", {}).get("state_dir", "state")
 
     summary_rows = []
     for w in config["watchlist"]:
@@ -63,7 +64,7 @@ def run(config_path: str, demo: bool = False) -> None:
             analysis = demo_analysis(stock_id)
         else:
             fetch_all(stock_id, config, cache_dir)
-            analysis = analyze_stock(stock_id, config, cache_dir)
+            analysis = analyze_stock(stock_id, config, cache_dir, state_dir)
 
         out_path = render(stock_id, config, analysis, template_dir, output_dir, is_demo=demo)
         print(f"  -> {out_path}")

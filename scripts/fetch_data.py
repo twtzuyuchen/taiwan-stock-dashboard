@@ -96,11 +96,7 @@ def fetch_all(stock_id: str, config: dict, cache_dir: str = "output/cache") -> d
     Path(cache_dir).mkdir(parents=True, exist_ok=True)
     result = {}
     for key, dataset in DATASETS.items():
-        try:
-            df = fetch_dataset(dataset, stock_id, start_by_key[key], token)
-        except Exception as e:  # noqa: BLE001
-            print(f"  ✗ {key:22s} ({dataset}): 抓取失敗，略過此資料集 -> {e}")
-            continue
+        df = fetch_dataset(dataset, stock_id, start_by_key[key], token)
         out_path = Path(cache_dir) / f"{stock_id}_{key}.csv"
         df.to_csv(out_path, index=False, encoding="utf-8-sig")
         result[key] = df

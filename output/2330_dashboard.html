@@ -118,6 +118,35 @@
   .cost-item .value.pos { color: var(--good); }
   .cost-item .value.neg { color: var(--critical); }
 
+  .signal-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  @media (max-width: 760px) { .signal-grid { grid-template-columns: 1fr; } }
+  .signal-card {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+    background: var(--surface-1);
+  }
+  .signal-card.active { border-width: 2px; }
+  .signal-card.active.green { border-color: var(--good); }
+  .signal-card.active.red { border-color: var(--critical); }
+  .signal-card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .signal-card .name { font-size: 14px; font-weight: 700; }
+  .signal-card .kind-tag {
+    font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px;
+    background: var(--gridline); color: var(--text-secondary);
+  }
+  .signal-card .signal-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+  .signal-card .signal-dot.green { background: var(--good); }
+  .signal-card .signal-dot.yellow { background: var(--warning); }
+  .signal-card .signal-dot.red { background: var(--critical); }
+  .signal-card .signal-dot.neutral { background: var(--text-muted); }
+  .signal-card .signal-text { font-size: 13.5px; line-height: 1.6; color: var(--text-primary); }
+  .signal-card .signal-text.neutral { color: var(--text-secondary); }
+
   .footnote { font-size: 12.5px; color: var(--text-muted); line-height: 1.8; margin-top: 8px; }
   .demo-banner {
     background: var(--warning-bg);
@@ -145,7 +174,7 @@
         <span class="tag ">建議布局</span>
       </div>
       <div class="meta">
-        分析週期：3-6個月｜風險偏好：穩健｜持股狀態：是｜產出時間：2026-07-03 12:15
+        分析週期：3-6個月｜風險偏好：穩健｜持股狀態：是｜產出時間：2026-07-03 14:15
       </div>
     </div>
     <div>
@@ -161,7 +190,7 @@
         
         <tr><td class="k">經營績效 CSV 日期</td><td class="v">2026-07-03</td></tr>
         
-        <tr><td class="k">SIGNAL_SUMMARY</td><td class="v">2026-07-03T12:15:36</td></tr>
+        <tr><td class="k">SIGNAL_SUMMARY</td><td class="v">2026-07-03T14:15:18</td></tr>
         
       </table>
     </div>
@@ -283,6 +312,47 @@
       
     </div>
     <div class="footnote">評分限制：未觸發主力中期或基本面限制</div>
+  </div>
+
+  <div class="card">
+    <h2>4. 買賣訊號</h2>
+    <div class="signal-grid">
+      
+      <div class="signal-card active green">
+        <div class="signal-card-head">
+          <span class="name">均線黃金／死亡交叉</span>
+          <span class="kind-tag">事件型</span>
+        </div>
+        <div class="signal-text ">
+          <span class="signal-dot green"></span>黃金交叉：5日均線上穿20日均線，偏多訊號
+        </div>
+      </div>
+      
+      <div class="signal-card active green">
+        <div class="signal-card-head">
+          <span class="name">評分區間轉換</span>
+          <span class="kind-tag">事件型</span>
+        </div>
+        <div class="signal-text ">
+          <span class="signal-dot green"></span>評分轉強：由「區間」轉為「布局」
+        </div>
+      </div>
+      
+      <div class="signal-card  green">
+        <div class="signal-card-head">
+          <span class="name">主力成本防守價</span>
+          <span class="kind-tag">狀態型</span>
+        </div>
+        <div class="signal-text neutral">
+          <span class="signal-dot green"></span>現價仍在主力估算成本之上，尚未跌破防守價
+        </div>
+      </div>
+      
+    </div>
+    <div class="footnote">
+      事件型訊號（均線交叉、評分區間轉換）只在「發生變化的當天」出現，隔天若沒有新變化就會顯示「無訊號」；
+      狀態型訊號（主力成本防守價）只要條件持續成立就會一直顯示，不是只出現一次。三者皆為規則式計算，僅供研判參考，不構成投資建議。
+    </div>
   </div>
 
 </div>

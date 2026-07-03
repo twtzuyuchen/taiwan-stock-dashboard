@@ -220,3 +220,16 @@ def main():
     parser.add_argument("--config", default="config/config.yaml")
     parser.add_argument("--stock", required=True)
     parser.add_argument("--cache-dir", default="output/cache")
+    parser.add_argument("--state-dir", default="state")
+    args = parser.parse_args()
+
+    with open(args.config, "r", encoding="utf-8") as f:
+        config = yaml.safe_load(f)
+
+    result = analyze_stock(args.stock, config, args.cache_dir, args.state_dir)
+    import json
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+
+
+if __name__ == "__main__":
+    main()

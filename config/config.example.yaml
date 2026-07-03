@@ -11,21 +11,16 @@ finmind:
 
 watchlist:
   # 每檔股票的代號、名稱、風險偏好、持股狀態
-  - stock_id: "2303"
-    name: "聯電"
+  - stock_id: "2618"
+    name: "長榮航"
     risk_preference: "積極"
-    holding: true
+    holding: false
     analysis_period: "1-3個月"
   - stock_id: "2330"
     name: "台積電"
     risk_preference: "穩健"
     holding: true
     analysis_period: "3-6個月"
-  - stock_id: "6770"
-    name: "力積電"
-    risk_preference: "積極"
-    holding: false
-    analysis_period: "1-3個月"
 
 scoring:
   # 綜合評分權重（總和建議 = 1.0）
@@ -43,3 +38,6 @@ output:
   # 是否同時輸出 GitHub Pages 用的 docs/index.html
   publish_github_pages: true
   github_pages_dir: "docs"
+  # 買賣訊號需要跨日比較（評分區間轉換），狀態存在這個資料夾，
+  # 必須跟 docs/ 一樣被 git commit，下次執行才讀得到「昨天」的結果
+  state_dir: "state"

@@ -104,6 +104,29 @@ FinancialStatements / BalanceSheet」的既有設計，`fetch_data.py` 對應抓
 評分門檻（綠/黃/紅燈）與權重都集中在 `config.yaml -> scoring`，方便你依自己的操作邏輯微調，
 不需要改程式碼。
 
+### 4.3 買賣訊號（`scripts/signals.py`）
+
+在燈號評分之外，另外提供三種訊號，分成兩種類型：
+
+- **事件型**：只在「今天發生變化」時才出現，隔天沒有新變化就會顯示「無訊號／維持原狀」，
+  不會每天重複顯示同一件事。
+- **狀態型**：只要條件持續成立就會一直顯示，不是只出現一次。
+
+| 訊號 | 類型 | 判斷邏輯 | 是否需要跨日狀態 |
+|---|---|---|---|
+| A. 均線黃金／死亡交叉 | 事件型 | 5日均線由下往上穿越20日均線＝黃金交叉（偏多）；由上往下穿越＝死亡交叉（偏空）。只看最近兩個交易日的均線相對位置是否翻轉 | 否，當次股價歷史即可算出 |
+| B. 評分區間轉換 | 事件型 | 綜合評分所屬的「觀望／區間／布局」三個區間，若跟前一次執行結果不同，就標記轉強或轉弱 | **是**，需要讀寫 `state/{stock_id}_state.json` 記錄上一次的區間 |
+| C. 主力成本防守價 | 狀態型 | 現價是否低於 4.1 節估算出的主力成本，跌破就持續顯示警示，直到現價收復為止 | 否，當次資料即可比較 |
+
+B 是唯一需要跨日比較的訊號，因為工作流程每次都是全新的 GitHub Actions 執行環境，不會記得
+「昨天」的結果，所以每次執行都會把當天算出的區間寫進 `state/` 資料夾，並跟著 `docs/` 一起
+`git commit` 回 repo，下一次執行時 `actions/checkout` 會把這份記錄一併抓回來，藉此比較出
+「有沒有變化」。**第一次執行時因為沒有「前一天」可比較，這個訊號會顯示「首次執行，尚無歷史
+資料可比較」，屬於正常現象，不是錯誤。**
+
+三種訊號都是規則式計算（不是機器學習或黑箱模型），邏輯全部寫在 `scripts/signals.py`，門檻或
+判斷方式都可以直接改程式碼調整。
+
 ---
 
 ## 5. 呈現層設計
@@ -116,6 +139,8 @@ FinancialStatements / BalanceSheet」的既有設計，`fetch_data.py` 對應抓
    長期均線乖離、基本面催化，8 宮格卡片。
 3. 「近兩週主力持倉成本分析」：估算成本、現價、浮盈虧、買超天數，4 宮格重點卡片。
 4. 「籌碼與技術風險燈號」：7 個指標的紅黃綠燈號格，維持你截圖的視覺語言。
+5. 「買賣訊號」：均線交叉、評分區間轉換、主力成本防守價，3 張訊號卡，觸發中的事件型訊號會用
+   較粗的邊框標示出來，方便一眼看出「今天有沒有新訊號」。
 
 色彩採用可讀性驗證過的語意色（綠 `#0ca30c` / 黃 `#fab219` / 紅 `#d03b3b`），並搭配文字標籤
 （例如「良好」「留意」「警示」）而非僅用顏色，避免色弱使用者無法辨識。
@@ -131,8 +156,10 @@ FinancialStatements / BalanceSheet」的既有設計，`fetch_data.py` 對應抓
 2. 在 repo 的 `Settings → Secrets and variables → Actions` 新增：
    - `FINMIND_TOKEN`
 3. workflow 會在**每日 UTC 11:00（= 台北時間 19:00）、週一到週五**自動觸發，依序執行
-   抓資料 → 分析 → 產出 HTML → 把結果 commit 到 `docs/`。
-4. 到 repo 的 `Settings → Pages`，把來源設為 `docs/` 資料夾，即可得到一個固定網址
+   抓資料 → 分析 → 產出 HTML → 把結果與訊號狀態 commit 到 `docs/`、`state/` → 發布到 Pages。
+4. 到 repo 的 `Settings → Pages`，Source 選 **GitHub Actions**（不是 Deploy from a branch，
+   實測 branch 部署方式偶爾會出現不穩定的 `Deployment failed` 問題，改用 workflow 自帶的
+   `actions/deploy-pages` 發布比較可靠），即可得到一個固定網址
    （例如 `https://<你的帳號>.github.io/<repo>/`），每天 19:00 後自動更新，手機、電腦都能開。
 5. 也保留 `workflow_dispatch`，你可以隨時到 Actions 頁面手動按「Run workflow」立即更新一次，
    不用等到晚上。
@@ -158,7 +185,8 @@ FinancialStatements / BalanceSheet」的既有設計，`fetch_data.py` 對應抓
 
 - [ ] 註冊 FinMind 帳號，取得 token
 - [ ] 把本專案推到你的 GitHub repo，設定 `FINMIND_TOKEN` Secret
-- [ ] 開啟 GitHub Pages（來源設為 `docs/`），確認每日 19:00 後有自動更新
+- [ ] Settings → Pages，Source 選 **GitHub Actions**，確認每日 19:00 後有自動更新
+- [ ] 確認 `state/` 資料夾有跟著每次執行被 commit 回 repo（買賣訊號裡的「評分區間轉換」需要它）
 
 ---
 
@@ -173,11 +201,13 @@ taiwan-stock-dashboard/
 ├── scripts/
 │   ├── fetch_data.py                <- 資料層：呼叫 FinMind API
 │   ├── analyze.py                   <- 分析層：主力成本 + 燈號評分
+│   ├── signals.py                   <- 買賣訊號層：均線交叉／評分轉換／主力成本防守價
 │   ├── generate_dashboard.py        <- 呈現層：套版產出 HTML
 │   └── daily_update.py              <- 主排程入口
 ├── templates/
 │   └── dashboard_template.html      <- 視覺化樣板（比照你的截圖版型）
-├── output/                          <- 產出的 HTML 與快取 CSV（含本次示範儀表板）
+├── output/                          <- 產出的 HTML 與快取 CSV（每次執行重新產生，不需要保留歷史）
+├── state/                           <- 買賣訊號的跨日狀態記錄（會被 git commit，需要長期保留）
 └── .github/workflows/
-    └── daily_update.yml             <- GitHub Actions 每日19:00排程
+    └── daily_update.yml             <- GitHub Actions 每日19:00排程 + 發布 Pages
 ```

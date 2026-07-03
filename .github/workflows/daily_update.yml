@@ -1,0 +1,50 @@
+name: 每日收盤後更新台股儀表板
+
+on:
+  schedule:
+    # 19:00 台北時間(UTC+8) = 11:00 UTC，週一到週五（台股交易日近似值，國定假日仍會空跑但無害）
+    - cron: "0 11 * * 1-5"
+  workflow_dispatch: {}  # 允許手動在 GitHub Actions 頁面按一下立即執行
+
+permissions:
+  contents: write
+
+jobs:
+  update-dashboard:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Write config from secrets
+        env:
+          FINMIND_TOKEN: ${{ secrets.FINMIND_TOKEN }}
+        run: |
+          python - <<'EOF'
+          import os, yaml
+          with open("config/config.example.yaml") as f:
+              cfg = yaml.safe_load(f)
+          cfg["finmind"]["token"] = os.environ["FINMIND_TOKEN"]
+          with open("config/config.yaml", "w") as f:
+              yaml.safe_dump(cfg, f, allow_unicode=True)
+          EOF
+
+      - name: Run daily update (fetch -> analyze -> render)
+        working-directory: scripts
+        run: python daily_update.py --config ../config/config.yaml
+
+      - name: Commit dashboard to docs/ (GitHub Pages)
+        run: |
+          git config user.name "dashboard-bot"
+          git config user.email "dashboard-bot@users.noreply.github.com"
+          git add docs/ || true
+          git diff --cached --quiet || git commit -m "chore: 自動更新台股儀表板 $(date -u +%Y-%m-%d)"
+          git push

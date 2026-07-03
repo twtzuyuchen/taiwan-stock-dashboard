@@ -93,7 +93,7 @@ def fetch_all(stock_id: str, config: dict, cache_dir: str = "output/cache") -> d
         "per": chip_start,
     }
 
-Path(cache_dir).mkdir(parents=True, exist_ok=True)
+    Path(cache_dir).mkdir(parents=True, exist_ok=True)
     result = {}
     for key, dataset in DATASETS.items():
         try:

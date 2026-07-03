@@ -84,20 +84,4 @@ def run(config_path: str, demo: bool = False) -> None:
     out_cfg = config.get("output", {})
     if out_cfg.get("publish_github_pages"):
         import shutil
-        pages_dir = Path(out_cfg.get("github_pages_dir", "docs"))
-        pages_dir.mkdir(parents=True, exist_ok=True)
-        for html_file in Path(output_dir).glob("*.html"):
-            shutil.copy(html_file, pages_dir / html_file.name)
-        print(f"已同步輸出到 {pages_dir}/（可搭配 GitHub Pages 發佈）")
-
-
-def main():
-    parser = argparse.ArgumentParser(description="每日收盤後總排程：抓資料→分析→產出儀表板")
-    parser.add_argument("--config", default="config/config.yaml")
-    parser.add_argument("--demo", action="store_true")
-    args = parser.parse_args()
-    run(args.config, demo=args.demo)
-
-
-if __name__ == "__main__":
-    main()
+        pages_dir

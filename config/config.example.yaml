@@ -21,6 +21,11 @@ watchlist:
     risk_preference: "穩健"
     holding: true
     analysis_period: "3-6個月"
+  - stock_id: "6770"
+    name: "力積電"
+    risk_preference: "積極"
+    holding: false
+    analysis_period: "1-3個月"
 
 scoring:
   # 綜合評分權重（總和建議 = 1.0）

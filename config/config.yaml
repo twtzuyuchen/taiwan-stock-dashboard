@@ -1,0 +1,40 @@
+# ============================================================
+# 台股波段 AI Agent 儀表板 — 設定檔範例
+# 複製為 config.yaml 並填入你自己的金鑰 / 追蹤清單
+# ============================================================
+
+finmind:
+  # 註冊 https://finmindtrade.com 取得 token（免費會員即可，額度較高）
+  token: "YOUR_FINMIND_TOKEN"
+  # 近兩週主力成本計算用的回溯交易日數（10 個交易日 ≈ 2 週）
+  lookback_trading_days: 10
+
+watchlist:
+  # 每檔股票的代號、名稱、風險偏好、持股狀態
+  - stock_id: "2618"
+    name: "長榮航"
+    risk_preference: "積極"
+    holding: false
+    analysis_period: "1-3個月"
+  - stock_id: "2330"
+    name: "台積電"
+    risk_preference: "穩健"
+    holding: true
+    analysis_period: "3-6個月"
+
+scoring:
+  # 綜合評分權重（總和建議 = 1.0）
+  weights:
+    chip_cleanliness: 0.25      # 籌碼乾淨度
+    institutional_position: 0.30 # 主力布局分數
+    technical_trend: 0.20       # 技術趨勢
+    fundamental: 0.25           # 基本面催化
+  thresholds:
+    green: 70   # 分數 >= 70 顯示綠燈
+    yellow: 40  # 40~69 顯示黃燈，< 40 顯示紅燈
+
+output:
+  dashboard_dir: "output"
+  # 是否同時輸出 GitHub Pages 用的 docs/index.html
+  publish_github_pages: true
+  github_pages_dir: "docs"

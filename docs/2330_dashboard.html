@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>2330 台積電 台股波段 AI Agent 儀表板</title>
+<style>
+  :root {
+    --surface-1:      #fcfcfb;
+    --page-plane:     #f9f9f7;
+    --text-primary:   #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted:     #898781;
+    --gridline:       #e1e0d9;
+    --border:         rgba(11,11,11,0.10);
+    --good:           #0ca30c;
+    --good-bg:        #e4f6e4;
+    --warning:        #fab219;
+    --warning-bg:     #fff4de;
+    --critical:       #d03b3b;
+    --critical-bg:    #fbe6e6;
+    --blue:           #2a78d6;
+    --blue-bg:        #eaf2fc;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 32px 20px 60px;
+    background: var(--page-plane);
+    color: var(--text-primary);
+    font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans TC", sans-serif;
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; }
+  .card {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin-bottom: 20px;
+  }
+  .header-grid {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap: 20px;
+  }
+  @media (max-width: 760px) { .header-grid { grid-template-columns: 1fr; } }
+  .eyebrow { font-size: 13px; color: var(--text-secondary); margin-bottom: 6px; }
+  .title-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .title-row h1 { font-size: 26px; margin: 0; }
+  .tag {
+    display: inline-block;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 999px;
+    background: var(--good-bg);
+    color: var(--good);
+  }
+  .tag.caution { background: var(--warning-bg); color: #8a5a00; }
+  .tag.avoid { background: var(--critical-bg); color: var(--critical); }
+  .meta { margin-top: 12px; font-size: 14px; color: var(--text-secondary); line-height: 1.9; }
+  .meta b { color: var(--text-primary); font-weight: 600; }
+  .infotable { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  .infotable td { padding: 6px 4px; border-bottom: 1px solid var(--gridline); }
+  .infotable td.k { color: var(--text-secondary); width: 55%; }
+  .infotable td.v { text-align: right; font-weight: 600; }
+  h2 { font-size: 17px; margin: 0 0 16px; }
+  .score-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px 24px;
+  }
+  @media (max-width: 760px) { .score-grid { grid-template-columns: repeat(2, 1fr); } }
+  .score-item .label { font-size: 13px; color: var(--text-secondary); margin-bottom: 6px; }
+  .score-value { display: flex; align-items: center; gap: 8px; }
+  .score-value .num { font-size: 22px; font-weight: 700; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; flex: none; }
+  .dot.green { background: var(--good); }
+  .dot.yellow { background: var(--warning); }
+  .dot.red { background: var(--critical); }
+  .pill {
+    font-size: 13px; font-weight: 700; padding: 3px 10px; border-radius: 999px;
+  }
+  .pill.green { background: var(--good-bg); color: var(--good); }
+  .pill.yellow { background: var(--warning-bg); color: #8a5a00; }
+  .pill.red { background: var(--critical-bg); color: var(--critical); }
+
+  .light-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 12px;
+  }
+  @media (max-width: 900px) { .light-grid { grid-template-columns: repeat(4, 1fr); } }
+  @media (max-width: 560px) { .light-grid { grid-template-columns: repeat(2, 1fr); } }
+  .light-item {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 10px;
+    text-align: center;
+  }
+  .light-item .name { font-size: 12.5px; color: var(--text-secondary); margin-bottom: 10px; }
+  .light-item .dot { margin: 0 auto 8px; }
+  .light-item .status { font-size: 13.5px; font-weight: 700; }
+  .light-item .status.green { color: var(--good); }
+  .light-item .status.yellow { color: #8a5a00; }
+  .light-item .status.red { color: var(--critical); }
+
+  .cost-panel {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-top: 4px;
+  }
+  @media (max-width: 760px) { .cost-panel { grid-template-columns: repeat(2, 1fr); } }
+  .cost-item { background: var(--blue-bg); border-radius: 10px; padding: 14px 16px; }
+  .cost-item .label { font-size: 12.5px; color: var(--text-secondary); margin-bottom: 6px; }
+  .cost-item .value { font-size: 20px; font-weight: 700; color: var(--blue); }
+  .cost-item .value.pos { color: var(--good); }
+  .cost-item .value.neg { color: var(--critical); }
+
+  .footnote { font-size: 12.5px; color: var(--text-muted); line-height: 1.8; margin-top: 8px; }
+  .demo-banner {
+    background: var(--warning-bg);
+    color: #8a5a00;
+    border: 1px solid var(--warning);
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-size: 13px;
+    margin-bottom: 20px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  
+  <div class="demo-banner">⚠ 這是示範資料（非即時真實行情），僅用於展示儀表板版型與計算邏輯。接上 FinMind token 並於可連外環境執行 fetch_data.py 後，會顯示真實數據。</div>
+  
+
+  <div class="card header-grid">
+    <div>
+      <div class="eyebrow">台股波段 AI Agent HTML 圖像化報告</div>
+      <div class="title-row">
+        <h1>2330 台積電</h1>
+        <span class="tag ">建議布局</span>
+      </div>
+      <div class="meta">
+        分析週期：3-6個月｜風險偏好：穩健｜持股狀態：是｜產出時間：2026-07-03 12:15
+      </div>
+    </div>
+    <div>
+      <table class="infotable">
+        
+        <tr><td class="k">股價日期</td><td class="v">2026-07-03</td></tr>
+        
+        <tr><td class="k">融資日期</td><td class="v">2026-07-03</td></tr>
+        
+        <tr><td class="k">法人日期</td><td class="v">2026-07-03</td></tr>
+        
+        <tr><td class="k">籌碼分佈 CSV 日期</td><td class="v">2026-07-03</td></tr>
+        
+        <tr><td class="k">經營績效 CSV 日期</td><td class="v">2026-07-03</td></tr>
+        
+        <tr><td class="k">SIGNAL_SUMMARY</td><td class="v">2026-07-03T12:15:36</td></tr>
+        
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>1. 總控視覺儀表板</h2>
+    <div class="score-grid">
+      <div class="score-item">
+        <div class="label">綜合評分</div>
+        <div class="score-value"><span class="num">89/100</span><span class="dot green"></span></div>
+      </div>
+      <div class="score-item">
+        <div class="label">風險等級</div>
+        <div class="score-value"><span class="pill green">低</span></div>
+      </div>
+      <div class="score-item">
+        <div class="label">籌碼乾淨度</div>
+        <div class="score-value"><span class="num">100/100</span><span class="dot green"></span></div>
+      </div>
+      <div class="score-item">
+        <div class="label">主力布局分數</div>
+        <div class="score-value"><span class="num">92/100</span><span class="dot green"></span></div>
+      </div>
+      <div class="score-item">
+        <div class="label">技術趨勢</div>
+        <div class="score-value"><span class="pill yellow">偏多</span></div>
+      </div>
+      <div class="score-item">
+        <div class="label">技術線型</div>
+        <div class="score-value"><span class="pill green">良好</span></div>
+      </div>
+      <div class="score-item">
+        <div class="label">長期均線乖離</div>
+        <div class="score-value"><span class="pill green">安全</span></div>
+      </div>
+      <div class="score-item">
+        <div class="label">基本面催化</div>
+        <div class="score-value"><span class="pill green">良好</span></div>
+      </div>
+    </div>
+    <div class="footnote">
+      資料來源：FinMind TaiwanStockPrice / Margin / Institutional / Revenue / PER / FinancialStatements / BalanceSheet；
+      本地快取：2330_price.csv、2330_institutional.csv、2330_margin.csv 等（見 output/cache/）。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>2. 近兩週主力（三大法人）持倉成本分析</h2>
+    <div class="cost-panel">
+      <div class="cost-item">
+        <div class="label">估算主力成本</div>
+        <div class="value">68.40 元</div>
+      </div>
+      <div class="cost-item">
+        <div class="label">現價</div>
+        <div class="value">71.20 元</div>
+      </div>
+      <div class="cost-item">
+        <div class="label">浮盈／浮虧</div>
+        <div class="value pos">+4.09%</div>
+      </div>
+      <div class="cost-item">
+        <div class="label">近 10 交易日買超天數</div>
+        <div class="value">7 / 10 天</div>
+      </div>
+    </div>
+    <div class="footnote">
+      計算方式：僅加總近 10 個交易日中「三大法人淨買超」的交易日，以「淨買超股數 × 當日收盤價」加權平均，
+      估算主力目前平均持倉成本；非交易所公開之真實成交均價，僅供研判參考。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>3. 籌碼與技術風險燈號</h2>
+    <div class="light-grid">
+      
+      <div class="light-item">
+        <div class="name">融資浮額清洗</div>
+        <div class="dot green"></div>
+        <div class="status green">良好</div>
+      </div>
+      
+      <div class="light-item">
+        <div class="name">籌碼集中度</div>
+        <div class="dot green"></div>
+        <div class="status green">良好</div>
+      </div>
+      
+      <div class="light-item">
+        <div class="name">主力承接</div>
+        <div class="dot green"></div>
+        <div class="status green">良好</div>
+      </div>
+      
+      <div class="light-item">
+        <div class="name">技術趨勢</div>
+        <div class="dot yellow"></div>
+        <div class="status yellow">留意</div>
+      </div>
+      
+      <div class="light-item">
+        <div class="name">長期均線乖離</div>
+        <div class="dot green"></div>
+        <div class="status green">安全</div>
+      </div>
+      
+      <div class="light-item">
+        <div class="name">基本面催化</div>
+        <div class="dot green"></div>
+        <div class="status green">良好</div>
+      </div>
+      
+      <div class="light-item">
+        <div class="name">綜合風險</div>
+        <div class="dot green"></div>
+        <div class="status green">良好</div>
+      </div>
+      
+    </div>
+    <div class="footnote">評分限制：未觸發主力中期或基本面限制</div>
+  </div>
+
+</div>
+</body>
+</html>

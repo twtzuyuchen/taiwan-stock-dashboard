@@ -11,13 +11,23 @@ finmind:
 
 watchlist:
   # 每檔股票的代號、名稱、風險偏好、持股狀態
-  - stock_id: "2618"
-    name: "長榮航"
+  - stock_id: "2303"
+    name: "聯電"
     risk_preference: "積極"
     holding: false
     analysis_period: "1-3個月"
   - stock_id: "2330"
     name: "台積電"
+    risk_preference: "穩健"
+    holding: true
+    analysis_period: "3-6個月"
+  - stock_id: "8112"
+    name: "至上"
+    risk_preference: "穩健"
+    holding: true
+    analysis_period: "3-6個月"
+  - stock_id: "0050"
+    name: "元大台灣50"
     risk_preference: "穩健"
     holding: true
     analysis_period: "3-6個月"

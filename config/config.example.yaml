@@ -11,10 +11,10 @@ finmind:
 
 watchlist:
   # 每檔股票的代號、名稱、風險偏好、持股狀態
-  - stock_id: "2618"
-    name: "長榮航"
+  - stock_id: "2303"
+    name: "聯電"
     risk_preference: "積極"
-    holding: false
+    holding: true
     analysis_period: "1-3個月"
   - stock_id: "2330"
     name: "台積電"

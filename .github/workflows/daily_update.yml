@@ -2,16 +2,24 @@ name: 每日收盤後更新台股儀表板
 
 on:
   schedule:
-    # 19:00 台北時間(UTC+8) = 11:00 UTC，週一到週五（台股交易日近似值，國定假日仍會空跑但無害）
     - cron: "0 11 * * 1-5"
-  workflow_dispatch: {}  # 允許手動在 GitHub Actions 頁面按一下立即執行
+  workflow_dispatch: {}
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
 
 jobs:
   update-dashboard:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -40,10 +48,19 @@ jobs:
       - name: Run daily update (fetch -> analyze -> render)
         run: python scripts/daily_update.py --config config/config.yaml
 
-      - name: Commit dashboard to docs/ (GitHub Pages)
+      - name: Commit dashboard to docs/ (repo history)
         run: |
           git config user.name "dashboard-bot"
           git config user.email "dashboard-bot@users.noreply.github.com"
           git add docs/ || true
           git diff --cached --quiet || git commit -m "chore: 自動更新台股儀表板 $(date -u +%Y-%m-%d)"
           git push
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

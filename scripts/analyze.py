@@ -27,6 +27,8 @@ import numpy as np
 import pandas as pd
 import yaml
 
+from signals import compute_all_signals
+
 
 def _read_cache(cache_dir: str, stock_id: str, key: str) -> pd.DataFrame:
     path = Path(cache_dir) / f"{stock_id}_{key}.csv"
@@ -163,7 +165,8 @@ def score_to_light(score: int, thresholds: dict) -> str:
     return "red"
 
 
-def analyze_stock(stock_id: str, config: dict, cache_dir: str = "output/cache") -> dict:
+def analyze_stock(stock_id: str, config: dict, cache_dir: str = "output/cache",
+                   state_dir: str = "state") -> dict:
     scoring = config.get("scoring", {})
     weights = scoring.get("weights", {})
     thresholds = scoring.get("thresholds", {"green": 70, "yellow": 40})
@@ -190,6 +193,16 @@ def analyze_stock(stock_id: str, config: dict, cache_dir: str = "output/cache") 
 
     risk_level = "低" if composite >= 70 else ("中" if composite >= 40 else "高")
 
+    signals = compute_all_signals(
+        stock_id=stock_id,
+        price_df=price_df,
+        composite_score=composite,
+        current_price=inst_cost.get("current_price"),
+        inst_cost=inst_cost.get("cost"),
+        thresholds=thresholds,
+        state_dir=state_dir,
+    )
+
     return {
         "stock_id": stock_id,
         "composite_score": composite,
@@ -198,6 +211,7 @@ def analyze_stock(stock_id: str, config: dict, cache_dir: str = "output/cache") 
         "institutional_position": {**inst_cost, "light": score_to_light(inst_cost["score"], thresholds)},
         "technical": {**tech, "light": score_to_light(tech["score"], thresholds)},
         "fundamental": {**fund, "light": score_to_light(fund["score"], thresholds)},
+        "signals": signals,
     }
 
 
@@ -206,15 +220,3 @@ def main():
     parser.add_argument("--config", default="config/config.yaml")
     parser.add_argument("--stock", required=True)
     parser.add_argument("--cache-dir", default="output/cache")
-    args = parser.parse_args()
-
-    with open(args.config, "r", encoding="utf-8") as f:
-        config = yaml.safe_load(f)
-
-    result = analyze_stock(args.stock, config, args.cache_dir)
-    import json
-    print(json.dumps(result, ensure_ascii=False, indent=2))
-
-
-if __name__ == "__main__":
-    main()

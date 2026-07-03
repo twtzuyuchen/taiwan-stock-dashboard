@@ -38,8 +38,7 @@ jobs:
           EOF
 
       - name: Run daily update (fetch -> analyze -> render)
-        working-directory: scripts
-        run: python daily_update.py --config ../config/config.yaml
+        run: python scripts/daily_update.py --config config/config.yaml
 
       - name: Commit dashboard to docs/ (GitHub Pages)
         run: |

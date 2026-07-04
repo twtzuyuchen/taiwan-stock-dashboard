@@ -149,6 +149,30 @@
 
   .footnote { font-size: 12.5px; color: var(--text-muted); line-height: 1.8; margin-top: 8px; }
   .chip-breakdown { font-size: 12px; color: var(--text-muted); margin-top: 4px; line-height: 1.5; }
+
+  .profile-grid { display: grid; grid-template-columns: 1fr 1.4fr 1.4fr; gap: 16px; }
+  @media (max-width: 760px) { .profile-grid { grid-template-columns: 1fr; } }
+  .profile-item .label { font-size: 12.5px; color: var(--text-secondary); margin-bottom: 6px; font-weight: 600; }
+  .profile-item .value { font-size: 13.5px; line-height: 1.7; color: var(--text-primary); }
+
+  .valuation-banner {
+    background: var(--blue-bg); color: var(--blue); border-radius: 8px;
+    padding: 8px 14px; font-size: 12.5px; margin-bottom: 16px;
+  }
+  .valuation-panel { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  @media (max-width: 760px) { .valuation-panel { grid-template-columns: 1fr; } }
+  .valuation-item { border-radius: 10px; padding: 16px 18px; text-align: center; }
+  .valuation-item.pessimistic { background: var(--critical-bg); }
+  .valuation-item.steady { background: var(--blue-bg); }
+  .valuation-item.optimistic { background: var(--good-bg); }
+  .valuation-item .label { font-size: 13px; color: var(--text-secondary); margin-bottom: 8px; }
+  .valuation-item .price { font-size: 26px; font-weight: 700; }
+  .valuation-item.pessimistic .price { color: var(--critical); }
+  .valuation-item.steady .price { color: var(--blue); }
+  .valuation-item.optimistic .price { color: var(--good); }
+  .valuation-unavailable {
+    padding: 16px 18px; border-radius: 10px; background: var(--warning-bg); color: #8a5a00; font-size: 13.5px;
+  }
   .demo-banner {
     background: var(--warning-bg);
     color: #8a5a00;
@@ -173,7 +197,7 @@
         <span class="tag caution">區間操作</span>
       </div>
       <div class="meta">
-        分析週期：1-3個月｜風險偏好：積極｜持股狀態：是｜產出時間：2026-07-04 04:47
+        分析週期：1-3個月｜風險偏好：積極｜持股狀態：是｜產出時間：2026-07-04 12:01
       </div>
     </div>
     <div>
@@ -189,10 +213,29 @@
         
         <tr><td class="k">經營績效 CSV 日期</td><td class="v">2026-07-04</td></tr>
         
-        <tr><td class="k">SIGNAL_SUMMARY</td><td class="v">2026-07-04T04:47:47</td></tr>
+        <tr><td class="k">SIGNAL_SUMMARY</td><td class="v">2026-07-04T12:01:33</td></tr>
         
       </table>
     </div>
+  </div>
+
+  <div class="card">
+    <h2>產業資訊</h2>
+    <div class="profile-grid">
+      <div class="profile-item">
+        <div class="label">所屬族群</div>
+        <div class="value">半導體－晶圓代工</div>
+      </div>
+      <div class="profile-item">
+        <div class="label">主要涉及業務</div>
+        <div class="value">全球第三大專業晶圓代工廠（Pure-play Foundry），提供22/28奈米等成熟與特殊製程晶圓代工服務，客戶為全球無晶圓廠（fabless）IC設計公司。</div>
+      </div>
+      <div class="profile-item">
+        <div class="label">與美國公司業務關聯</div>
+        <div class="value">2024年起與美國英特爾（Intel）宣布策略合作，共同開發12奈米等級製程，英特爾並授權超級電容等技術給聯電；晶圓代工客戶中包含多家美國IC設計公司；於紐約證交所掛牌ADR（代號UMC）。</div>
+      </div>
+    </div>
+    <div class="footnote">此區塊為人工整理的靜態公司背景資訊，非每日自動更新；資料維護於 config.yaml 該檔股票的 sector／business_summary／us_relation 欄位，異動時請自行更新。</div>
   </div>
 
   <div class="card">
@@ -200,7 +243,7 @@
     <div class="score-grid">
       <div class="score-item">
         <div class="label">綜合評分</div>
-        <div class="score-value"><span class="num">45/100</span><span class="dot yellow"></span></div>
+        <div class="score-value"><span class="num">51/100</span><span class="dot yellow"></span></div>
       </div>
       <div class="score-item">
         <div class="label">風險等級</div>
@@ -217,7 +260,7 @@
       </div>
       <div class="score-item">
         <div class="label">技術趨勢</div>
-        <div class="score-value"><span class="pill yellow">資料不足</span></div>
+        <div class="score-value"><span class="pill green">偏多</span></div>
       </div>
       <div class="score-item">
         <div class="label">技術線型</div>
@@ -225,7 +268,7 @@
       </div>
       <div class="score-item">
         <div class="label">長期均線乖離</div>
-        <div class="score-value"><span class="pill green">安全</span></div>
+        <div class="score-value"><span class="pill red">偏離過大</span></div>
       </div>
       <div class="score-item">
         <div class="label">基本面催化</div>
@@ -266,7 +309,34 @@
   </div>
 
   <div class="card">
-    <h2>3. 籌碼與技術風險燈號</h2>
+    <h2>3. 未來一年價格情境估算</h2>
+    <div class="valuation-banner">⚠ 以下三個價位是量化「本益比河流圖」模型估算結果，並非分析師報告或市場共識目標價，僅供研判參考。</div>
+    
+    <div class="valuation-panel">
+      <div class="valuation-item pessimistic">
+        <div class="label">悲觀價</div>
+        <div class="price">44.6</div>
+      </div>
+      <div class="valuation-item steady">
+        <div class="label">穩健價</div>
+        <div class="price">57.6</div>
+      </div>
+      <div class="valuation-item optimistic">
+        <div class="label">樂觀價</div>
+        <div class="price">68.5</div>
+      </div>
+    </div>
+    <div class="footnote">
+      計算方式：近四季EPS合計 4.0 元，以近12個月營收年增率（17.8%，已限制在 ±30% 內避免失真）
+      估算未來一年EPS為 4.71 元；再用近 730 筆本益比歷史資料的
+      20% / 50% / 80% 分位數（9.5 / 12.2 / 14.5 倍）分別相乘，
+      得出悲觀價／穩健價／樂觀價三種情境。
+    </div>
+    
+  </div>
+
+  <div class="card">
+    <h2>4. 籌碼與技術風險燈號</h2>
     <div class="light-grid">
       
       <div class="light-item">
@@ -289,14 +359,14 @@
       
       <div class="light-item">
         <div class="name">技術趨勢</div>
-        <div class="dot yellow"></div>
-        <div class="status yellow">留意</div>
+        <div class="dot green"></div>
+        <div class="status green">良好</div>
       </div>
       
       <div class="light-item">
         <div class="name">長期均線乖離</div>
-        <div class="dot green"></div>
-        <div class="status green">安全</div>
+        <div class="dot red"></div>
+        <div class="status red">偏離過大</div>
       </div>
       
       <div class="light-item">
@@ -312,11 +382,11 @@
       </div>
       
     </div>
-    <div class="footnote">評分限制：評分受基本面／籌碼轉弱限制，建議降低部位</div>
+    <div class="footnote">評分限制：未觸發主力中期或基本面限制</div>
   </div>
 
   <div class="card">
-    <h2>4. 買賣訊號</h2>
+    <h2>5. 買賣訊號</h2>
     <div class="signal-grid">
       
       <div class="signal-card  neutral">

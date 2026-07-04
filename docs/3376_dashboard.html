@@ -149,6 +149,30 @@
 
   .footnote { font-size: 12.5px; color: var(--text-muted); line-height: 1.8; margin-top: 8px; }
   .chip-breakdown { font-size: 12px; color: var(--text-muted); margin-top: 4px; line-height: 1.5; }
+
+  .profile-grid { display: grid; grid-template-columns: 1fr 1.4fr 1.4fr; gap: 16px; }
+  @media (max-width: 760px) { .profile-grid { grid-template-columns: 1fr; } }
+  .profile-item .label { font-size: 12.5px; color: var(--text-secondary); margin-bottom: 6px; font-weight: 600; }
+  .profile-item .value { font-size: 13.5px; line-height: 1.7; color: var(--text-primary); }
+
+  .valuation-banner {
+    background: var(--blue-bg); color: var(--blue); border-radius: 8px;
+    padding: 8px 14px; font-size: 12.5px; margin-bottom: 16px;
+  }
+  .valuation-panel { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  @media (max-width: 760px) { .valuation-panel { grid-template-columns: 1fr; } }
+  .valuation-item { border-radius: 10px; padding: 16px 18px; text-align: center; }
+  .valuation-item.pessimistic { background: var(--critical-bg); }
+  .valuation-item.steady { background: var(--blue-bg); }
+  .valuation-item.optimistic { background: var(--good-bg); }
+  .valuation-item .label { font-size: 13px; color: var(--text-secondary); margin-bottom: 8px; }
+  .valuation-item .price { font-size: 26px; font-weight: 700; }
+  .valuation-item.pessimistic .price { color: var(--critical); }
+  .valuation-item.steady .price { color: var(--blue); }
+  .valuation-item.optimistic .price { color: var(--good); }
+  .valuation-unavailable {
+    padding: 16px 18px; border-radius: 10px; background: var(--warning-bg); color: #8a5a00; font-size: 13.5px;
+  }
   .demo-banner {
     background: var(--warning-bg);
     color: #8a5a00;
@@ -173,7 +197,7 @@
         <span class="tag caution">區間操作</span>
       </div>
       <div class="meta">
-        分析週期：3-6個月｜風險偏好：穩健｜持股狀態：是｜產出時間：2026-07-04 04:48
+        分析週期：3-6個月｜風險偏好：穩健｜持股狀態：是｜產出時間：2026-07-04 12:02
       </div>
     </div>
     <div>
@@ -189,10 +213,29 @@
         
         <tr><td class="k">經營績效 CSV 日期</td><td class="v">2026-07-04</td></tr>
         
-        <tr><td class="k">SIGNAL_SUMMARY</td><td class="v">2026-07-04T04:48:27</td></tr>
+        <tr><td class="k">SIGNAL_SUMMARY</td><td class="v">2026-07-04T12:02:07</td></tr>
         
       </table>
     </div>
+  </div>
+
+  <div class="card">
+    <h2>產業資訊</h2>
+    <div class="profile-grid">
+      <div class="profile-item">
+        <div class="label">所屬族群</div>
+        <div class="value">電子零組件－精密機構件</div>
+      </div>
+      <div class="profile-item">
+        <div class="label">主要涉及業務</div>
+        <div class="value">全球NB（筆記型電腦）樞紐龍頭，主要經營各類精密彈簧、沖製件、樞紐組件及金屬射出成型（MIM）研發設計與製造，應用於筆記型電腦、LCD液晶螢幕、數位相機等電子產品。</div>
+      </div>
+      <div class="profile-item">
+        <div class="label">與美國公司業務關聯</div>
+        <div class="value">終端應用產品（筆電、顯示器）之品牌客戶多為全球主要NB大廠，公開資料未逐一列名個別美國品牌客戶名稱；營運與折疊裝置、筆電市況等全球（含美系品牌）需求連動。</div>
+      </div>
+    </div>
+    <div class="footnote">此區塊為人工整理的靜態公司背景資訊，非每日自動更新；資料維護於 config.yaml 該檔股票的 sector／business_summary／us_relation 欄位，異動時請自行更新。</div>
   </div>
 
   <div class="card">
@@ -200,7 +243,7 @@
     <div class="score-grid">
       <div class="score-item">
         <div class="label">綜合評分</div>
-        <div class="score-value"><span class="num">47/100</span><span class="dot yellow"></span></div>
+        <div class="score-value"><span class="num">41/100</span><span class="dot yellow"></span></div>
       </div>
       <div class="score-item">
         <div class="label">風險等級</div>
@@ -217,7 +260,7 @@
       </div>
       <div class="score-item">
         <div class="label">技術趨勢</div>
-        <div class="score-value"><span class="pill yellow">資料不足</span></div>
+        <div class="score-value"><span class="pill red">偏空</span></div>
       </div>
       <div class="score-item">
         <div class="label">技術線型</div>
@@ -266,7 +309,34 @@
   </div>
 
   <div class="card">
-    <h2>3. 籌碼與技術風險燈號</h2>
+    <h2>3. 未來一年價格情境估算</h2>
+    <div class="valuation-banner">⚠ 以下三個價位是量化「本益比河流圖」模型估算結果，並非分析師報告或市場共識目標價，僅供研判參考。</div>
+    
+    <div class="valuation-panel">
+      <div class="valuation-item pessimistic">
+        <div class="label">悲觀價</div>
+        <div class="price">16.1</div>
+      </div>
+      <div class="valuation-item steady">
+        <div class="label">穩健價</div>
+        <div class="price">20.8</div>
+      </div>
+      <div class="valuation-item optimistic">
+        <div class="label">樂觀價</div>
+        <div class="price">38.3</div>
+      </div>
+    </div>
+    <div class="footnote">
+      計算方式：近四季EPS合計 0.68 元，以近12個月營收年增率（-16.7%，已限制在 ±30% 內避免失真）
+      估算未來一年EPS為 0.57 元；再用近 730 筆本益比歷史資料的
+      20% / 50% / 80% 分位數（28.5 / 36.7 / 67.6 倍）分別相乘，
+      得出悲觀價／穩健價／樂觀價三種情境。
+    </div>
+    
+  </div>
+
+  <div class="card">
+    <h2>4. 籌碼與技術風險燈號</h2>
     <div class="light-grid">
       
       <div class="light-item">
@@ -289,8 +359,8 @@
       
       <div class="light-item">
         <div class="name">技術趨勢</div>
-        <div class="dot yellow"></div>
-        <div class="status yellow">留意</div>
+        <div class="dot red"></div>
+        <div class="status red">警示</div>
       </div>
       
       <div class="light-item">
@@ -316,7 +386,7 @@
   </div>
 
   <div class="card">
-    <h2>4. 買賣訊號</h2>
+    <h2>5. 買賣訊號</h2>
     <div class="signal-grid">
       
       <div class="signal-card  neutral">

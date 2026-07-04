@@ -264,6 +264,105 @@ def compute_fundamental(revenue_df: pd.DataFrame, per_df: pd.DataFrame) -> dict:
     }
 
 
+def _sum_recent_quarterly_eps(financial_df: pd.DataFrame, quarters: int = 4) -> float | None:
+    """從 TaiwanStockFinancialStatements（long format：date/stock_id/type/value/origin_name）
+    取出 type == "EPS" 的季度資料，加總最近 N 季（預設 4 季，即近四季 TTM）。
+    資料不足 N 季時回傳 None，不用不完整的季數硬湊。"""
+    if financial_df.empty:
+        return None
+    if not {"date", "type", "value"}.issubset(financial_df.columns):
+        return None
+
+    eps_rows = financial_df[financial_df["type"] == "EPS"].copy()
+    if eps_rows.empty:
+        return None
+
+    eps_rows = eps_rows.sort_values("date").tail(quarters)
+    if len(eps_rows) < quarters:
+        return None
+
+    return float(eps_rows["value"].astype(float).sum())
+
+
+def compute_valuation_band(price_df: pd.DataFrame, per_df: pd.DataFrame, revenue_df: pd.DataFrame,
+                            financial_df: pd.DataFrame, detail_config: dict | None = None) -> dict:
+    """未來一年樂觀價／穩健價／悲觀價 —— 量化「本益比河流圖」模型估算，非分析師報告或共識目標價。
+
+    做法：
+    1) 用 TaiwanStockFinancialStatements 近 4 季 EPS 加總，得出近四季(TTM)每股盈餘。
+    2) 用月營收年增率（近12個月 vs 前12個月，與基本面卡片同一算法）當作未來一年獲利成長的
+       粗略假設，估算「預估未來一年EPS」= TTM EPS ×(1 + 年增率)；年增率會做極端值裁切
+       （預設 ±30%），避免單月營收暴衝暴縮導致估價失真。
+    3) 用 TaiwanStockPER 歷史資料算出本益比的低/中/高分位數（預設 20% / 50% / 80%），
+       分別乘上預估未來一年EPS，得到悲觀價／穩健價／樂觀價。
+    任一步驟資料不足（EPS 不足4季、公司虧損、PER 歷史樣本太少）就回傳 available=False
+    並附上具體原因，不會硬湊出看起來合理但其實沒有統計意義的數字。"""
+    detail_config = detail_config or {}
+    low_pct = detail_config.get("per_percentile_low", 20)
+    mid_pct = detail_config.get("per_percentile_mid", 50)
+    high_pct = detail_config.get("per_percentile_high", 80)
+    growth_cap = detail_config.get("growth_rate_cap_pct", 30)
+    min_per_samples = detail_config.get("min_per_samples", 60)
+
+    current_price = None
+    if not price_df.empty and "close" in price_df.columns:
+        current_price = float(price_df.sort_values("date")["close"].iloc[-1])
+
+    eps_ttm = _sum_recent_quarterly_eps(financial_df)
+    if eps_ttm is None:
+        return {"available": False,
+                "reason": "近四季EPS資料不足（需要 TaiwanStockFinancialStatements 至少4季資料）",
+                "current_price": current_price}
+    if eps_ttm <= 0:
+        return {"available": False,
+                "reason": f"近四季EPS加總為 {round(eps_ttm, 2)}（虧損或轉盈虧邊緣），本益比模型不適用",
+                "current_price": current_price, "eps_ttm": round(eps_ttm, 2)}
+
+    growth_pct = None
+    if not revenue_df.empty and "revenue" in revenue_df.columns:
+        rdf = revenue_df.sort_values("date")
+        if len(rdf) >= 13:
+            latest = rdf["revenue"].iloc[-1]
+            year_ago = rdf["revenue"].iloc[-13]
+            if year_ago:
+                growth_pct = (latest - year_ago) / year_ago * 100
+    growth_pct = 0.0 if growth_pct is None else float(np.clip(growth_pct, -growth_cap, growth_cap))
+    eps_forward = eps_ttm * (1 + growth_pct / 100)
+
+    if per_df.empty or "PER" not in per_df.columns:
+        return {"available": False, "reason": "缺少 TaiwanStockPER 歷史資料",
+                "current_price": current_price, "eps_ttm": round(eps_ttm, 2),
+                "eps_forward": round(eps_forward, 2)}
+
+    pers = per_df["PER"].astype(float)
+    pers = pers[pers > 0].dropna()
+    if len(pers) < min_per_samples:
+        return {"available": False,
+                "reason": f"本益比歷史樣本只有 {len(pers)} 筆，少於門檻 {min_per_samples} 筆，河流圖統計上不夠可靠",
+                "current_price": current_price, "eps_ttm": round(eps_ttm, 2),
+                "eps_forward": round(eps_forward, 2)}
+
+    per_low = float(np.percentile(pers, low_pct))
+    per_mid = float(np.percentile(pers, mid_pct))
+    per_high = float(np.percentile(pers, high_pct))
+
+    return {
+        "available": True,
+        "current_price": current_price,
+        "eps_ttm": round(eps_ttm, 2),
+        "revenue_yoy_pct_used": round(growth_pct, 1),
+        "eps_forward": round(eps_forward, 2),
+        "per_low": round(per_low, 1),
+        "per_mid": round(per_mid, 1),
+        "per_high": round(per_high, 1),
+        "per_sample_size": int(len(pers)),
+        "pessimistic_price": round(per_low * eps_forward, 1),
+        "steady_price": round(per_mid * eps_forward, 1),
+        "optimistic_price": round(per_high * eps_forward, 1),
+        "note": "量化本益比河流模型估算，非分析師報告或共識目標價",
+    }
+
+
 def score_to_light(score: int, thresholds: dict) -> str:
     if score >= thresholds.get("green", 70):
         return "green"
@@ -285,6 +384,7 @@ def analyze_stock(stock_id: str, config: dict, cache_dir: str = "output/cache",
     shareholding_df = _read_cache(cache_dir, stock_id, "shareholding")
     revenue_df = _read_cache(cache_dir, stock_id, "month_revenue")
     per_df = _read_cache(cache_dir, stock_id, "per")
+    financial_df = _read_cache(cache_dir, stock_id, "financial_statements")
 
     inst_cost = compute_institutional_cost(price_df, inst_df, lookback)
     chip = compute_chip_cleanliness(
@@ -293,6 +393,10 @@ def analyze_stock(stock_id: str, config: dict, cache_dir: str = "output/cache",
     )
     tech = compute_technical_trend(price_df)
     fund = compute_fundamental(revenue_df, per_df)
+    valuation = compute_valuation_band(
+        price_df, per_df, revenue_df, financial_df,
+        detail_config=scoring.get("valuation_band_detail", {}),
+    )
 
     composite = (
         chip["score"] * weights.get("chip_cleanliness", 0.25)
@@ -322,6 +426,7 @@ def analyze_stock(stock_id: str, config: dict, cache_dir: str = "output/cache",
         "institutional_position": {**inst_cost, "light": score_to_light(inst_cost["score"], thresholds)},
         "technical": {**tech, "light": score_to_light(tech["score"], thresholds)},
         "fundamental": {**fund, "light": score_to_light(fund["score"], thresholds)},
+        "valuation_band": valuation,
         "signals": signals,
     }
 

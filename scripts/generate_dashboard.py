@@ -122,6 +122,10 @@ def build_context(stock_id: str, stock_name: str, watch_cfg: dict, analysis: dic
         risk_light=composite_light,
         chip_score=chip["score"],
         chip_light=chip["light"],
+        # 籌碼乾淨度細項（任一子項缺資料時為 None，樣板會顯示「—」）
+        chip_momentum_score=chip.get("margin_momentum_score"),
+        chip_utilization_score=chip.get("margin_utilization_score"),
+        chip_holder_score=chip.get("holder_concentration_score"),
         inst_score=inst["score"],
         inst_light=inst["light"],
         trend_text=tech.get("trend", "N/A"),
@@ -169,7 +173,12 @@ def demo_analysis(stock_id: str) -> dict:
         "stock_id": stock_id,
         "composite_score": 89,
         "risk_level": "低",
-        "chip_cleanliness": {"score": 100, "light": "green"},
+        "chip_cleanliness": {
+            "score": 100, "light": "green",
+            "margin_momentum_score": 100, "margin_change_pct": -12.4,
+            "margin_utilization_score": 100, "margin_utilization_pct": 14.2,
+            "holder_concentration_score": 100, "big_holder_pct": 46.8, "big_holder_pct_change": 1.6,
+        },
         "institutional_position": {
             "cost": 68.4, "current_price": 71.2, "unrealized_pct": 4.09,
             "buy_days": 7, "total_days": 10, "score": 92, "light": "green",

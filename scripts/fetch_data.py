@@ -25,14 +25,14 @@ FINMIND_URL = "https://api.finmindtrade.com/api/v4/data"
 
 # 各儀表板區塊對應的 FinMind dataset
 DATASETS = {
-    "price": "TaiwanStockPrice",                          # 股價 OHLCV
-    "margin": "TaiwanStockMarginPurchaseShortSale",        # 融資融券
-    "institutional": "TaiwanStockInstitutionalInvestorsBuySell",  # 三大法人買賣超
-    "shareholding": "TaiwanStockHoldingSharesPer",          # 股權分散表（週資料）
-    "month_revenue": "TaiwanStockMonthRevenue",             # 月營收
-    "financial_statements": "TaiwanStockFinancialStatements",  # 財報（損益）
-    "balance_sheet": "TaiwanStockBalanceSheet",              # 資產負債表
-    "per": "TaiwanStockPER",                                 # 本益比/殖利率/淨值比
+    "price": "TaiwanStockPrice",
+    "margin": "TaiwanStockMarginPurchaseShortSale",
+    "institutional": "TaiwanStockInstitutionalInvestorsBuySell",
+    "shareholding": "TaiwanStockHoldingSharesPer",
+    "month_revenue": "TaiwanStockMonthRevenue",
+    "financial_statements": "TaiwanStockFinancialStatements",
+    "balance_sheet": "TaiwanStockBalanceSheet",
+    "per": "TaiwanStockPER",
 }
 
 
@@ -43,7 +43,6 @@ def load_config(config_path: str) -> dict:
 
 def fetch_dataset(dataset: str, stock_id: str, start_date: str, token: str,
                    retries: int = 3, backoff: float = 1.5) -> pd.DataFrame:
-    """呼叫 FinMind v4 API 並回傳 DataFrame，內建重試與 402(額度用盡)偵測。"""
     params = {
         "dataset": dataset,
         "data_id": stock_id,
@@ -66,7 +65,7 @@ def fetch_dataset(dataset: str, stock_id: str, start_date: str, token: str,
             if payload.get("status") != 200 and "data" not in payload:
                 raise RuntimeError(f"[{dataset}] API 回應異常: {payload.get('msg')}")
             return pd.DataFrame(payload.get("data", []))
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             last_err = e
             if attempt < retries:
                 time.sleep(backoff ** attempt)
@@ -75,12 +74,17 @@ def fetch_dataset(dataset: str, stock_id: str, start_date: str, token: str,
 
 def fetch_all(stock_id: str, config: dict, cache_dir: str = "output/cache") -> dict[str, pd.DataFrame]:
     token = config.get("finmind", {}).get("token", "")
-    lookback_days = config.get("finmind", {}).get("lookback_trading_days", 10)
 
-    # 財務類資料抓長一點的區間（近一年），籌碼類抓近兩個月即可覆蓋兩週分析+比較基期
     today = dt.date.today()
-    chip_start = (today - dt.timedelta(days=60)).isoformat()
+    # 技術面均線(MA60)需要至少60個「交易日」，60個「日曆天」扣掉週末/假日常常不夠，
+    # 抓寬一點（100天）確保有足夠交易日；margin/institutional/shareholding 這些子項
+    # 用到的回溯天數(lookback_trading_days、holder_lookback_snapshots)遠小於100天，同樣受惠。
+    chip_start = (today - dt.timedelta(days=100)).isoformat()
     fin_start = (today - dt.timedelta(days=400)).isoformat()
+    # 「本益比河流圖」估價模型需要數年本益比歷史才有統計意義，不能沿用短天期的 chip_start，
+    # 另外用獨立、可設定的回溯天數（預設約3年）。
+    valuation_lookback_days = config.get("finmind", {}).get("valuation_lookback_days", 1095)
+    valuation_start = (today - dt.timedelta(days=valuation_lookback_days)).isoformat()
 
     start_by_key = {
         "price": chip_start,
@@ -90,7 +94,7 @@ def fetch_all(stock_id: str, config: dict, cache_dir: str = "output/cache") -> d
         "month_revenue": fin_start,
         "financial_statements": fin_start,
         "balance_sheet": fin_start,
-        "per": chip_start,
+        "per": valuation_start,
     }
 
     Path(cache_dir).mkdir(parents=True, exist_ok=True)
@@ -98,7 +102,7 @@ def fetch_all(stock_id: str, config: dict, cache_dir: str = "output/cache") -> d
     for key, dataset in DATASETS.items():
         try:
             df = fetch_dataset(dataset, stock_id, start_by_key[key], token)
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             print(f"  ✗ {key:22s} ({dataset}): 抓取失敗，略過此資料集 -> {e}")
             continue
         out_path = Path(cache_dir) / f"{stock_id}_{key}.csv"

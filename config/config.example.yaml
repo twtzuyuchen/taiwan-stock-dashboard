@@ -1,0 +1,93 @@
+# ============================================================
+# 台股波段 AI Agent 儀表板 — 設定檔範例
+# 複製為 config.yaml 並填入你自己的金鑰 / 追蹤清單
+# ============================================================
+
+finmind:
+  # 註冊 https://finmindtrade.com 取得 token（免費會員即可，額度較高）
+  token: "YOUR_FINMIND_TOKEN"
+  # 近兩週主力成本計算用的回溯交易日數（10 個交易日 ≈ 2 週）
+  lookback_trading_days: 10
+
+watchlist:
+  - stock_id: "2303"
+    name: "聯電"
+    risk_preference: "積極"
+    holding: true
+    analysis_period: "1-3個月"
+  - stock_id: "2330"
+    name: "台積電"
+    risk_preference: "穩健"
+    holding: true
+    analysis_period: "3-6個月"
+  - stock_id: "8112"
+    name: "至上"
+    risk_preference: "穩健"
+    holding: true
+    analysis_period: "3-6個月"
+  - stock_id: "0050"
+    name: "元大台灣50"
+    risk_preference: "穩健"
+    holding: true
+    analysis_period: "3-6個月"
+  - stock_id: "3376"
+    name: "新日興"
+    risk_preference: "穩健"
+    holding: true
+    analysis_period: "3-6個月"
+  - stock_id: "4739"
+    name: "康普"
+    risk_preference: "穩健"
+    holding: true
+    analysis_period: "3-6個月"
+  - stock_id: "5464"
+    name: "霖宏"
+    risk_preference: "穩健"
+    holding: true
+    analysis_period: "3-6個月"
+  - stock_id: "3624"
+    name: "光頡"
+    risk_preference: "穩健"
+    holding: true
+    analysis_period: "3-6個月"
+  - stock_id: "4958"
+    name: "臻鼎-ky"
+    risk_preference: "穩健"
+    holding: true
+    analysis_period: "3-6個月"
+  - stock_id: "3661"
+    name: "世芯-ky"
+    risk_preference: "穩健"
+    holding: true
+    analysis_period: "3-6個月"
+  - stock_id: "2317"
+    name: "鴻海"
+    risk_preference: "穩健"
+    holding: true
+    analysis_period: "3-6個月"
+
+scoring:
+  weights:
+    chip_cleanliness: 0.25
+    institutional_position: 0.30
+    technical_trend: 0.20
+    fundamental: 0.25
+  thresholds:
+    green: 70
+    yellow: 40
+
+  chip_cleanliness_detail:
+    weights:
+      margin_momentum: 0.45
+      margin_utilization: 0.25
+      holder_concentration: 0.30
+    utilization_safe: 0.5
+    utilization_danger: 0.9
+    big_holder_min_shares: 400000
+    holder_lookback_snapshots: 4
+
+output:
+  dashboard_dir: "output"
+  publish_github_pages: true
+  github_pages_dir: "docs"
+  state_dir: "state"

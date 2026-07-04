@@ -6,7 +6,7 @@
 finmind:
   # 註冊 https://finmindtrade.com 取得 token（免費會員即可，額度較高）
   token: "YOUR_FINMIND_TOKEN"
-  # 近兩週主力成本計算用的回溯交易日數（10 個交易日 ≈ 2 週）
+  # 近兩週主力成本計算用的回溯交易日數（20 個交易日 ≈ 4 週）
   lookback_trading_days: 20
 
 watchlist:

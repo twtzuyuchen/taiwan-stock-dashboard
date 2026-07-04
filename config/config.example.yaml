@@ -104,14 +104,14 @@ watchlist:
     sector: "電子代工服務（EMS）"
     business_summary: "全球最大電子代工服務（EMS）廠，由iPhone組裝起家，近年雲端與網路（AI伺服器）相關營收占比持續提升，並以「3+3」策略布局電動車、數位健康、機器人等新事業。"
     us_relation: "主要客戶包含蘋果（Apple，iPhone組裝）與輝達（Nvidia，AI伺服器/AI Rack）；並與英特爾（Intel）深化AI基礎建設合作；於美國（如威斯康辛州）有製造投資。"
-  - stock_id: "8261"
-    name: "富鼎"
-    risk_preference: "穩健"
+  - stock_id: "6911"
+    name: "群運"
+    risk_preference: "積極"
     holding: true
-    analysis_period: "3-6個月"
-    sector: "半導體－功率元件（MOSFET/IGBT）"
-    business_summary: "台灣MOSFET廠，隸屬國巨集團，專營MOSFET、IGBT及電源管理解決方案，產品應用於AI伺服器、電動車、筆記型電腦及工業電子等領域，近期受惠AI伺服器散熱與供電需求成長，營收與毛利率同步走揚。"
-    us_relation: "公開資料確認產品應用於AI伺服器領域，惟未明確揭露與特定美國伺服器/晶片廠商之直接客戶關係，故不臆測具體合作對象。"
+    analysis_period: "1-3個月"
+    sector: "環保服務－廢棄物處理與資源回收"
+    business_summary: "群運環保股份有限公司，主要從事一般廢棄物清運、清除，以及土資廠處理、資源回收等業務，2022年10月登錄興櫃。"
+    us_relation: "公開資料未提及與美國公司之供應鏈或客戶關係，業務性質為台灣本地環保清運服務，與美國市場無直接關聯。"
 
 scoring:
   # 綜合評分權重（總和建議 = 1.0）

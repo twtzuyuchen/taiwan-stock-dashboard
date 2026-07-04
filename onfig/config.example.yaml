@@ -1,0 +1,103 @@
+# ============================================================
+# 台股波段 AI Agent 儀表板 — 設定檔範例
+# 複製為 config.yaml 並填入你自己的金鑰 / 追蹤清單
+# ============================================================
+
+finmind:
+  # 註冊 https://finmindtrade.com 取得 token（免費會員即可，額度較高）
+  token: "YOUR_FINMIND_TOKEN"
+  # 近兩週主力成本計算用的回溯交易日數（10 個交易日 ≈ 2 週）
+  lookback_trading_days: 10
+
+watchlist:
+  # 每檔股票的代號、名稱、風險偏好、持股狀態
+  - stock_id: "2303"
+    name: "聯電"
+    risk_preference: "積極"
+    holding: true
+    analysis_period: "1-3個月"
+  - stock_id: "2330"
+    name: "台積電"
+    risk_preference: "穩健"
+    holding: true
+    analysis_period: "3-6個月"
+  - stock_id: "8112"
+    name: "至上"
+    risk_preference: "穩健"
+    holding: true
+    analysis_period: "3-6個月"
+  - stock_id: "0050"
+    name: "元大台灣50"
+    risk_preference: "穩健"
+    holding: true
+    analysis_period: "3-6個月"
+  - stock_id: "3376"
+    name: "新日興"
+    risk_preference: "穩健"
+    holding: true
+    analysis_period: "3-6個月"
+  - stock_id: "4739"
+    name: "康普"
+    risk_preference: "穩健"
+    holding: true
+    analysis_period: "3-6個月"
+  - stock_id: "5464"
+    name: "霖宏"
+    risk_preference: "穩健"
+    holding: true
+    analysis_period: "3-6個月"
+  - stock_id: "3624"
+    name: "光頡"
+    risk_preference: "穩健"
+    holding: true
+    analysis_period: "3-6個月"
+  - stock_id: "4958"
+    name: "臻鼎-ky"
+    risk_preference: "穩健"
+    holding: true
+    analysis_period: "3-6個月"
+  - stock_id: "3661"
+    name: "世芯-ky"
+    risk_preference: "穩健"
+    holding: true
+    analysis_period: "3-6個月"
+  - stock_id: "2317"
+    name: "鴻海"
+    risk_preference: "穩健"
+    holding: true
+    analysis_period: "3-6個月"
+
+scoring:
+  # 綜合評分權重（總和建議 = 1.0）
+  weights:
+    chip_cleanliness: 0.25      # 籌碼乾淨度
+    institutional_position: 0.30 # 主力布局分數
+    technical_trend: 0.20       # 技術趨勢
+    fundamental: 0.25           # 基本面催化
+  thresholds:
+    green: 70   # 分數 >= 70 顯示綠燈
+    yellow: 40  # 40~69 顯示黃燈，< 40 顯示紅燈
+
+  # 籌碼乾淨度細項設定（可省略，省略時採用下列預設值）
+  # 三個子項分數缺資料時會自動略過並重新分配權重，三者皆缺才會回傳中性分數 50
+  chip_cleanliness_detail:
+    weights:
+      margin_momentum: 0.45      # 融資餘額動能（近 N 日融資餘額變化）
+      margin_utilization: 0.25   # 融資使用率（融資餘額 / 融資限額）
+      holder_concentration: 0.30 # 大戶持股集中度趨勢（集保股權分散表）
+    # 融資使用率：<= safe 滿分；>= danger 0 分；中間線性內插
+    utilization_safe: 0.5
+    utilization_danger: 0.9
+    # 大戶門檻：持股張數下限（股數），400000 股 = 400 張
+    big_holder_min_shares: 400000
+    # 大戶集中度比較最近幾次集保股權分散表（每週更新，4 次約等於近一個月）
+    holder_lookback_snapshots: 4
+
+output:
+  dashboard_dir: "output"
+  # 是否同時輸出 GitHub Pages 用的 docs/index.html
+  publish_github_pages: true
+  github_pages_dir: "docs"
+  # 買賣訊號需要跨日比較（評分區間轉換），狀態存在這個資料夾，
+  # 必須跟 docs/ 一樣被 git commit，下次執行才讀得到「昨天」的結果
+  state_dir: "state"

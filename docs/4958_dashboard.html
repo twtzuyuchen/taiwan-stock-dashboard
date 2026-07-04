@@ -148,6 +148,7 @@
   .signal-card .signal-text.neutral { color: var(--text-secondary); }
 
   .footnote { font-size: 12.5px; color: var(--text-muted); line-height: 1.8; margin-top: 8px; }
+  .chip-breakdown { font-size: 12px; color: var(--text-muted); margin-top: 4px; line-height: 1.5; }
   .demo-banner {
     background: var(--warning-bg);
     color: #8a5a00;
@@ -172,7 +173,7 @@
         <span class="tag caution">區間操作</span>
       </div>
       <div class="meta">
-        分析週期：3-6個月｜風險偏好：穩健｜持股狀態：是｜產出時間：2026-07-04 03:15
+        分析週期：3-6個月｜風險偏好：穩健｜持股狀態：是｜產出時間：2026-07-04 04:14
       </div>
     </div>
     <div>
@@ -188,7 +189,7 @@
         
         <tr><td class="k">經營績效 CSV 日期</td><td class="v">2026-07-04</td></tr>
         
-        <tr><td class="k">SIGNAL_SUMMARY</td><td class="v">2026-07-04T03:15:11</td></tr>
+        <tr><td class="k">SIGNAL_SUMMARY</td><td class="v">2026-07-04T04:14:46</td></tr>
         
       </table>
     </div>
@@ -199,15 +200,16 @@
     <div class="score-grid">
       <div class="score-item">
         <div class="label">綜合評分</div>
-        <div class="score-value"><span class="num">55/100</span><span class="dot yellow"></span></div>
+        <div class="score-value"><span class="num">60/100</span><span class="dot yellow"></span></div>
       </div>
       <div class="score-item">
         <div class="label">風險等級</div>
         <div class="score-value"><span class="pill yellow">中</span></div>
       </div>
-      <div class="score-item">
+      <div class="score-item" title="融資動能 42／融資使用率 100／大戶集中度 —（資料不足的子項已自動略過並重新分配權重）">
         <div class="label">籌碼乾淨度</div>
-        <div class="score-value"><span class="num">42/100</span><span class="dot yellow"></span></div>
+        <div class="score-value"><span class="num">63/100</span><span class="dot yellow"></span></div>
+        <div class="chip-breakdown">融資動能42‧使用率100‧大戶—</div>
       </div>
       <div class="score-item">
         <div class="label">主力布局分數</div>
@@ -231,8 +233,9 @@
       </div>
     </div>
     <div class="footnote">
-      資料來源：FinMind TaiwanStockPrice / Margin / Institutional / Revenue / PER / FinancialStatements / BalanceSheet；
-      本地快取：4958_price.csv、4958_institutional.csv、4958_margin.csv 等（見 output/cache/）。
+      資料來源：FinMind TaiwanStockPrice / Margin / Institutional / Revenue / PER / FinancialStatements / BalanceSheet / HoldingSharesPer；
+      本地快取：4958_price.csv、4958_institutional.csv、4958_margin.csv、4958_shareholding.csv 等（見 output/cache/）。
+      籌碼乾淨度由「融資餘額動能」「融資使用率」「大戶持股集中度趨勢」三項加權組成，任一資料缺漏會自動重新分配權重。
     </div>
   </div>
 
@@ -332,7 +335,7 @@
           <span class="kind-tag">事件型</span>
         </div>
         <div class="signal-text neutral">
-          <span class="signal-dot neutral"></span>首次執行，尚無歷史資料可比較區間變化
+          <span class="signal-dot neutral"></span>維持在「區間」區間，無轉折
         </div>
       </div>
       

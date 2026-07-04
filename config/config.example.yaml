@@ -14,7 +14,7 @@ watchlist:
   - stock_id: "2303"
     name: "聯電"
     risk_preference: "積極"
-    holding: false
+    holding: true
     analysis_period: "1-3個月"
   - stock_id: "2330"
     name: "台積電"
@@ -28,6 +28,41 @@ watchlist:
     analysis_period: "3-6個月"
   - stock_id: "0050"
     name: "元大台灣50"
+    risk_preference: "穩健"
+    holding: true
+    analysis_period: "3-6個月"
+  - stock_id: "3376"
+    name: "新日興"
+    risk_preference: "穩健"
+    holding: true
+    analysis_period: "3-6個月"
+  - stock_id: "4739"
+    name: "康普"
+    risk_preference: "穩健"
+    holding: true
+    analysis_period: "3-6個月"
+  - stock_id: "5464"
+    name: "霖宏"
+    risk_preference: "穩健"
+    holding: true
+    analysis_period: "3-6個月"
+  - stock_id: "3624"
+    name: "光頡"
+    risk_preference: "穩健"
+    holding: true
+    analysis_period: "3-6個月"
+  - stock_id: "4958"
+    name: "臻鼎-ky"
+    risk_preference: "穩健"
+    holding: true
+    analysis_period: "3-6個月"
+  - stock_id: "3661"
+    name: "世芯-ky"
+    risk_preference: "穩健"
+    holding: true
+    analysis_period: "3-6個月"
+  - stock_id: "2317"
+    name: "鴻海"
     risk_preference: "穩健"
     holding: true
     analysis_period: "3-6個月"

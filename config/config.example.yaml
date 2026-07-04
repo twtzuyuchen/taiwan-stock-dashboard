@@ -6,88 +6,145 @@
 finmind:
   # 註冊 https://finmindtrade.com 取得 token（免費會員即可，額度較高）
   token: "YOUR_FINMIND_TOKEN"
-  # 近兩週主力成本計算用的回溯交易日數（20 個交易日 ≈ 4 週）
+  # 主力成本與籌碼乾淨度融資動能子項共用的回溯交易日數（20 個交易日 ≈ 4 週）
   lookback_trading_days: 20
+  # 「未來一年價格情境估算」本益比河流圖模型用的本益比歷史回溯天數（日曆天，預設約3年）。
+  # 這個天數只影響 fetch_data.py 抓 TaiwanStockPER 的區間，不影響其他資料集。
+  valuation_lookback_days: 1095
 
 watchlist:
+  # 每檔股票的代號、名稱、風險偏好、持股狀態，以及人工整理的產業資訊。
+  # sector／business_summary／us_relation 三個欄位不會每日自動更新，是靜態的公司背景介紹，
+  # 新增股票或公司業務有重大變化時，請自行更新這幾個欄位的文字。
   - stock_id: "2303"
     name: "聯電"
     risk_preference: "積極"
     holding: true
     analysis_period: "1-3個月"
+    sector: "半導體－晶圓代工"
+    business_summary: "全球第三大專業晶圓代工廠（Pure-play Foundry），提供22/28奈米等成熟與特殊製程晶圓代工服務，客戶為全球無晶圓廠（fabless）IC設計公司。"
+    us_relation: "2024年起與美國英特爾（Intel）宣布策略合作，共同開發12奈米等級製程，英特爾並授權超級電容等技術給聯電；晶圓代工客戶中包含多家美國IC設計公司；於紐約證交所掛牌ADR（代號UMC）。"
   - stock_id: "2330"
     name: "台積電"
     risk_preference: "穩健"
     holding: true
     analysis_period: "3-6個月"
+    sector: "半導體－晶圓代工"
+    business_summary: "全球最大專業晶圓代工廠，市佔率居冠，先進製程（3奈米、2奈米）技術全球領先，客戶涵蓋晶片設計、系統整合等各類型公司。"
+    us_relation: "主要客戶包含蘋果（Apple）、輝達（Nvidia）、超微（AMD）、高通（Qualcomm）等美國科技巨頭；於美國亞利桑那州設立晶圓廠擴大在地產能；於紐約證交所掛牌ADR（代號TSM）。"
   - stock_id: "8112"
     name: "至上"
     risk_preference: "穩健"
     holding: true
     analysis_period: "3-6個月"
+    sector: "半導體通路（IC通路）"
+    business_summary: "台灣前三大記憶體暨半導體零組件通路商，代理國際記憶體與半導體品牌產品，於台灣、中國等市場銷售，近期受惠AI伺服器記憶體需求成長帶動產品結構轉向。"
+    us_relation: "身為IC通路商，代理的品牌多為國際半導體大廠產品，惟公開資料未逐一列名具體代理的美國廠牌；營運表現與美系記憶體、AI伺服器供應鏈需求連動度高。"
   - stock_id: "0050"
     name: "元大台灣50"
     risk_preference: "穩健"
     holding: true
     analysis_period: "3-6個月"
+    sector: "ETF（市值型，追蹤台灣50指數）"
+    business_summary: "非單一公司，為追蹤「台灣50指數」的被動式市值型ETF，成分股為台灣證交所市值前50大上市公司，前十大成分股包含台積電、鴻海、聯發科等權值股，會隨指數成分定期調整。"
+    us_relation: "無單一美國業務關聯；但前十大成分股多為與美系科技供應鏈高度連動的企業（如台積電、鴻海），間接曝險於美國科技需求景氣。"
   - stock_id: "3376"
     name: "新日興"
     risk_preference: "穩健"
     holding: true
     analysis_period: "3-6個月"
+    sector: "電子零組件－精密機構件"
+    business_summary: "全球NB（筆記型電腦）樞紐龍頭，主要經營各類精密彈簧、沖製件、樞紐組件及金屬射出成型（MIM）研發設計與製造，應用於筆記型電腦、LCD液晶螢幕、數位相機等電子產品。"
+    us_relation: "終端應用產品（筆電、顯示器）之品牌客戶多為全球主要NB大廠，公開資料未逐一列名個別美國品牌客戶名稱；營運與折疊裝置、筆電市況等全球（含美系品牌）需求連動。"
   - stock_id: "4739"
     name: "康普"
     risk_preference: "穩健"
     holding: true
     analysis_period: "3-6個月"
+    sector: "特用化學材料"
+    business_summary: "金屬基礎特用化學品製造商（康普材料科技/CoreMax），主要產品包括氧化觸媒、特用化學材料、動力電池材料、化學肥料，並提供廢觸媒再生服務，應用橫跨傳統工業（輪胎、色料、油漆）與新興電池材料領域，主要營運據點分布於馬來西亞、中國、泰國等亞洲地區。"
+    us_relation: "公開資料未提及與特定美國公司之直接供應鏈或客戶關係，營運據點以亞洲為主。"
   - stock_id: "5464"
     name: "霖宏"
     risk_preference: "穩健"
     holding: true
     analysis_period: "3-6個月"
+    sector: "電子零組件"
+    business_summary: "電子產品設計、研發與製造，同業包括台達電、欣興、華通等電子零組件廠商，另涉足觀光飯店投資，主要營運據點位於嘉義縣民雄工業區。"
+    us_relation: "公開資料未提及與特定美國公司之直接供應鏈或客戶關係。"
   - stock_id: "3624"
     name: "光頡"
     risk_preference: "穩健"
     holding: true
     analysis_period: "3-6個月"
+    sector: "被動元件－精密電阻/電感"
+    business_summary: "高精度被動元件利基型專家，採薄膜／厚膜技術製造精密電阻、高頻電感等高階被動元件，受惠5G、電動車、AIoT等應用趨勢帶動的規格升級需求。"
+    us_relation: "公開資料未提及與特定美國公司之直接供應鏈或客戶關係，惟終端應用（5G、電動車、AIoT）與美系品牌供應鏈景氣連動。"
   - stock_id: "4958"
     name: "臻鼎-ky"
     risk_preference: "穩健"
     holding: true
     analysis_period: "3-6個月"
+    sector: "電子零組件－印刷電路板（PCB/FPC）"
+    business_summary: "鴻海集團旗下，全球軟板（FPC）龍頭，產品線涵蓋軟板（FPC）、高密度互連板（HDI）、高階載板（SLP）及ABF基板，近年隨AI伺服器需求擴大布局高階硬板領域。"
+    us_relation: "為蘋果（Apple）供應鏈PCB／軟板廠之一；另切入輝達（Nvidia）AI伺服器背板（backplane）供應鏈，受惠美系雲端服務商AI伺服器投資熱潮。"
   - stock_id: "3661"
     name: "世芯-ky"
     risk_preference: "穩健"
     holding: true
     analysis_period: "3-6個月"
+    sector: "半導體－IC設計服務（ASIC）"
+    business_summary: "全球ASIC（特殊應用積體電路）設計服務大廠，提供客製化晶片設計服務，聚焦AI／高效能運算相關客製化晶片開發。"
+    us_relation: "公開報導證實與美國亞馬遜AWS合作開發Trainium系列AI晶片專案，另與北美IDM/雲端服務商（CSP）客戶合作AI晶片客製化設計；此處僅陳述公開報導確認之內容，未公開的其他客戶關係不予臆測。"
   - stock_id: "2317"
     name: "鴻海"
     risk_preference: "穩健"
     holding: true
     analysis_period: "3-6個月"
+    sector: "電子代工服務（EMS）"
+    business_summary: "全球最大電子代工服務（EMS）廠，由iPhone組裝起家，近年雲端與網路（AI伺服器）相關營收占比持續提升，並以「3+3」策略布局電動車、數位健康、機器人等新事業。"
+    us_relation: "主要客戶包含蘋果（Apple，iPhone組裝）與輝達（Nvidia，AI伺服器/AI Rack）；並與英特爾（Intel）深化AI基礎建設合作；於美國（如威斯康辛州）有製造投資。"
 
 scoring:
+  # 綜合評分權重（總和建議 = 1.0）
   weights:
-    chip_cleanliness: 0.25
-    institutional_position: 0.30
-    technical_trend: 0.20
-    fundamental: 0.25
+    chip_cleanliness: 0.25      # 籌碼乾淨度
+    institutional_position: 0.30 # 主力布局分數
+    technical_trend: 0.20       # 技術趨勢
+    fundamental: 0.25           # 基本面催化
   thresholds:
-    green: 70
-    yellow: 40
+    green: 70   # 分數 >= 70 顯示綠燈
+    yellow: 40  # 40~69 顯示黃燈，< 40 顯示紅燈
 
+  # 籌碼乾淨度細項設定（可省略，省略時採用下列預設值）
+  # 三個子項分數缺資料時會自動略過並重新分配權重，三者皆缺才會回傳中性分數 50
   chip_cleanliness_detail:
     weights:
-      margin_momentum: 0.45
-      margin_utilization: 0.25
-      holder_concentration: 0.30
+      margin_momentum: 0.45      # 融資餘額動能（近 N 日融資餘額變化）
+      margin_utilization: 0.25   # 融資使用率（融資餘額 / 融資限額）
+      holder_concentration: 0.30 # 大戶持股集中度趨勢（集保股權分散表）
+    # 融資使用率：<= safe 滿分；>= danger 0 分；中間線性內插
     utilization_safe: 0.5
     utilization_danger: 0.9
+    # 大戶門檻：持股張數下限（股數），400000 股 = 400 張
     big_holder_min_shares: 400000
+    # 大戶集中度比較最近幾次集保股權分散表（每週更新，4 次約等於近一個月）
     holder_lookback_snapshots: 4
+
+  # 未來一年樂觀價／穩健價／悲觀價（本益比河流圖模型）細項設定，可省略。
+  # 這是量化模型估算，不是分析師報告或共識目標價；任何資料不足的情況都會明確顯示原因，不會硬湊數字。
+  valuation_band_detail:
+    per_percentile_low: 20      # 悲觀價使用的本益比分位數
+    per_percentile_mid: 50      # 穩健價使用的本益比分位數（中位數）
+    per_percentile_high: 80     # 樂觀價使用的本益比分位數
+    growth_rate_cap_pct: 30     # 用營收年增率估算未來EPS成長時，正負限制在這個百分比以內
+    min_per_samples: 60         # 本益比歷史樣本至少要有這麼多筆，才視為統計上足夠可靠
 
 output:
   dashboard_dir: "output"
+  # 是否同時輸出 GitHub Pages 用的 docs/index.html
   publish_github_pages: true
   github_pages_dir: "docs"
+  # 買賣訊號需要跨日比較（評分區間轉換），狀態存在這個資料夾，
+  # 必須跟 docs/ 一樣被 git commit，下次執行才讀得到「昨天」的結果
   state_dir: "state"

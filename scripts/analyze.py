@@ -1,26 +1,7 @@
-"""
-analyze.py
-==========
-分析層：讀取 fetch_data.py 產出的原始 CSV，計算：
-  1. 近兩週（預設 10 個交易日）主力／三大法人持倉成本
-  2. 籌碼、技術、基本面燈號與綜合評分
-  3. 產出給 generate_dashboard.py 使用的結構化字典
-
-主力成本估算方法
------------------
-以三大法人（外資 + 投信 + 自營商合計）逐日買賣超「股數」為權重，
-只取「淨買超」的交易日，計算成交量加權平均價（VWAP）：
-
-    主力成本 = Σ(當日淨買超股數 × 當日收盤價)  / Σ(當日淨買超股數)
-               （僅加總淨買超 > 0 的交易日，回溯 lookback_trading_days 個交易日）
-
-這是業界常見的「籌碼成本估算」簡化模型：假設買超當天的成交是以收盤價
-附近成交，藉此推估主力／法人目前部位的平均成本，可與現價比較「浮盈/浮虧」。
-若要更精細，可改用日內 VWAP 或分點籌碼資料加權，但需要更細的資料來源。
-"""
 from __future__ import annotations
 
 import argparse
+import re
 from pathlib import Path
 
 import numpy as np
@@ -95,20 +76,141 @@ def compute_institutional_cost(price_df: pd.DataFrame, inst_df: pd.DataFrame,
     }
 
 
-def compute_chip_cleanliness(margin_df: pd.DataFrame, lookback_days: int = 10) -> int:
-    """籌碼乾淨度：融資餘額近期是否下降（籌碼安定）、券資比是否健康。"""
-    if margin_df.empty:
-        return 50
-    margin_df = margin_df.sort_values("date").tail(lookback_days)
-    if "MarginPurchaseTodayBalance" not in margin_df.columns:
-        return 50
-    balances = margin_df["MarginPurchaseTodayBalance"].astype(float)
+def _score_margin_momentum(margin_df: pd.DataFrame, lookback_days: int) -> dict:
+    """子項一：融資餘額動能。近 N 個交易日融資餘額下降 -> 籌碼安定 -> 分數高；
+    大幅增加(融資追價)-> 分數低。與原本邏輯完全相同，僅抽成獨立函式方便組合。"""
+    if margin_df.empty or "MarginPurchaseTodayBalance" not in margin_df.columns:
+        return {"score": None, "change_pct": None}
+
+    df = margin_df.sort_values("date").tail(lookback_days)
+    balances = df["MarginPurchaseTodayBalance"].astype(float)
     if len(balances) < 2 or balances.iloc[0] == 0:
-        return 50
+        return {"score": None, "change_pct": None}
+
     change_pct = (balances.iloc[-1] - balances.iloc[0]) / balances.iloc[0]
-    # 融資餘額下降 -> 籌碼安定 -> 分數高；大幅增加(融資追價) -> 分數低
-    score = 70 - change_pct * 200
-    return int(np.clip(score, 0, 100))
+    score = int(np.clip(70 - change_pct * 200, 0, 100))
+    return {"score": score, "change_pct": round(change_pct * 100, 1)}
+
+
+def _score_margin_utilization(margin_df: pd.DataFrame, safe: float = 0.5, danger: float = 0.9) -> dict:
+    """子項二：融資使用率（融資餘額 / 融資限額）。使用率越接近上限，
+    代表一旦股價下跌，越容易觸發追繳/斷頭賣壓，籌碼風險越高。"""
+    if margin_df.empty:
+        return {"score": None, "utilization_pct": None}
+    cols = {"MarginPurchaseTodayBalance", "MarginPurchaseLimit"}
+    if not cols.issubset(margin_df.columns):
+        return {"score": None, "utilization_pct": None}
+
+    latest = margin_df.sort_values("date").iloc[-1]
+    limit = float(latest["MarginPurchaseLimit"])
+    if limit <= 0:
+        return {"score": None, "utilization_pct": None}
+
+    utilization = float(latest["MarginPurchaseTodayBalance"]) / limit
+    # safe(含)以下滿分；danger(含)以上 0 分；中間線性內插
+    if danger <= safe:
+        danger = safe + 0.01
+    score = (danger - utilization) / (danger - safe) * 100
+    score = int(np.clip(score, 0, 100))
+    return {"score": score, "utilization_pct": round(utilization * 100, 1)}
+
+
+_LEVEL_LOWER_BOUND_RE = re.compile(r"([\d,]+)")
+
+
+def _score_holder_concentration(shareholding_df: pd.DataFrame, big_holder_min_shares: int = 400_000,
+                                 lookback_snapshots: int = 4) -> dict:
+    """子項三：大戶持股集中度趨勢。資料源 TaiwanStockHoldingSharesPer（集保戶股權分散表，每週更新）。
+    加總「持股張數下限 >= big_holder_min_shares（預設 400,001 股，即約 400 張）」各級距的 percent，
+    追蹤這個大戶持股比例最近幾次報告是上升/持平還是下降：上升或持平 -> 籌碼安定由大股東/法人主導 -> 分數高；
+    明顯下降 -> 大戶出貨、籌碼趨向分散 -> 分數低。"""
+    if shareholding_df.empty:
+        return {"score": None, "big_holder_pct": None, "big_holder_pct_change": None}
+    required = {"date", "HoldingSharesLevel", "percent"}
+    if not required.issubset(shareholding_df.columns):
+        return {"score": None, "big_holder_pct": None, "big_holder_pct_change": None}
+
+    df = shareholding_df.copy()
+
+    def lower_bound(level: str) -> int:
+        match = _LEVEL_LOWER_BOUND_RE.search(str(level))
+        if not match:
+            return -1
+        return int(match.group(1).replace(",", ""))
+
+    df["_lower_bound"] = df["HoldingSharesLevel"].apply(lower_bound)
+    big = df[df["_lower_bound"] >= big_holder_min_shares]
+    if big.empty:
+        return {"score": None, "big_holder_pct": None, "big_holder_pct_change": None}
+
+    by_date = big.groupby("date")["percent"].sum().sort_index().tail(lookback_snapshots)
+    if len(by_date) < 2:
+        return {"score": None, "big_holder_pct": round(float(by_date.iloc[-1]), 2) if len(by_date) else None,
+                "big_holder_pct_change": None}
+
+    change = float(by_date.iloc[-1] - by_date.iloc[0])  # 百分點變化
+    # 每變化 1 個百分點 -> 分數 +/- 15 分，中心 50 分
+    score = int(np.clip(50 + change * 15, 0, 100))
+    return {
+        "score": score,
+        "big_holder_pct": round(float(by_date.iloc[-1]), 2),
+        "big_holder_pct_change": round(change, 2),
+    }
+
+
+def compute_chip_cleanliness(margin_df: pd.DataFrame, shareholding_df: pd.DataFrame | None = None,
+                              lookback_days: int = 10, detail_config: dict | None = None) -> dict:
+    """籌碼乾淨度（綜合版）：結合三個面向 ——
+    1) 融資餘額動能：近期融資餘額是否下降
+    2) 融資使用率：融資餘額佔融資限額比例是否健康，避免追繳斷頭風險
+    3) 大戶持股集中度趨勢：集保股權分散表中大戶（預設 >400 張）佔比是否穩定或上升
+    任一資料來源缺漏時，會自動略過該子項並依剩餘子項重新分配權重；
+    三者皆缺漏時，回傳中性分數 50（與舊版行為一致）。"""
+    detail_config = detail_config or {}
+    if shareholding_df is None:
+        shareholding_df = pd.DataFrame()
+
+    weights = detail_config.get("weights", {})
+    w_momentum = weights.get("margin_momentum", 0.45)
+    w_utilization = weights.get("margin_utilization", 0.25)
+    w_holder = weights.get("holder_concentration", 0.30)
+
+    momentum = _score_margin_momentum(margin_df, lookback_days)
+    utilization = _score_margin_utilization(
+        margin_df,
+        safe=detail_config.get("utilization_safe", 0.5),
+        danger=detail_config.get("utilization_danger", 0.9),
+    )
+    holder = _score_holder_concentration(
+        shareholding_df,
+        big_holder_min_shares=detail_config.get("big_holder_min_shares", 400_000),
+        lookback_snapshots=detail_config.get("holder_lookback_snapshots", 4),
+    )
+
+    parts = [
+        (momentum["score"], w_momentum),
+        (utilization["score"], w_utilization),
+        (holder["score"], w_holder),
+    ]
+    available = [(s, w) for s, w in parts if s is not None]
+
+    if not available:
+        score = 50
+    else:
+        total_weight = sum(w for _, w in available) or 1.0
+        score = int(round(sum(s * w for s, w in available) / total_weight))
+        score = int(np.clip(score, 0, 100))
+
+    return {
+        "score": score,
+        "margin_momentum_score": momentum["score"],
+        "margin_change_pct": momentum["change_pct"],
+        "margin_utilization_score": utilization["score"],
+        "margin_utilization_pct": utilization["utilization_pct"],
+        "holder_concentration_score": holder["score"],
+        "big_holder_pct": holder["big_holder_pct"],
+        "big_holder_pct_change": holder["big_holder_pct_change"],
+    }
 
 
 def compute_technical_trend(price_df: pd.DataFrame) -> dict:
@@ -131,7 +233,7 @@ def compute_technical_trend(price_df: pd.DataFrame) -> dict:
         trend, score = "盤整", 50
 
     bias_pct = (last - ma60) / ma60 * 100
-    bias_safe = abs(bias_pct) < 20  # 乖離率 < 20% 視為安全，避免追高追空
+    bias_safe = bool(abs(bias_pct) < 20)  # 乖離率 < 20% 視為安全，避免追高追空（bool() 避免 numpy bool 無法 JSON 序列化）
 
     return {"trend": trend, "bias_pct": round(bias_pct, 1), "bias_safe": bias_safe, "score": score}
 
@@ -180,16 +282,20 @@ def analyze_stock(stock_id: str, config: dict, cache_dir: str = "output/cache",
     price_df = _read_cache(cache_dir, stock_id, "price")
     inst_df = _read_cache(cache_dir, stock_id, "institutional")
     margin_df = _read_cache(cache_dir, stock_id, "margin")
+    shareholding_df = _read_cache(cache_dir, stock_id, "shareholding")
     revenue_df = _read_cache(cache_dir, stock_id, "month_revenue")
     per_df = _read_cache(cache_dir, stock_id, "per")
 
     inst_cost = compute_institutional_cost(price_df, inst_df, lookback)
-    chip_score = compute_chip_cleanliness(margin_df, lookback)
+    chip = compute_chip_cleanliness(
+        margin_df, shareholding_df, lookback,
+        detail_config=scoring.get("chip_cleanliness_detail", {}),
+    )
     tech = compute_technical_trend(price_df)
     fund = compute_fundamental(revenue_df, per_df)
 
     composite = (
-        chip_score * weights.get("chip_cleanliness", 0.25)
+        chip["score"] * weights.get("chip_cleanliness", 0.25)
         + inst_cost["score"] * weights.get("institutional_position", 0.30)
         + tech["score"] * weights.get("technical_trend", 0.20)
         + fund["score"] * weights.get("fundamental", 0.25)
@@ -212,7 +318,7 @@ def analyze_stock(stock_id: str, config: dict, cache_dir: str = "output/cache",
         "stock_id": stock_id,
         "composite_score": composite,
         "risk_level": risk_level,
-        "chip_cleanliness": {"score": chip_score, "light": score_to_light(chip_score, thresholds)},
+        "chip_cleanliness": {**chip, "light": score_to_light(chip["score"], thresholds)},
         "institutional_position": {**inst_cost, "light": score_to_light(inst_cost["score"], thresholds)},
         "technical": {**tech, "light": score_to_light(tech["score"], thresholds)},
         "fundamental": {**fund, "light": score_to_light(fund["score"], thresholds)},

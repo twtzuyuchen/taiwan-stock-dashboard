@@ -158,6 +158,19 @@ scoring:
     consolidation_shrink_ratio: 0.6 # 「盤整期量縮至極致」：近期均量需萎縮到前段均量的這個比例以下
     consolidation_range_cap_pct: 5  # 「盤整期量縮至極致」：近期股價波動幅度需收斂在這個百分比以內
 
+  # 左側交易（逢低佈局）進場提醒細項設定，可省略，省略時採用下列預設值
+  # 現價跌到「主力估算成本」或「未來一年悲觀價」任一價位以下（含緩衝）就觸發
+  left_side_entry_detail:
+    buffer_pct: 0   # 現價在成本/悲觀價之上這個緩衝百分比以內也一併觸發（預設0=剛好跌破才觸發）
+
+  # 右側交易（確認轉強）進場提醒細項設定，可省略，省略時採用下列預設值
+  # 三個條件同時成立才會觸發：近期出現黃金交叉且延續、股價突破近期高點、成交量放大確認
+  right_side_entry_detail:
+    golden_cross_lookback_days: 10  # 黃金交叉需在近幾個交易日內發生，才算是「最近」轉強
+    breakout_lookback_days: 20      # 股價要突破近幾個交易日的收盤高點
+    volume_multiplier: 1.5          # 當日成交量要達到均量的幾倍，才算放量確認
+    vol_baseline_days: 20           # 計算均量所用的天數
+
 output:
   dashboard_dir: "output"
   # 是否同時輸出 GitHub Pages 用的 docs/index.html

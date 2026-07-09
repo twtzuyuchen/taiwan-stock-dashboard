@@ -79,6 +79,8 @@ def build_context(stock_id: str, stock_name: str, watch_cfg: dict, analysis: dic
     score_transition = signals.get("score_transition", {})
     cost_breach = signals.get("cost_breach", {})
     accumulation = signals.get("accumulation", {})
+    left_side_entry = signals.get("left_side_entry", {})
+    right_side_entry = signals.get("right_side_entry", {})
 
     def _signal_class(light):
         return light or "neutral"
@@ -111,6 +113,20 @@ def build_context(stock_id: str, stock_name: str, watch_cfg: dict, analysis: dic
             "text": accumulation.get("text", "資料不足"),
             "light": _signal_class(accumulation.get("light")),
             "active": accumulation.get("active") is True,
+        },
+        {
+            "name": "左側交易進場提醒",
+            "kind": "狀態型",
+            "text": left_side_entry.get("text", "資料不足"),
+            "light": _signal_class(left_side_entry.get("light")),
+            "active": left_side_entry.get("active") is True,
+        },
+        {
+            "name": "右側交易進場提醒",
+            "kind": "狀態型",
+            "text": right_side_entry.get("text", "資料不足"),
+            "light": _signal_class(right_side_entry.get("light")),
+            "active": right_side_entry.get("active") is True,
         },
     ]
 
@@ -250,6 +266,18 @@ def demo_analysis(stock_id: str) -> dict:
                 "sample_days": 20,
                 "pattern_evidence_confirmed": ["關鍵價位量增不漲", "盤整期量縮至極致"],
                 "pattern_evidence_available_count": 3,
+            },
+            "left_side_entry": {
+                "signal": None,
+                "active": False,
+                "text": "現價尚未跌破主力估算成本或模型悲觀價，暫無左側佈局參考價位",
+                "light": None,
+            },
+            "right_side_entry": {
+                "signal": "right_side_entry",
+                "active": True,
+                "text": "近10個交易日內出現黃金交叉且延續、股價突破近20個交易日收盤高點、且帶量確認，符合右側轉強進場條件",
+                "light": "green",
             },
         },
     }

@@ -143,9 +143,20 @@ scoring:
   # 主力建倉訊號（悄悄吸籌）細項設定，可省略，省略時採用下列預設值
   # 三個條件同時成立才會觸發：買超天數比例夠高、買超力道加速、股價尚未大幅表態
   accumulation_detail:
+    # 第一層：法人籌碼面（必要條件，三者同時成立才算過關）
     buy_ratio_threshold: 0.7    # 近N個交易日中，買超天數至少要佔這個比例
     price_change_cap_pct: 15    # 同期股價漲幅超過這個百分比，視為已被市場表態，不算悄悄建倉
     min_days: 5                 # 可比對交易日至少要有這麼多天，才進行判斷
+    # 第二層：價量型態佐證（輔助條件，第一層過關後才會檢查；資料不足的項目會自動排除，不硬湊）
+    min_pattern_evidence: 2         # 下列三項型態中，至少要有幾項成立才算通過第二層
+    volume_spike_multiplier: 1.8    # 「關鍵價位量增不漲」：單日量能達20日均量的幾倍才算放大
+    price_flat_threshold_pct: 3     # 「關鍵價位量增不漲」：當天漲跌幅需在這個範圍內才算「不漲」
+    near_low_pct: 10                # 「關鍵價位量增不漲」：收盤價需落在期間最低點上方這個百分比內，才算「關鍵價位」
+    reversal_recovery_pct: 5        # 「股價強勢破底翻」：創新低後至今反彈幅度要達到這個百分比
+    consolidation_recent_days: 5    # 「盤整期量縮至極致」：近幾個交易日視為「近期」
+    consolidation_prior_days: 15    # 「盤整期量縮至極致」：近期之前的幾個交易日視為比較基準的「前段」
+    consolidation_shrink_ratio: 0.6 # 「盤整期量縮至極致」：近期均量需萎縮到前段均量的這個比例以下
+    consolidation_range_cap_pct: 5  # 「盤整期量縮至極致」：近期股價波動幅度需收斂在這個百分比以內
 
 output:
   dashboard_dir: "output"

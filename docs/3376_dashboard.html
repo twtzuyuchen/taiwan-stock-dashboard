@@ -120,7 +120,7 @@
 
   .signal-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     gap: 16px;
   }
   @media (max-width: 760px) { .signal-grid { grid-template-columns: 1fr; } }
@@ -197,23 +197,23 @@
         <span class="tag caution">區間操作</span>
       </div>
       <div class="meta">
-        分析週期：3-6個月｜風險偏好：穩健｜持股狀態：是｜產出時間：2026-07-08 13:06
+        分析週期：3-6個月｜風險偏好：穩健｜持股狀態：是｜產出時間：2026-07-09 06:08
       </div>
     </div>
     <div>
       <table class="infotable">
         
-        <tr><td class="k">股價日期</td><td class="v">2026-07-08</td></tr>
+        <tr><td class="k">股價日期</td><td class="v">2026-07-09</td></tr>
         
-        <tr><td class="k">融資日期</td><td class="v">2026-07-08</td></tr>
+        <tr><td class="k">融資日期</td><td class="v">2026-07-09</td></tr>
         
-        <tr><td class="k">法人日期</td><td class="v">2026-07-08</td></tr>
+        <tr><td class="k">法人日期</td><td class="v">2026-07-09</td></tr>
         
-        <tr><td class="k">籌碼分佈 CSV 日期</td><td class="v">2026-07-08</td></tr>
+        <tr><td class="k">籌碼分佈 CSV 日期</td><td class="v">2026-07-09</td></tr>
         
-        <tr><td class="k">經營績效 CSV 日期</td><td class="v">2026-07-08</td></tr>
+        <tr><td class="k">經營績效 CSV 日期</td><td class="v">2026-07-09</td></tr>
         
-        <tr><td class="k">SIGNAL_SUMMARY</td><td class="v">2026-07-08T13:06:23</td></tr>
+        <tr><td class="k">SIGNAL_SUMMARY</td><td class="v">2026-07-09T06:08:00</td></tr>
         
       </table>
     </div>
@@ -419,10 +419,20 @@
         </div>
       </div>
       
+      <div class="signal-card  neutral">
+        <div class="signal-card-head">
+          <span class="name">主力建倉訊號</span>
+          <span class="kind-tag">狀態型</span>
+        </div>
+        <div class="signal-text neutral">
+          <span class="signal-dot neutral"></span>未觸發主力建倉訊號：買超天數比例僅30%（門檻70%）；買超力道未加速
+        </div>
+      </div>
+      
     </div>
     <div class="footnote">
       事件型訊號（均線交叉、評分區間轉換）只在「發生變化的當天」出現，隔天若沒有新變化就會顯示「無訊號」；
-      狀態型訊號（主力成本防守價）只要條件持續成立就會一直顯示，不是只出現一次。三者皆為規則式計算，僅供研判參考，不構成投資建議。
+      狀態型訊號（主力成本防守價、主力建倉訊號）只要條件持續成立就會一直顯示，不是只出現一次。四者皆為規則式計算，僅供研判參考，不構成投資建議。
     </div>
   </div>
 

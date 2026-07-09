@@ -120,7 +120,7 @@
 
   .signal-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     gap: 16px;
   }
   @media (max-width: 760px) { .signal-grid { grid-template-columns: 1fr; } }
@@ -197,23 +197,23 @@
         <span class="tag caution">區間操作</span>
       </div>
       <div class="meta">
-        分析週期：3-6個月｜風險偏好：穩健｜持股狀態：是｜產出時間：2026-07-08 13:06
+        分析週期：3-6個月｜風險偏好：穩健｜持股狀態：是｜產出時間：2026-07-09 06:08
       </div>
     </div>
     <div>
       <table class="infotable">
         
-        <tr><td class="k">股價日期</td><td class="v">2026-07-08</td></tr>
+        <tr><td class="k">股價日期</td><td class="v">2026-07-09</td></tr>
         
-        <tr><td class="k">融資日期</td><td class="v">2026-07-08</td></tr>
+        <tr><td class="k">融資日期</td><td class="v">2026-07-09</td></tr>
         
-        <tr><td class="k">法人日期</td><td class="v">2026-07-08</td></tr>
+        <tr><td class="k">法人日期</td><td class="v">2026-07-09</td></tr>
         
-        <tr><td class="k">籌碼分佈 CSV 日期</td><td class="v">2026-07-08</td></tr>
+        <tr><td class="k">籌碼分佈 CSV 日期</td><td class="v">2026-07-09</td></tr>
         
-        <tr><td class="k">經營績效 CSV 日期</td><td class="v">2026-07-08</td></tr>
+        <tr><td class="k">經營績效 CSV 日期</td><td class="v">2026-07-09</td></tr>
         
-        <tr><td class="k">SIGNAL_SUMMARY</td><td class="v">2026-07-08T13:06:31</td></tr>
+        <tr><td class="k">SIGNAL_SUMMARY</td><td class="v">2026-07-09T06:08:08</td></tr>
         
       </table>
     </div>
@@ -243,7 +243,7 @@
     <div class="score-grid">
       <div class="score-item">
         <div class="label">綜合評分</div>
-        <div class="score-value"><span class="num">45/100</span><span class="dot yellow"></span></div>
+        <div class="score-value"><span class="num">53/100</span><span class="dot yellow"></span></div>
       </div>
       <div class="score-item">
         <div class="label">風險等級</div>
@@ -272,7 +272,7 @@
       </div>
       <div class="score-item">
         <div class="label">基本面催化</div>
-        <div class="score-value"><span class="pill yellow">留意</span></div>
+        <div class="score-value"><span class="pill green">良好</span></div>
       </div>
     </div>
     <div class="footnote">
@@ -315,20 +315,20 @@
     <div class="valuation-panel">
       <div class="valuation-item pessimistic">
         <div class="label">悲觀價</div>
-        <div class="price">172.5</div>
+        <div class="price">224.3</div>
       </div>
       <div class="valuation-item steady">
         <div class="label">穩健價</div>
-        <div class="price">314.0</div>
+        <div class="price">408.2</div>
       </div>
       <div class="valuation-item optimistic">
         <div class="label">樂觀價</div>
-        <div class="price">558.6</div>
+        <div class="price">726.2</div>
       </div>
     </div>
     <div class="footnote">
-      計算方式：近四季EPS合計 3.3 元，以近12個月營收年增率（0.0%，已限制在 ±30% 內避免失真）
-      估算未來一年EPS為 3.3 元；再用近 612 筆本益比歷史資料的
+      計算方式：近四季EPS合計 3.3 元，以近12個月營收年增率（30.0%，已限制在 ±30% 內避免失真）
+      估算未來一年EPS為 4.29 元；再用近 612 筆本益比歷史資料的
       20% / 50% / 80% 分位數（52.3 / 95.1 / 169.3 倍）分別相乘，
       得出悲觀價／穩健價／樂觀價三種情境。
     </div>
@@ -371,8 +371,8 @@
       
       <div class="light-item">
         <div class="name">基本面催化</div>
-        <div class="dot yellow"></div>
-        <div class="status yellow">留意</div>
+        <div class="dot green"></div>
+        <div class="status green">良好</div>
       </div>
       
       <div class="light-item">
@@ -382,7 +382,7 @@
       </div>
       
     </div>
-    <div class="footnote">評分限制：評分受基本面／籌碼轉弱限制，建議降低部位</div>
+    <div class="footnote">評分限制：未觸發主力中期或基本面限制</div>
   </div>
 
   <div class="card">
@@ -419,10 +419,20 @@
         </div>
       </div>
       
+      <div class="signal-card  neutral">
+        <div class="signal-card-head">
+          <span class="name">主力建倉訊號</span>
+          <span class="kind-tag">狀態型</span>
+        </div>
+        <div class="signal-text neutral">
+          <span class="signal-dot neutral"></span>未觸發主力建倉訊號：買超天數比例僅20%（門檻70%）；買超力道未加速
+        </div>
+      </div>
+      
     </div>
     <div class="footnote">
       事件型訊號（均線交叉、評分區間轉換）只在「發生變化的當天」出現，隔天若沒有新變化就會顯示「無訊號」；
-      狀態型訊號（主力成本防守價）只要條件持續成立就會一直顯示，不是只出現一次。三者皆為規則式計算，僅供研判參考，不構成投資建議。
+      狀態型訊號（主力成本防守價、主力建倉訊號）只要條件持續成立就會一直顯示，不是只出現一次。四者皆為規則式計算，僅供研判參考，不構成投資建議。
     </div>
   </div>
 

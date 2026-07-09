@@ -104,38 +104,6 @@ watchlist:
     sector: "電子代工服務（EMS）"
     business_summary: "全球最大電子代工服務（EMS）廠，由iPhone組裝起家，近年雲端與網路（AI伺服器）相關營收占比持續提升，並以「3+3」策略布局電動車、數位健康、機器人等新事業。"
     us_relation: "主要客戶包含蘋果（Apple，iPhone組裝）與輝達（Nvidia，AI伺服器/AI Rack）；並與英特爾（Intel）深化AI基礎建設合作；於美國（如威斯康辛州）有製造投資。"
-  - stock_id: "6911"
-    name: "群運"
-    risk_preference: "積極"
-    holding: true
-    analysis_period: "1-3個月"
-    sector: "環保服務－廢棄物處理與資源回收"
-    business_summary: "群運環保股份有限公司，主要從事一般廢棄物清運、清除，以及土資廠處理、資源回收等業務，2022年10月登錄興櫃。"
-    us_relation: "公開資料未提及與美國公司之供應鏈或客戶關係，業務性質為台灣本地環保清運服務，與美國市場無直接關聯。"
-  - stock_id: "6873"
-    name: "泓德能源"
-    risk_preference: "積極"
-    holding: true
-    analysis_period: "1-3個月"
-    sector: "綠能環保－太陽能光電與儲能"
-    business_summary: "泓德能源從事太陽能光電及儲能案場之開發、設計、工程建置與案場維運服務，並跨足綠電交易（Star Trade）、電動車充電（Star Charger）、漁電共生（Star Aquaculture）等業務，布局範圍涵蓋台灣、日本、澳洲、菲律賓。"
-    us_relation: "公開資料未提及與美國公司之供應鏈或客戶關係，主要合作夥伴為日本三菱電機、東京瓦斯，以及台灣富邦集團，業務重心在亞太（含澳洲）市場。"
-  - stock_id: "5222"
-    name: "全訊"
-    risk_preference: "積極"
-    holding: true
-    analysis_period: "1-3個月"
-    sector: "半導體－射頻(RF)化合物半導體元件"
-    business_summary: "全訊專注於砷化鎵(GaAs)、氮化鎵(GaN)射頻半導體元件、積體電路及次系統的研發製造，主要應用於軍規功率放大器、無人機通訊/反制模組及衛星元件，目前正布局低軌衛星用高功率固態功率放大器(SSPA)模組（工程驗證與量產測試階段）。"
-    us_relation: "公開資料未提及與美國公司之供應鏈或客戶關係，主要客戶為台灣國防（天弓/天劍飛彈系統）、無人機製造商、台灣太空中心，以及以色列、歐洲等海外軍工客戶。"
-  - stock_id: "2332"
-    name: "友訊"
-    risk_preference: "穩健"
-    holding: true
-    analysis_period: "3-6個月"
-    sector: "通信網路設備"
-    business_summary: "D-Link友訊科技為台灣網通設備大廠，以自有品牌銷售用戶端設備、無線網路(WLAN)、接取設備及區域網路產品，近期策略聚焦整合解決方案，涵蓋行動路由器、Wi-Fi 7全屋智慧連網（AQUILA PRO AI）、企業級Wi-Fi 7與2.5G/10G交換機、4G/5G設備等。"
-    us_relation: "以自有品牌D-Link在美國市場直接銷售，設有美國子公司(D-Link Systems Inc.)負責北美業務；法說會明確表示正推進美國電信商專案，北美為公司主要市場之一。"
 
 scoring:
   # 綜合評分權重（總和建議 = 1.0）
@@ -171,6 +139,13 @@ scoring:
     per_percentile_high: 80     # 樂觀價使用的本益比分位數
     growth_rate_cap_pct: 30     # 用營收年增率估算未來EPS成長時，正負限制在這個百分比以內
     min_per_samples: 60         # 本益比歷史樣本至少要有這麼多筆，才視為統計上足夠可靠
+
+  # 主力建倉訊號（悄悄吸籌）細項設定，可省略，省略時採用下列預設值
+  # 三個條件同時成立才會觸發：買超天數比例夠高、買超力道加速、股價尚未大幅表態
+  accumulation_detail:
+    buy_ratio_threshold: 0.7    # 近N個交易日中，買超天數至少要佔這個比例
+    price_change_cap_pct: 15    # 同期股價漲幅超過這個百分比，視為已被市場表態，不算悄悄建倉
+    min_days: 5                 # 可比對交易日至少要有這麼多天，才進行判斷
 
 output:
   dashboard_dir: "output"

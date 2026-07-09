@@ -120,7 +120,7 @@
 
   .signal-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     gap: 16px;
   }
   @media (max-width: 760px) { .signal-grid { grid-template-columns: 1fr; } }
@@ -360,7 +360,7 @@
     </div>
     <div class="footnote">
       事件型訊號（均線交叉、評分區間轉換）只在「發生變化的當天」出現，隔天若沒有新變化就會顯示「無訊號」；
-      狀態型訊號（主力成本防守價）只要條件持續成立就會一直顯示，不是只出現一次。三者皆為規則式計算，僅供研判參考，不構成投資建議。
+      狀態型訊號（主力成本防守價、主力建倉訊號）只要條件持續成立就會一直顯示，不是只出現一次。四者皆為規則式計算，僅供研判參考，不構成投資建議。
     </div>
   </div>
 

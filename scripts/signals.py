@@ -1,7 +1,7 @@
 """
 signals.py
 ==========
-買賣訊號層：在既有的燈號評分之外，額外提供三種訊號：
+買賣訊號層：在既有的燈號評分之外，額外提供四種訊號：
 
   A. 均線黃金/死亡交叉（事件型訊號，只在「交叉發生的當天」出現一次）
      5日均線由下往上穿越20日均線 -> 黃金交叉（偏多）
@@ -16,8 +16,14 @@ signals.py
   C. 主力成本防守價（狀態型訊號，只要現價低於主力估算成本就會持續顯示，
      不是只出現一次）
 
-事件型（A、B）代表「今天發生了什麼變化」；狀態型（C）代表「現在是什麼狀態」。
-兩種都可能同時存在，用途不同，儀表板會分開顯示。
+  D. 主力建倉訊號（狀態型訊號，只要近期買超型態符合「悄悄吸籌」就會持續顯示）
+     判斷近N個交易日三大法人是否呈現「持續買超、力道加速，但股價尚未大幅表態」的
+     型態——這是散戶盯盤常說的「主力建倉」：買超天數多、越買越積極，但股價還沒被
+     墊高，代表買超還沒被市場發現。不需要額外保存狀態，每次執行都用當次抓到的
+     股價與三大法人買賣超歷史重新判斷。
+
+事件型（A、B）代表「今天發生了什麼變化」；狀態型（C、D）代表「現在是什麼狀態」。
+不同類型用途不同，儀表板會分開顯示。
 """
 from __future__ import annotations
 
@@ -101,11 +107,90 @@ def detect_score_transition(stock_id: str, composite_score: int, thresholds: dic
     return {"signal": "downgrade", "text": f"評分轉弱：由「{prev_zone}」轉為「{curr_zone}」", "light": "red"}
 
 
-def compute_all_signals(stock_id: str, price_df: pd.DataFrame, composite_score: int,
+def detect_accumulation_signal(price_df: pd.DataFrame, inst_df: pd.DataFrame,
+                                lookback_days: int = 20, detail_config: dict | None = None) -> dict:
+    """主力建倉訊號（狀態型）：近N個交易日三大法人是否呈現「持續買超、力道加速，
+    但股價尚未大幅表態」的悄悄吸籌型態，是判斷主力是否正在建立部位的規則式訊號。
+
+    三個條件同時成立才會觸發：
+    1) 買超天數比例 >= buy_ratio_threshold（預設70%）：多數交易日都在買，不是零星買超
+    2) 買超力道加速：近半段買超股數(取正值加總) > 前半段買超股數，代表越買越積極
+    3) 股價尚未大幅表態：同一期間股價漲幅 <= price_change_cap_pct（預設15%），
+       代表法人買超還沒被市場發現、股價還沒被墊高，符合「悄悄建倉」的定義
+    只要其中任一條件不成立，就不算建倉訊號，文字說明會具體列出是哪個條件沒過，
+    方便你自己判斷是「快接近了」還是「差很遠」。"""
+    detail_config = detail_config or {}
+    buy_ratio_threshold = detail_config.get("buy_ratio_threshold", 0.7)
+    price_change_cap_pct = detail_config.get("price_change_cap_pct", 15)
+    min_days = detail_config.get("min_days", 5)
+
+    if price_df.empty or inst_df.empty:
+        return {"signal": None, "active": False, "text": "資料不足，無法判斷主力建倉訊號", "light": None}
+
+    price_df = price_df.sort_values("date")
+    inst = inst_df.copy()
+    inst["net"] = inst["buy"] - inst["sell"]
+    daily_net = inst.groupby("date")["net"].sum().reset_index()
+
+    merged = pd.merge(daily_net, price_df[["date", "close"]], on="date", how="inner")
+    merged = merged.sort_values("date").tail(lookback_days)
+
+    n = len(merged)
+    if n < min_days:
+        return {"signal": None, "active": False,
+                "text": f"近期可比對資料只有 {n} 個交易日，少於門檻 {min_days} 天，暫不判斷主力建倉訊號",
+                "light": None}
+
+    buy_days = merged[merged["net"] > 0]
+    buy_ratio = len(buy_days) / n
+
+    half = max(1, n // 2)
+    recent_strength = merged.tail(half)["net"].clip(lower=0).sum()
+    earlier_strength = merged.head(n - half)["net"].clip(lower=0).sum()
+    accelerating = bool(recent_strength > earlier_strength)
+
+    price_change_pct = float((merged["close"].iloc[-1] - merged["close"].iloc[0]) / merged["close"].iloc[0] * 100)
+
+    reasons_failed = []
+    if buy_ratio < buy_ratio_threshold:
+        reasons_failed.append(f"買超天數比例僅{buy_ratio * 100:.0f}%（門檻{buy_ratio_threshold * 100:.0f}%）")
+    if not accelerating:
+        reasons_failed.append("買超力道未加速")
+    if price_change_pct > price_change_cap_pct:
+        reasons_failed.append(f"股價漲幅已達{price_change_pct:+.1f}%（門檻{price_change_cap_pct}%），可能已被市場表態")
+
+    common_fields = {
+        "buy_ratio_pct": round(buy_ratio * 100, 1),
+        "price_change_pct": round(price_change_pct, 1),
+        "sample_days": n,
+    }
+
+    if not reasons_failed:
+        return {
+            "signal": "accumulating",
+            "active": True,
+            "text": (f"近{n}個交易日買超天數比例{buy_ratio * 100:.0f}%、買超力道加速、"
+                     f"同期股價僅{price_change_pct:+.1f}%，符合主力悄悄建倉型態"),
+            "light": "green",
+            **common_fields,
+        }
+
+    return {
+        "signal": None,
+        "active": False,
+        "text": "未觸發主力建倉訊號：" + "；".join(reasons_failed),
+        "light": None,
+        **common_fields,
+    }
+
+
+def compute_all_signals(stock_id: str, price_df: pd.DataFrame, inst_df: pd.DataFrame, composite_score: int,
                          current_price: float | None, inst_cost: float | None,
-                         thresholds: dict, state_dir: str) -> dict:
+                         thresholds: dict, state_dir: str, lookback_days: int = 20,
+                         accumulation_detail: dict | None = None) -> dict:
     return {
         "ma_cross": detect_ma_cross(price_df),
         "score_transition": detect_score_transition(stock_id, composite_score, thresholds, state_dir),
         "cost_breach": detect_cost_breach(current_price, inst_cost),
+        "accumulation": detect_accumulation_signal(price_df, inst_df, lookback_days, accumulation_detail),
     }

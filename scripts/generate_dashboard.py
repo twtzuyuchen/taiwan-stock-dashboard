@@ -78,6 +78,7 @@ def build_context(stock_id: str, stock_name: str, watch_cfg: dict, analysis: dic
     ma_cross = signals.get("ma_cross", {})
     score_transition = signals.get("score_transition", {})
     cost_breach = signals.get("cost_breach", {})
+    accumulation = signals.get("accumulation", {})
 
     def _signal_class(light):
         return light or "neutral"
@@ -103,6 +104,13 @@ def build_context(stock_id: str, stock_name: str, watch_cfg: dict, analysis: dic
             "text": cost_breach.get("text", "資料不足"),
             "light": _signal_class(cost_breach.get("light")),
             "active": cost_breach.get("breached") is True,
+        },
+        {
+            "name": "主力建倉訊號",
+            "kind": "狀態型",
+            "text": accumulation.get("text", "資料不足"),
+            "light": _signal_class(accumulation.get("light")),
+            "active": accumulation.get("active") is True,
         },
     ]
 
@@ -230,6 +238,15 @@ def demo_analysis(stock_id: str) -> dict:
                 "breached": False,
                 "text": "現價仍在主力估算成本之上，尚未跌破防守價",
                 "light": "green",
+            },
+            "accumulation": {
+                "signal": "accumulating",
+                "active": True,
+                "text": "近20個交易日買超天數比例80%、買超力道加速、同期股價僅+6.3%，符合主力悄悄建倉型態",
+                "light": "green",
+                "buy_ratio_pct": 80.0,
+                "price_change_pct": 6.3,
+                "sample_days": 20,
             },
         },
     }

@@ -242,11 +242,14 @@ def demo_analysis(stock_id: str) -> dict:
             "accumulation": {
                 "signal": "accumulating",
                 "active": True,
-                "text": "近20個交易日買超天數比例80%、買超力道加速、同期股價僅+6.3%，符合主力悄悄建倉型態",
+                "text": "近20個交易日買超天數比例80%、買超力道加速、同期股價僅+6.3%，且出現2項價量型態佐證"
+                         "（關鍵價位量增不漲、盤整期量縮至極致），符合主力悄悄建倉型態",
                 "light": "green",
                 "buy_ratio_pct": 80.0,
                 "price_change_pct": 6.3,
                 "sample_days": 20,
+                "pattern_evidence_confirmed": ["關鍵價位量增不漲", "盤整期量縮至極致"],
+                "pattern_evidence_available_count": 3,
             },
         },
     }

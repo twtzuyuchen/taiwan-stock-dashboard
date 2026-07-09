@@ -17,10 +17,28 @@ signals.py
      不是只出現一次）
 
   D. 主力建倉訊號（狀態型訊號，只要近期買超型態符合「悄悄吸籌」就會持續顯示）
-     判斷近N個交易日三大法人是否呈現「持續買超、力道加速，但股價尚未大幅表態」的
-     型態——這是散戶盯盤常說的「主力建倉」：買超天數多、越買越積極，但股價還沒被
-     墊高，代表買超還沒被市場發現。不需要額外保存狀態，每次執行都用當次抓到的
-     股價與三大法人買賣超歷史重新判斷。
+     判斷邏輯分兩層，缺資料時會自動略過對應層，不會整個訊號失效：
+
+     1) 法人籌碼面（必要條件，三者同時成立才算過關）：
+        - 買超天數比例 >= buy_ratio_threshold（預設70%）：多數交易日都在買，不是零星買超
+          （這也是「籌碼集中度提升」的量化替代指標——用三大法人買超集中度近似，
+          非個別券商分點進出，分點資料目前不在抓取範圍內）
+        - 買超力道加速：近半段買超股數(取正值加總) > 前半段買超股數，代表越買越積極
+        - 股價尚未大幅表態：同一期間股價漲幅 <= price_change_cap_pct（預設15%）
+
+     2) 價量型態佐證（輔助條件，三項中至少要有 min_pattern_evidence 項成立，
+        資料不足以判斷的項目會直接從分母排除，不強行湊數）：
+        - 關鍵價位量增不漲：股價接近近期低點時，出現單日成交量明顯放大
+          （>= 20日均量 * volume_spike_multiplier）但股價漲跌幅很小
+          （<= price_flat_threshold_pct），代表低檔有大量承接
+        - 股價強勢破底翻：期間內創新低後，股價收復回來（漲幅 >= reversal_recovery_pct），
+          代表主力不願讓價格脫離成本區間，具有下檔保護力
+        - 盤整期量縮至極致：近期成交量明顯萎縮（<= 前段均量 * consolidation_shrink_ratio）
+          且股價波動幅度收斂（<= consolidation_range_cap_pct），代表籌碼已收乾、賣壓輕
+
+     兩層都通過才會顯示「符合主力悄悄建倉型態」；法人籌碼面沒過關就不會再往下看
+     價量型態；法人籌碼面過關但價量型態佐證不足，會明確顯示還缺哪些型態證據。
+     不需要額外保存狀態，每次執行都用當次抓到的股價與三大法人買賣超歷史重新判斷。
 
 事件型（A、B）代表「今天發生了什麼變化」；狀態型（C、D）代表「現在是什麼狀態」。
 不同類型用途不同，儀表板會分開顯示。
@@ -107,22 +125,128 @@ def detect_score_transition(stock_id: str, composite_score: int, thresholds: dic
     return {"signal": "downgrade", "text": f"評分轉弱：由「{prev_zone}」轉為「{curr_zone}」", "light": "red"}
 
 
+def _detect_volume_spike_no_rise(price_df: pd.DataFrame, lookback_days: int,
+                                  volume_spike_multiplier: float = 1.8,
+                                  price_flat_threshold_pct: float = 3.0,
+                                  near_low_pct: float = 10.0,
+                                  vol_baseline_days: int = 20) -> dict:
+    """關鍵價位量增不漲：股價接近近期低點時，若出現單日成交量明顯放大、但股價漲跌幅很小，
+    代表有大量資金在低檔承接賣壓，是主力吸籌的經典特徵。"""
+    if "Trading_Volume" not in price_df.columns:
+        return {"confirmed": None, "available": False, "text": "缺成交量欄位，無法判斷"}
+
+    df = price_df.sort_values("date").copy()
+    df["Trading_Volume"] = pd.to_numeric(df["Trading_Volume"], errors="coerce")
+    df["avg_vol_prior"] = df["Trading_Volume"].rolling(vol_baseline_days, min_periods=5).mean().shift(1)
+    df["price_change_pct"] = df["close"].astype(float).pct_change() * 100
+
+    window = df.tail(lookback_days)
+    window = window.dropna(subset=["avg_vol_prior", "price_change_pct"])
+    if window.empty:
+        return {"confirmed": None, "available": False, "text": "資料不足，無法判斷"}
+
+    low_close = window["close"].astype(float).min()
+    near_low_bound = low_close * (1 + near_low_pct / 100)
+
+    matched = window[
+        (window["Trading_Volume"] >= window["avg_vol_prior"] * volume_spike_multiplier)
+        & (window["price_change_pct"].abs() <= price_flat_threshold_pct)
+        & (window["close"].astype(float) <= near_low_bound)
+    ]
+    if not matched.empty:
+        hit = matched.iloc[-1]
+        return {
+            "confirmed": True, "available": True,
+            "text": f"{hit['date']} 於低檔量增不漲（量能達均量{volume_spike_multiplier}倍以上、當日漲跌僅{hit['price_change_pct']:+.1f}%）",
+        }
+    return {"confirmed": False, "available": True, "text": "近期無低檔量增不漲的跡象"}
+
+
+def _detect_breakdown_reversal(price_df: pd.DataFrame, lookback_days: int,
+                                reversal_recovery_pct: float = 5.0) -> dict:
+    """股價強勢破底翻：期間內創新低後又收復回來，代表主力不願讓價格脫離成本區間，
+    具備下檔保護力（對應「抗跌」或「破底翻」的價格韌性特徵）。"""
+    df = price_df.sort_values("date").tail(lookback_days).reset_index(drop=True)
+    if len(df) < 5:
+        return {"confirmed": None, "available": False, "text": "資料不足，無法判斷"}
+
+    close = df["close"].astype(float)
+    low_idx = close.idxmin()
+    low_close = close.iloc[low_idx]
+    latest_close = close.iloc[-1]
+
+    if low_idx == len(close) - 1:
+        return {"confirmed": False, "available": True, "text": "近期股價仍處於期間低點，尚未出現破底翻"}
+    if low_close >= close.iloc[0]:
+        return {"confirmed": False, "available": True, "text": "近期未出現明顯破底走勢，無法判斷破底翻"}
+
+    recovery_pct = (latest_close - low_close) / low_close * 100
+    if recovery_pct >= reversal_recovery_pct:
+        return {
+            "confirmed": True, "available": True,
+            "text": f"{df['date'].iloc[low_idx]} 創低後強勢收復，至今反彈{recovery_pct:.1f}%",
+        }
+    return {"confirmed": False, "available": True, "text": f"創低後僅反彈{recovery_pct:.1f}%，尚不足以判斷破底翻"}
+
+
+def _detect_consolidation_volume_shrink(price_df: pd.DataFrame,
+                                         recent_days: int = 5, prior_days: int = 15,
+                                         shrink_ratio: float = 0.6,
+                                         range_cap_pct: float = 5.0) -> dict:
+    """盤整期量縮至極致：近期成交量明顯萎縮、股價波動幅度也收斂，代表籌碼已被主力收乾、
+    上方賣壓輕，是規則式判斷的「洗盤尾聲」跡象。"""
+    if "Trading_Volume" not in price_df.columns:
+        return {"confirmed": None, "available": False, "text": "缺成交量欄位，無法判斷"}
+
+    df = price_df.sort_values("date").copy()
+    df["Trading_Volume"] = pd.to_numeric(df["Trading_Volume"], errors="coerce")
+    window = df.tail(recent_days + prior_days)
+    if len(window) < recent_days + prior_days:
+        return {"confirmed": None, "available": False, "text": "資料不足，無法判斷"}
+
+    prior = window.head(prior_days)
+    recent = window.tail(recent_days)
+
+    prior_vol_avg = prior["Trading_Volume"].mean()
+    recent_vol_avg = recent["Trading_Volume"].mean()
+    if pd.isna(prior_vol_avg) or pd.isna(recent_vol_avg) or prior_vol_avg <= 0:
+        return {"confirmed": None, "available": False, "text": "成交量資料不足，無法判斷"}
+
+    recent_close = recent["close"].astype(float)
+    recent_range_pct = (recent_close.max() - recent_close.min()) / recent_close.mean() * 100
+
+    volume_shrunk = recent_vol_avg <= prior_vol_avg * shrink_ratio
+    range_narrow = recent_range_pct <= range_cap_pct
+
+    if volume_shrunk and range_narrow:
+        return {
+            "confirmed": True, "available": True,
+            "text": f"近{recent_days}日均量僅前段的{recent_vol_avg / prior_vol_avg * 100:.0f}%、波動幅度收斂至{recent_range_pct:.1f}%",
+        }
+    return {"confirmed": False, "available": True,
+            "text": f"近{recent_days}日均量為前段的{recent_vol_avg / prior_vol_avg * 100:.0f}%、波動幅度{recent_range_pct:.1f}%，尚未達量縮極致"}
+
+
 def detect_accumulation_signal(price_df: pd.DataFrame, inst_df: pd.DataFrame,
                                 lookback_days: int = 20, detail_config: dict | None = None) -> dict:
-    """主力建倉訊號（狀態型）：近N個交易日三大法人是否呈現「持續買超、力道加速，
-    但股價尚未大幅表態」的悄悄吸籌型態，是判斷主力是否正在建立部位的規則式訊號。
+    """主力建倉訊號（狀態型）：判斷邏輯分兩層。
 
-    三個條件同時成立才會觸發：
+    第一層「法人籌碼面」（必要條件，三者同時成立才算過關）：
     1) 買超天數比例 >= buy_ratio_threshold（預設70%）：多數交易日都在買，不是零星買超
     2) 買超力道加速：近半段買超股數(取正值加總) > 前半段買超股數，代表越買越積極
-    3) 股價尚未大幅表態：同一期間股價漲幅 <= price_change_cap_pct（預設15%），
-       代表法人買超還沒被市場發現、股價還沒被墊高，符合「悄悄建倉」的定義
-    只要其中任一條件不成立，就不算建倉訊號，文字說明會具體列出是哪個條件沒過，
-    方便你自己判斷是「快接近了」還是「差很遠」。"""
+    3) 股價尚未大幅表態：同一期間股價漲幅 <= price_change_cap_pct（預設15%）
+
+    第二層「價量型態佐證」（輔助條件，第一層過關後才會檢查，三項中至少要有
+    min_pattern_evidence 項成立才算通過；資料不足以判斷的項目會從分母排除，不強行湊數）：
+    a) 關鍵價位量增不漲  b) 股價強勢破底翻  c) 盤整期量縮至極致
+
+    只要第一層任一條件不成立，就不算建倉訊號；第一層過關但第二層佐證不足，也不算，
+    文字說明都會具體列出卡在哪一層、哪個條件，方便你判斷是「快接近了」還是「差很遠」。"""
     detail_config = detail_config or {}
     buy_ratio_threshold = detail_config.get("buy_ratio_threshold", 0.7)
     price_change_cap_pct = detail_config.get("price_change_cap_pct", 15)
     min_days = detail_config.get("min_days", 5)
+    min_pattern_evidence = detail_config.get("min_pattern_evidence", 2)
 
     if price_df.empty or inst_df.empty:
         return {"signal": None, "active": False, "text": "資料不足，無法判斷主力建倉訊號", "light": None}
@@ -151,13 +275,13 @@ def detect_accumulation_signal(price_df: pd.DataFrame, inst_df: pd.DataFrame,
 
     price_change_pct = float((merged["close"].iloc[-1] - merged["close"].iloc[0]) / merged["close"].iloc[0] * 100)
 
-    reasons_failed = []
+    core_reasons_failed = []
     if buy_ratio < buy_ratio_threshold:
-        reasons_failed.append(f"買超天數比例僅{buy_ratio * 100:.0f}%（門檻{buy_ratio_threshold * 100:.0f}%）")
+        core_reasons_failed.append(f"買超天數比例僅{buy_ratio * 100:.0f}%（門檻{buy_ratio_threshold * 100:.0f}%）")
     if not accelerating:
-        reasons_failed.append("買超力道未加速")
+        core_reasons_failed.append("買超力道未加速")
     if price_change_pct > price_change_cap_pct:
-        reasons_failed.append(f"股價漲幅已達{price_change_pct:+.1f}%（門檻{price_change_cap_pct}%），可能已被市場表態")
+        core_reasons_failed.append(f"股價漲幅已達{price_change_pct:+.1f}%（門檻{price_change_cap_pct}%），可能已被市場表態")
 
     common_fields = {
         "buy_ratio_pct": round(buy_ratio * 100, 1),
@@ -165,22 +289,77 @@ def detect_accumulation_signal(price_df: pd.DataFrame, inst_df: pd.DataFrame,
         "sample_days": n,
     }
 
-    if not reasons_failed:
+    if core_reasons_failed:
         return {
-            "signal": "accumulating",
-            "active": True,
-            "text": (f"近{n}個交易日買超天數比例{buy_ratio * 100:.0f}%、買超力道加速、"
-                     f"同期股價僅{price_change_pct:+.1f}%，符合主力悄悄建倉型態"),
-            "light": "green",
+            "signal": None,
+            "active": False,
+            "text": "未觸發主力建倉訊號：" + "；".join(core_reasons_failed),
+            "light": None,
             **common_fields,
         }
 
+    # 第一層過關，接著檢查第二層價量型態佐證
+    pattern_checks = {
+        "關鍵價位量增不漲": _detect_volume_spike_no_rise(
+            price_df, lookback_days,
+            detail_config.get("volume_spike_multiplier", 1.8),
+            detail_config.get("price_flat_threshold_pct", 3.0),
+            detail_config.get("near_low_pct", 10.0),
+        ),
+        "股價強勢破底翻": _detect_breakdown_reversal(
+            price_df, lookback_days,
+            detail_config.get("reversal_recovery_pct", 5.0),
+        ),
+        "盤整期量縮至極致": _detect_consolidation_volume_shrink(
+            price_df,
+            detail_config.get("consolidation_recent_days", 5),
+            detail_config.get("consolidation_prior_days", 15),
+            detail_config.get("consolidation_shrink_ratio", 0.6),
+            detail_config.get("consolidation_range_cap_pct", 5.0),
+        ),
+    }
+    available_checks = {k: v for k, v in pattern_checks.items() if v.get("available")}
+    confirmed_names = [k for k, v in available_checks.items() if v.get("confirmed")]
+    pattern_fields = {
+        "pattern_evidence_confirmed": confirmed_names,
+        "pattern_evidence_available_count": len(available_checks),
+    }
+
+    core_text = (f"近{n}個交易日買超天數比例{buy_ratio * 100:.0f}%、買超力道加速、"
+                 f"同期股價僅{price_change_pct:+.1f}%")
+
+    if not available_checks:
+        # 完全沒有可用的成交量資料時，退回只看法人籌碼面（維持原本行為，不因缺資料而失效）
+        return {
+            "signal": "accumulating",
+            "active": True,
+            "text": core_text + "，符合主力悄悄建倉型態（缺成交量資料，本次未含價量型態佐證）",
+            "light": "green",
+            **common_fields,
+            **pattern_fields,
+        }
+
+    required = min(min_pattern_evidence, len(available_checks))
+    if len(confirmed_names) >= required:
+        return {
+            "signal": "accumulating",
+            "active": True,
+            "text": (core_text + f"，且出現{len(confirmed_names)}項價量型態佐證（"
+                     + "、".join(confirmed_names) + "），符合主力悄悄建倉型態"),
+            "light": "green",
+            **common_fields,
+            **pattern_fields,
+        }
+
+    missing = [k for k in available_checks if k not in confirmed_names]
     return {
         "signal": None,
         "active": False,
-        "text": "未觸發主力建倉訊號：" + "；".join(reasons_failed),
-        "light": None,
+        "text": (core_text + f"，符合法人買超條件，但價量型態佐證僅{len(confirmed_names)}/"
+                 f"{len(available_checks)}項（尚缺：" + "、".join(missing) + "），暫不判定為主力建倉"),
+        "light": "yellow",
         **common_fields,
+        **pattern_fields,
     }
 
 

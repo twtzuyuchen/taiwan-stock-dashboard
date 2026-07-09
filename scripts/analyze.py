@@ -411,11 +411,14 @@ def analyze_stock(stock_id: str, config: dict, cache_dir: str = "output/cache",
     signals = compute_all_signals(
         stock_id=stock_id,
         price_df=price_df,
+        inst_df=inst_df,
         composite_score=composite,
         current_price=inst_cost.get("current_price"),
         inst_cost=inst_cost.get("cost"),
         thresholds=thresholds,
         state_dir=state_dir,
+        lookback_days=lookback,
+        accumulation_detail=scoring.get("accumulation_detail", {}),
     )
 
     return {

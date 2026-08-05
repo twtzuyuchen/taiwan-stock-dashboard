@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>今日大盤／期貨情境 台股波段 AI Agent 儀表板</title>
+<style>
+  :root {
+    --surface-1:      #fcfcfb;
+    --page-plane:     #f9f9f7;
+    --text-primary:   #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted:     #898781;
+    --gridline:       #e1e0d9;
+    --border:         rgba(11,11,11,0.10);
+    --good:           #0ca30c;
+    --good-bg:        #e4f6e4;
+    --warning:        #fab219;
+    --warning-bg:     #fff4de;
+    --critical:       #d03b3b;
+    --critical-bg:    #fbe6e6;
+    --blue:           #2a78d6;
+    --blue-bg:        #eaf2fc;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 32px 20px 60px;
+    background: var(--page-plane);
+    color: var(--text-primary);
+    font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans TC", sans-serif;
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; }
+  .card {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin-bottom: 20px;
+  }
+  .eyebrow { font-size: 13px; color: var(--text-secondary); margin-bottom: 6px; }
+  .title-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .title-row h1 { font-size: 26px; margin: 0; }
+  .back-link { font-size: 13px; color: var(--blue); text-decoration: none; }
+  .meta { margin-top: 12px; font-size: 14px; color: var(--text-secondary); line-height: 1.9; }
+  h2 { font-size: 17px; margin: 0 0 16px; }
+  .pill {
+    font-size: 13px; font-weight: 700; padding: 3px 10px; border-radius: 999px;
+  }
+  .pill.green, .pill.bullish { background: var(--good-bg); color: var(--good); }
+  .pill.yellow, .pill.neutral { background: var(--warning-bg); color: #8a5a00; }
+  .pill.red, .pill.bearish { background: var(--critical-bg); color: var(--critical); }
+
+  .us-panel { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  @media (max-width: 760px) { .us-panel { grid-template-columns: 1fr; } }
+  .us-item { border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; }
+  .us-item .label { font-size: 13px; color: var(--text-secondary); margin-bottom: 8px; }
+  .us-item .close { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+  .us-item .change { font-size: 15px; font-weight: 700; }
+  .us-item .change.pos { color: var(--good); }
+  .us-item .change.neg { color: var(--critical); }
+  .us-item .date { font-size: 11.5px; color: var(--text-muted); margin-top: 6px; }
+
+  .bias-banner {
+    display: flex; align-items: center; gap: 14px; padding: 16px 18px;
+    border-radius: 10px; background: var(--blue-bg); margin-bottom: 14px;
+  }
+  .bias-banner .num { font-size: 24px; font-weight: 700; color: var(--blue); }
+  .bias-banner .text { font-size: 13.5px; color: var(--text-primary); line-height: 1.6; }
+
+  .unavailable {
+    padding: 16px 18px; border-radius: 10px; background: var(--warning-bg); color: #8a5a00; font-size: 13.5px;
+  }
+
+  .levels-panel { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 14px; }
+  @media (max-width: 760px) { .levels-panel { grid-template-columns: repeat(2, 1fr); } }
+  .level-item { border-radius: 10px; padding: 14px 16px; text-align: center; }
+  .level-item.resistance { background: var(--critical-bg); }
+  .level-item.support { background: var(--good-bg); }
+  .level-item.prev { background: var(--blue-bg); }
+  .level-item.range { background: var(--gridline); }
+  .level-item .label { font-size: 12.5px; color: var(--text-secondary); margin-bottom: 6px; }
+  .level-item .value { font-size: 18px; font-weight: 700; }
+  .level-item.resistance .value { color: var(--critical); }
+  .level-item.support .value { color: var(--good); }
+  .level-item.prev .value { color: var(--blue); }
+  .level-item.range .value { color: var(--text-primary); font-size: 14px; }
+
+  .ma-row { font-size: 13.5px; color: var(--text-secondary); margin-bottom: 14px; }
+  .ma-row b { color: var(--text-primary); }
+
+  .scenario-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 8px; }
+  @media (max-width: 760px) { .scenario-grid { grid-template-columns: 1fr; } }
+  .scenario-box { border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; }
+  .scenario-box.up { border-left: 3px solid var(--good); }
+  .scenario-box.down { border-left: 3px solid var(--critical); }
+  .scenario-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+  .scenario-trigger { font-size: 12.5px; color: var(--text-secondary); }
+  .scenario-next { font-size: 14px; margin-bottom: 8px; }
+  .scenario-next b { color: var(--blue); }
+  .scenario-stats { font-size: 12.5px; color: var(--text-secondary); line-height: 1.7; }
+  .scenario-stats b.pos { color: var(--good); }
+  .scenario-stats b.neg { color: var(--critical); }
+  .scenario-stats.muted { color: var(--text-muted); }
+
+  .compare-box {
+    padding: 14px 18px; border-radius: 10px; font-size: 13.5px; line-height: 1.7; margin-bottom: 8px;
+  }
+  .compare-box.agree { background: var(--good-bg); color: #0a5f0a; }
+  .compare-box.disagree { background: var(--warning-bg); color: #8a5a00; }
+
+  .footnote { font-size: 12.5px; color: var(--text-muted); line-height: 1.8; margin-top: 8px; }
+  .disclaimer-banner {
+    background: var(--warning-bg); color: #8a5a00; border: 1px solid var(--warning);
+    border-radius: 10px; padding: 12px 16px; font-size: 13px; margin-bottom: 20px; line-height: 1.7;
+  }
+  .demo-banner {
+    background: var(--warning-bg); color: #8a5a00; border: 1px solid var(--warning);
+    border-radius: 10px; padding: 10px 16px; font-size: 13px; margin-bottom: 20px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  
+
+  <div class="card">
+    <div class="eyebrow">台股波段 AI Agent HTML 圖像化報告</div>
+    <div class="title-row">
+      <h1>今日大盤／期貨情境</h1>
+    </div>
+    <div class="meta">
+      產出時間：2026-08-05 15:20｜<a class="back-link" href="index.html">← 回總覽頁</a>
+    </div>
+  </div>
+
+  <div class="disclaimer-banner">
+    ⚠ 本頁所有內容（規則式評分、迴歸模型預測、關鍵點位、突破情境、台指期基差）都是根據前一交易日美股收盤資料、
+    台股加權指數與台指期近月合約自身歷史價格計算出來的統計參考，不是分析師報告、不是內線消息，也不構成投資建議；
+    台指期部分用的是收盤後才更新的公開資料（FinMind TaiwanFuturesDaily），不是盤中即時報價，隔天盤中實際成交價
+    仍可能與此有落差，請勿直接依此下單。
+  </div>
+
+  <div class="card">
+    <h2>1. 前一交易日美股三大指數收盤</h2>
+    <div class="us-panel">
+      
+      
+      <div class="us-item">
+        <div class="label">納斯達克綜合指數</div>
+        
+        <div class="close">26569.44</div>
+        <div class="change neg">-0.06%</div>
+        <div class="date">收盤日期：2026-08-05</div>
+        
+      </div>
+      
+      
+      <div class="us-item">
+        <div class="label">費城半導體指數</div>
+        
+        <div class="close">12083.56</div>
+        <div class="change neg">-0.79%</div>
+        <div class="date">收盤日期：2026-08-05</div>
+        
+      </div>
+      
+      
+      <div class="us-item">
+        <div class="label">道瓊工業指數</div>
+        
+        <div class="close">54538.71</div>
+        <div class="change pos">+0.84%</div>
+        <div class="date">收盤日期：2026-08-05</div>
+        
+      </div>
+      
+    </div>
+    <div class="footnote">資料來源：Yahoo Finance（透過 yfinance 套件），代號 ^IXIC／^SOX／^DJI；快取於 output/cache/market_nasdaq.csv 等檔案。</div>
+  </div>
+
+  <div class="card">
+    <h2>2. 方法 A：規則式綜合評分</h2>
+    
+    <div class="bias-banner">
+      <span class="num">-0.24%</span>
+      <span class="pill neutral">中性</span>
+    </div>
+    <div class="footnote">綜合加權漲跌幅 -0.24%（費城半導體指數-0.79%、納斯達克綜合指數-0.06%、道瓊工業指數+0.84%），規則式判斷台股開盤情境「中性」</div>
+    
+    <div class="footnote">計算方式：三大美股指數前一交易日漲跌幅依權重加總（預設費城半導體指數權重最高，因台股半導體權值比重高），對照門檻判斷「偏多／中性／偏空」；任一指數缺資料會自動排除並重新分配權重。</div>
+  </div>
+
+  <div class="card">
+    <h2>3. 方法 B：歷史迴歸模型預測</h2>
+    
+    <div class="bias-banner">
+      <span class="num">-0.02%</span>
+      <span class="pill neutral">R² = 0.335</span>
+    </div>
+    <div class="footnote">以近 726 個可比對交易日樣本訓練的迴歸模型（R²=0.335），預測今日台股加權指數報酬約 -0.02%（±1個標準差區間 -1.24% ～ +1.21%）</div>
+    
+    <div class="footnote">計算方式：用過去數年「美股前一交易日報酬 → 台股加權指數當日報酬」的歷史資料做複迴歸，估算今日預測報酬與 ±1 個標準差區間；R² 代表模型解釋力（0~1，越高代表美股對台股當日報酬的解釋力越強，但台股當日報酬仍受台股自身籌碼、消息面影響，R² 不會也不應該接近 1）；樣本數不足時會直接標示「資料不足」，不會硬湊出一個數字。</div>
+  </div>
+
+  <div class="card">
+    <h2>4. 兩種方法對照</h2>
+    
+    <div class="compare-box agree">規則式評分判斷「中性」，迴歸模型預測報酬 -0.02%（對應方向「中性」）——兩種方法方向一致，可信度相對較高</div>
+    
+    <div class="footnote">兩種方法各自獨立計算，這裡只是並列對照，不會取平均硬湊出單一答案；方向一致時可信度相對較高，方向不一致時建議降低對今日方向判斷的信心，改以下方關鍵點位的實際表態為準。</div>
+  </div>
+
+  <div class="card">
+    <h2>5. 加權指數關鍵點位</h2>
+    
+    <div class="levels-panel">
+      <div class="level-item prev">
+        <div class="label">前一交易日收盤</div>
+        <div class="value">44611.6</div>
+      </div>
+      <div class="level-item resistance">
+        <div class="label">近20日壓力（區間高點）</div>
+        <div class="value">46330.9</div>
+      </div>
+      <div class="level-item support">
+        <div class="label">近20日支撐（區間低點）</div>
+        <div class="value">39384.9</div>
+      </div>
+      <div class="level-item range">
+        <div class="label">ATR(14日)估算今日波動區間</div>
+        <div class="value">42989.6 ～ 46233.6</div>
+      </div>
+    </div>
+    <div class="ma-row">
+      均線參考：MA5 <b>42882.3</b>
+      MA20 <b>43741.9</b>
+      MA60 <b>44189.6</b>
+    </div>
+    
+    <div class="footnote">計算方式：支撐／壓力取近 N 個交易日加權指數的最低／最高價；ATR（真實波動幅度）取近期每日「真實波動幅度」的平均值，用「前一交易日收盤 ± ATR」估算今日可能的合理波動區間，是統計上的粗略估計，不是精確預測；這一整張卡片完全獨立於美股連動判斷之外，純粹是加權指數自身的價格行為分析。</div>
+  </div>
+
+  <div class="card">
+    <h2>6. 若站穩突破關鍵點位，下一步可能走勢</h2>
+    
+    <div class="scenario-grid">
+      <div class="scenario-box up">
+        <div class="scenario-head">
+          <span class="pill bullish">若站穩突破壓力</span>
+          <span class="scenario-trigger">收盤價 &gt; 46469.9</span>
+        </div>
+        <div class="scenario-next">下一關鍵點位：<b>48218.9</b>（近60日高點）</div>
+        
+        <div class="scenario-stats">
+          歷史統計（近5個交易日後）：75 次類似事件，
+          平均報酬 <b class="pos">+0.33%</b>，
+          中位數 +0.43%，
+          56.0% 的情況延續上漲
+        </div>
+        
+      </div>
+      <div class="scenario-box down">
+        <div class="scenario-head">
+          <span class="pill bearish">若站穩跌破支撐</span>
+          <span class="scenario-trigger">收盤價 &lt; 39266.7</span>
+        </div>
+        <div class="scenario-next">下一關鍵點位：<b>—</b>（近期低點已是近期區間內相對低點，需留意創新低後的價格發現階段（缺乏歷史低點參考））</div>
+        
+        <div class="scenario-stats">
+          歷史統計（近5個交易日後）：22 次類似事件，
+          平均報酬 <b class="neg">+2.08%</b>，
+          中位數 +2.91%，
+          18.2% 的情況延續下跌
+        </div>
+        
+      </div>
+    </div>
+    <div class="footnote">
+      「站穩」定義：收盤價超出前一張卡片的近20日支撐／壓力達 0.3% 以上，不是盤中碰一下就算；
+      下一關鍵點位取近60日的高／低點，找不到比目前支撐／壓力更極端的價位時會直接說明，不硬湊數字。
+      歷史統計是把過去所有符合「站穩突破」條件的歷史事件抓出來，量測事件發生後接下來幾個交易日的報酬分佈，是單純的歷史事件統計（event study），不是預測模型；
+      這些歷史事件彼此可能重疊（例如連續上漲時每天都符合條件），樣本不是完全獨立，只能當作方向性的歷史頻率參考，不是嚴謹的統計推論，過去發生過不代表這次也會一樣。
+    </div>
+    
+  </div>
+
+  <div class="card">
+    <h2>7. 台指期近月合約收盤與基差</h2>
+    
+    <div class="us-panel">
+      <div class="us-item">
+        <div class="label">台指期近月合約收盤（結算價）</div>
+        <div class="close">44537.0</div>
+        <div class="change pos">+2.75%</div>
+        <div class="date">收盤日期：2026-08-05</div>
+      </div>
+      <div class="us-item">
+        <div class="label">加權指數（現貨）收盤</div>
+        <div class="close">44611.6</div>
+        
+        <div class="change pos">+2.88%</div>
+        
+        <div class="date">收盤日期：2026-08-05</div>
+      </div>
+      
+      <div class="us-item">
+        <div class="label">基差（期貨－現貨）</div>
+        <div class="close">-74.6</div>
+        <div class="change neg">逆價差（-0.17%）</div>
+      </div>
+      
+    </div>
+    
+    <div class="footnote">
+      資料來源：FinMind「TaiwanFuturesDaily」資料集（data_id=TX），取每個交易日近月合約（尚未到期、契約月份最近者）的結算價，
+      同一天日盤／夜盤各一筆時取成交量較大者代表當天；這是收盤後才會更新的公開資料（非即時報價），跟個股資料共用同一組 FinMind token。
+      基差＝台指期收盤－加權指數收盤：正價差常被解讀為市場對後市偏多或反映利率高於除息預期，逆價差則相反，也可能只是反映除權息旺季；
+      這是市場資金成本／情緒面的參考指標，不是直接的漲跌訊號，期貨到期時理論上會與現貨價格收斂。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>8. 台指期關鍵點位與突破情境</h2>
+    
+    <div class="levels-panel">
+      <div class="level-item prev">
+        <div class="label">前一交易日收盤</div>
+        <div class="value">44537.0</div>
+      </div>
+      <div class="level-item resistance">
+        <div class="label">近20日壓力（區間高點）</div>
+        <div class="value">46495.0</div>
+      </div>
+      <div class="level-item support">
+        <div class="label">近20日支撐（區間低點）</div>
+        <div class="value">39442.0</div>
+      </div>
+      <div class="level-item range">
+        <div class="label">ATR(14日)估算今日波動區間</div>
+        <div class="value">42763.0 ～ 46311.0</div>
+      </div>
+    </div>
+    <div class="ma-row">
+      均線參考：MA5 <b>42908.8</b>
+      MA20 <b>43816.3</b>
+      MA60 <b>44357.9</b>
+    </div>
+    
+    <div class="scenario-grid">
+      <div class="scenario-box up">
+        <div class="scenario-head">
+          <span class="pill bullish">若站穩突破壓力</span>
+          <span class="scenario-trigger">收盤價 &gt; 46634.5</span>
+        </div>
+        <div class="scenario-next">下一關鍵點位：<b>48711.0</b>（近60日高點）</div>
+        
+        <div class="scenario-stats">
+          歷史統計（近5個交易日後）：84 次類似事件，
+          平均報酬 <b class="pos">+0.25%</b>，
+          中位數 +0.31%，
+          52.4% 的情況延續上漲
+        </div>
+        
+      </div>
+      <div class="scenario-box down">
+        <div class="scenario-head">
+          <span class="pill bearish">若站穩跌破支撐</span>
+          <span class="scenario-trigger">收盤價 &lt; 39323.7</span>
+        </div>
+        <div class="scenario-next">下一關鍵點位：<b>—</b>（近期低點已是近期區間內相對低點，需留意創新低後的價格發現階段（缺乏歷史低點參考））</div>
+        
+        <div class="scenario-stats">
+          歷史統計（近5個交易日後）：18 次類似事件，
+          平均報酬 <b class="neg">+3.44%</b>，
+          中位數 +3.00%，
+          16.7% 的情況延續下跌
+        </div>
+        
+      </div>
+    </div>
+    
+    <div class="footnote">
+      計算方式跟卡片5／6完全相同，差別只在於這裡是直接用台指期近月合約自己的每日收盤資料計算，不是借用加權指數的數字；
+      支撐／壓力／ATR波動區間／下一關鍵點位／歷史突破後續統計，定義同上，同樣只供研判參考、不是精確預測。
+      台指期跟加權指數走勢通常高度連動但不完全相同（差異主要來自基差變化），兩張卡片的關鍵點位數字本來就會有落差，這是正常現象。
+    </div>
+    
+  </div>
+
+</div>
+</body>
+</html>

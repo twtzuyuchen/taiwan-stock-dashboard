@@ -12,6 +12,32 @@ finmind:
   # 這個天數只影響 fetch_data.py 抓 TaiwanStockPER 的區間，不影響其他資料集。
   valuation_lookback_days: 1095
 
+market_overview:
+  # 「今日大盤/期貨情境」頁面的設定，資料來源是 yfinance（Yahoo Finance），完全獨立於 watchlist
+  # 個股資料與 FinMind 之外，不需要 FinMind token；抓的是前一交易日美股三大指數（納斯達克綜合指數
+  # ^IXIC、費城半導體指數 ^SOX、道瓊工業指數 ^DJI）與台股加權指數 ^TWII 的歷史資料。
+  regression_lookback_days: 1095  # 迴歸模型訓練資料回溯天數（日曆天，預設約3年），太短樣本數不夠
+  regression_min_samples: 120     # 迴歸模型至少需要這麼多筆「當日可比對」樣本，才視為統計上可信
+  # 方法A：規則式綜合評分細項設定，可省略，省略時採用下列預設值
+  rule_based_detail:
+    weights:
+      sox: 0.5      # 費城半導體指數權重最高，因為台股半導體權值比重高
+      nasdaq: 0.3
+      dow: 0.2
+    bullish_threshold_pct: 0.5   # 加權後的綜合漲跌幅 >= 這個百分比 -> 判定「偏多」
+    bearish_threshold_pct: -0.5  # <= 這個百分比 -> 判定「偏空」，中間判定為「中性」
+  # 加權指數關鍵點位（支撐/壓力/ATR波動區間）細項設定，可省略，省略時採用下列預設值
+  key_level_detail:
+    recent_range_days: 20   # 近期支撐/壓力抓近幾個交易日的高低點
+    atr_days: 14             # ATR（真實波動幅度）回溯天數，用來估算今日可能波動區間
+
+  # 「跌破/漲過關鍵點位並站穩後」的下一關鍵點位與歷史後續走勢統計，細項設定，可省略，省略時採用下列預設值
+  breakout_scenario_detail:
+    confirm_buffer_pct: 0.3   # 收盤價超出支撐/壓力這個百分比以上，才算「站穩」突破，不是盤中碰一下就算
+    extended_range_days: 60   # 次一層關鍵點位（更長期的高低點）回溯天數，需大於 key_level_detail.recent_range_days
+    follow_through_days: 5    # 歷史事件統計往後看幾個交易日的報酬
+    min_event_samples: 8      # 歷史上符合條件的站穩突破事件至少要有這麼多次，統計才算數，不夠就明講樣本不足
+
 watchlist:
   # 每檔股票的代號、名稱、風險偏好、持股狀態，以及人工整理的產業資訊。
   # sector／business_summary／us_relation 三個欄位不會每日自動更新，是靜態的公司背景介紹，

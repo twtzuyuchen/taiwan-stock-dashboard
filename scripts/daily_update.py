@@ -5,6 +5,7 @@ daily_update.py
   1. 抓取 watchlist 內每檔股票的最新資料 (fetch_data)
   2. 計算主力成本與燈號評分 (analyze)
   3. 產出每檔股票的 HTML 儀表板 + 一個總覽 index.html
+  4. 抓取美股三大指數與台股加權指數資料 (fetch_market_data)，產出「今日大盤/期貨情境」頁面 (market_overview)
 
 用法：
     python daily_update.py --config config/config.yaml
@@ -21,6 +22,8 @@ from jinja2 import Environment, FileSystemLoader
 from analyze import analyze_stock
 from fetch_data import fetch_all
 from generate_dashboard import render
+from fetch_market_data import fetch_all_market_data
+from market_overview import compute_market_overview, demo_market_overview, render_market_overview
 
 INDEX_TEMPLATE = """<!DOCTYPE html>
 <html lang="zh-Hant"><head><meta charset="UTF-8">
@@ -31,11 +34,16 @@ body{font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif;background:#f
 h1{font-size:22px;}
 .item{display:flex;justify-content:space-between;align-items:center;background:#fcfcfb;border:1px solid rgba(11,11,11,.1);
 border-radius:10px;padding:14px 18px;margin-bottom:10px;text-decoration:none;color:inherit;}
+.item.market{background:#eaf2fc;font-weight:700;}
 .item .score{font-weight:700;}
 .meta{color:#898781;font-size:13px;margin-bottom:20px;}
 </style></head><body><div class="wrap">
 <h1>台股波段 AI Agent 儀表板總覽</h1>
 <div class="meta">更新時間：{{ updated_at }}</div>
+<a class="item market" href="market_overview.html">
+  <span>📊 今日大盤／期貨情境</span>
+  <span class="score">→</span>
+</a>
 {% for row in rows %}
 <a class="item" href="{{ row.stock_id }}_dashboard.html">
   <span>{{ row.stock_id }} {{ row.name }}</span>
@@ -70,6 +78,20 @@ def run(config_path: str, demo: bool = False) -> None:
         print(f"  -> {out_path}")
 
         summary_rows.append({"stock_id": stock_id, "name": w["name"], "score": analysis["composite_score"]})
+
+    # 大盤/期貨情境頁面：跟個股迴圈完全獨立，就算這裡失敗（例如 Yahoo Finance 連不上）也不該讓
+    # 整個每日更新流程中斷、害個股頁面都沒產出，所以包一層 try/except，失敗只印警告訊息。
+    print("\n=== 今日大盤／期貨情境 ===")
+    try:
+        if demo:
+            overview = demo_market_overview()
+        else:
+            fetch_all_market_data(config, cache_dir)
+            overview = compute_market_overview(config, cache_dir)
+        market_out_path = render_market_overview(overview, template_dir, output_dir, is_demo=demo)
+        print(f"  -> {market_out_path}")
+    except Exception as e:
+        print(f"  ✗ 大盤情境頁面產出失敗，略過（不影響個股儀表板）-> {e}")
 
     # 產出總覽頁
     env = Environment()

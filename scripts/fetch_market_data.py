@@ -66,15 +66,20 @@ def fetch_index_history(ticker: str, start_date: str, retries: int = 3, backoff:
     raise RuntimeError(f"[{ticker}] 抓取失敗，已重試 {retries} 次: {last_err}")
 
 
+_SESSION_LABELS = {"position": "day", "after_market": "night"}  # FinMind 官方文件範例資料實際出現的字串值
+
+
 def _select_front_month_close(raw_df: pd.DataFrame) -> pd.DataFrame:
     """從 FinMind TaiwanFuturesDaily 原始資料（同時包含近月／遠月等所有合約月份、以及日盤／夜盤
-    兩個交易時段）篩選出「近月合約」的每日代表報價：
+    兩個交易時段）篩選出「近月合約」的每日代表報價，日盤與夜盤都保留（不互相取代），用一個新的
+    session 欄位（day/night）標示，交給下游決定要看哪個時段：
       1) contract_date 是標準 YYYYMM 六碼月合約格式的才留下（排除可能存在的週選擇權等其他代碼）；
-      2) 同一天裡 contract_date（尚未到期的合約月份）最小的就是近月合約；
-      3) 近月合約當天如果日盤／夜盤各有一筆資料，用成交量較大的那筆代表當天（日盤成交量通常
-         遠大於夜盤），不去猜測 trading_session 欄位確切的字串值，用成交量判斷比較穩健；
+      2) 用 trading_session 欄位判斷日盤／夜盤（"position"=日盤、"after_market"=夜盤，這是 FinMind
+         官方文件範例資料裡實際出現的字串值）；欄位不存在或值無法辨識時，退回用成交量排序當備援
+         （同一天同一近月合約若有兩筆，量大的視為日盤、量小的視為夜盤，因為日盤成交量通常遠大於夜盤）；
+      3) 同一天、同一時段裡，contract_date（尚未到期的合約月份）最小的就是近月合約；
       4) 收盤價優先採用 settlement_price（結算價，官方公開用於保證金結算的每日收盤參考價），
-         沒有結算價才退回用 close 欄位。"""
+         沒有結算價才退回用 close 欄位（夜盤通常沒有官方結算價，會自動退回用 close）。"""
     if raw_df is None or raw_df.empty:
         return pd.DataFrame()
 
@@ -88,11 +93,22 @@ def _select_front_month_close(raw_df: pd.DataFrame) -> pd.DataFrame:
     if df.empty:
         return pd.DataFrame()
 
-    min_contract = df.groupby("date")["contract_date"].transform("min")
-    front = df[df["contract_date"] == min_contract].copy()
+    df["volume"] = pd.to_numeric(df["volume"], errors="coerce").fillna(0)
 
-    front["volume"] = pd.to_numeric(front["volume"], errors="coerce").fillna(0)
-    front = front.sort_values("volume", ascending=False).drop_duplicates(subset=["date"], keep="first")
+    if "trading_session" in df.columns and df["trading_session"].isin(_SESSION_LABELS).any():
+        df["session"] = df["trading_session"].map(_SESSION_LABELS)
+        df = df[df["session"].notna()]
+    else:
+        # 備援：trading_session 欄位不存在或值無法辨識時，用成交量排序判斷，
+        # 同一天同一近月合約若有兩筆，量大的視為日盤、量小的視為夜盤（僅為近似判斷）。
+        df["_rank"] = df.groupby("date")["volume"].rank(method="first", ascending=False)
+        df["session"] = df["_rank"].map({1: "day", 2: "night"})
+        df = df[df["session"].notna()]
+
+    min_contract = df.groupby(["date", "session"])["contract_date"].transform("min")
+    front = df[df["contract_date"] == min_contract].copy()
+    # 理論上篩到這裡同一天同一時段只會剩一筆，保險起見仍用成交量去重，避免重複列
+    front = front.sort_values("volume", ascending=False).drop_duplicates(subset=["date", "session"], keep="first")
 
     front = front.rename(columns={"max": "high", "min": "low"})
     for col in ("open", "high", "low", "close"):
@@ -102,8 +118,8 @@ def _select_front_month_close(raw_df: pd.DataFrame) -> pd.DataFrame:
         front["close"] = settlement.where(settlement > 0, front["close"])
 
     front = front.dropna(subset=["open", "high", "low", "close"])
-    keep_cols = ["date", "open", "high", "low", "close", "volume", "contract_date"]
-    return front[keep_cols].sort_values("date").reset_index(drop=True)
+    keep_cols = ["date", "session", "open", "high", "low", "close", "volume", "contract_date"]
+    return front[keep_cols].sort_values(["date", "session"]).reset_index(drop=True)
 
 
 def fetch_txf_front_month(token: str, start_date: str) -> pd.DataFrame:

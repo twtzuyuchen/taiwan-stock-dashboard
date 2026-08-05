@@ -13,8 +13,9 @@ market_overview.py
      算出量化的預測報酬與可信度（R²、樣本數），資料不足時會明確標示，不硬湊。
 再加上完全獨立於前兩者、只看加權指數自身價格行為算出來的「關鍵點位」（近期高低點、均線、ATR波動區間）。
 
-台指期部分：因為沒有免費即時期貨報價來源，僅套用跟加權指數相同的方向性判斷，
-明確標示這不是真實期貨報價，未反映期貨與現貨之間的基差。
+台指期部分：來源是 FinMind「TaiwanFuturesDaily」，近月合約收盤後才更新的公開資料（非即時報價），
+日盤（08:45–13:45）與夜盤（15:00–次日05:00）各自獨立顯示收盤與漲跌幅；基差、關鍵點位、突破情境
+這幾項統一用日盤資料計算，理由是日盤才跟只在日盤交易的加權指數現貨在同一個時間基準上可以比較。
 
 用法：
     python market_overview.py --config config/config.yaml
@@ -47,6 +48,23 @@ def _read_cache(cache_dir: str, key: str) -> pd.DataFrame:
         return pd.read_csv(path)
     except pd.errors.EmptyDataError:
         return pd.DataFrame()
+
+
+def _session_slice(txf_df: pd.DataFrame, session: str) -> pd.DataFrame:
+    """台指期快取檔案 market_txf.csv 同時包含日盤／夜盤兩個時段（見 fetch_market_data.py 的
+    _select_front_month_close），這裡篩出指定時段、轉成 date/open/high/low/close 的標準格式，
+    讓 compute_index_summary／compute_key_levels／compute_breakout_scenarios 這些通用函式可以
+    直接套用，不用另外寫一份專屬台指期的版本。
+    沒有 session 欄位時（例如升級前留下的舊版快取檔案，只有單一時段），一律當成日盤處理，
+    避免第一次讀到舊快取格式就整段掛掉；下次重新 fetch 之後就會是新格式了。"""
+    if txf_df.empty:
+        return pd.DataFrame()
+    if "session" not in txf_df.columns:
+        return txf_df[["date", "open", "high", "low", "close"]].reset_index(drop=True) if session == "day" else pd.DataFrame()
+    sliced = txf_df[txf_df["session"] == session]
+    if sliced.empty:
+        return pd.DataFrame()
+    return sliced[["date", "open", "high", "low", "close"]].reset_index(drop=True)
 
 
 def compute_index_summary(df: pd.DataFrame) -> dict:
@@ -391,7 +409,13 @@ def compute_market_overview(config: dict, cache_dir: str = "output/cache") -> di
         key: compute_index_summary(dfs[key]) for key in ("nasdaq", "sox", "dow")
     }
     twii_summary = compute_index_summary(dfs["twii"])
-    txf_summary = compute_index_summary(dfs["txf"])
+
+    # 台指期日盤／夜盤各自獨立算收盤與漲跌幅；基差、關鍵點位、突破情境統一用日盤資料，
+    # 因為只有日盤才跟只在日盤交易的加權指數現貨站在同一個時間基準上，比較才有意義。
+    txf_day_df = _session_slice(dfs["txf"], "day")
+    txf_night_df = _session_slice(dfs["txf"], "night")
+    txf_summary_day = compute_index_summary(txf_day_df)
+    txf_summary_night = compute_index_summary(txf_night_df)
 
     rule_based = compute_rule_based_bias(us_summaries, market_cfg.get("rule_based_detail", {}))
     regression = compute_regression_forecast(
@@ -402,18 +426,18 @@ def compute_market_overview(config: dict, cache_dir: str = "output/cache") -> di
     key_levels = compute_key_levels(dfs["twii"], market_cfg.get("key_level_detail", {}))
     breakout_scenarios = compute_breakout_scenarios(dfs["twii"], key_levels, market_cfg.get("breakout_scenario_detail", {}))
 
-    # 台指期：近月合約每日收盤（來源 FinMind TaiwanFuturesDaily，收盤後公開資料，非即時報價），
-    # 用跟加權指數完全一樣的關鍵點位／突破情境計算函式，套在台指期自己的價格序列上——
-    # 不再是「借用」加權指數的方向判斷，是台指期自己的真實收盤資料算出來的。
-    futures_basis = compute_futures_basis(txf_summary, twii_summary)
-    txf_key_levels = compute_key_levels(dfs["txf"], market_cfg.get("key_level_detail", {}))
-    txf_breakout_scenarios = compute_breakout_scenarios(dfs["txf"], txf_key_levels, market_cfg.get("breakout_scenario_detail", {}))
+    # 台指期關鍵點位／突破情境：用跟加權指數完全一樣的計算函式，套在台指期日盤自己的價格序列上——
+    # 不是「借用」加權指數的方向判斷，是台指期自己的真實收盤資料算出來的。
+    futures_basis = compute_futures_basis(txf_summary_day, twii_summary)
+    txf_key_levels = compute_key_levels(txf_day_df, market_cfg.get("key_level_detail", {}))
+    txf_breakout_scenarios = compute_breakout_scenarios(txf_day_df, txf_key_levels, market_cfg.get("breakout_scenario_detail", {}))
 
     return {
         "generated_at": dt.datetime.now().strftime("%Y-%m-%d %H:%M"),
         "us_summaries": us_summaries,
         "twii_summary": twii_summary,
-        "txf_summary": txf_summary,
+        "txf_summary_day": txf_summary_day,
+        "txf_summary_night": txf_summary_night,
         "futures_basis": futures_basis,
         "txf_key_levels": txf_key_levels,
         "txf_breakout_scenarios": txf_breakout_scenarios,
@@ -435,7 +459,8 @@ def demo_market_overview() -> dict:
             "dow": {"available": True, "close": 45210.2, "prev_close": 45102.6, "pct_change": 0.24, "date": "2026-08-04"},
         },
         "twii_summary": {"available": True, "close": 43120.5, "prev_close": 42980.1, "pct_change": 0.33, "date": "2026-08-04"},
-        "txf_summary": {"available": True, "close": 43095.0, "prev_close": 42960.0, "pct_change": 0.31, "date": "2026-08-04"},
+        "txf_summary_day": {"available": True, "close": 43095.0, "prev_close": 42960.0, "pct_change": 0.31, "date": "2026-08-04"},
+        "txf_summary_night": {"available": True, "close": 43210.0, "prev_close": 43095.0, "pct_change": 0.27, "date": "2026-08-04"},
         "futures_basis": {
             "available": True, "txf_close": 43095.0, "twii_close": 43120.5, "basis": -25.5, "basis_pct": -0.06, "label": "逆價差",
             "text": "台指期近月合約收盤 43095.0，對加權指數收盤 43120.5，逆價差 -25.5 點（-0.06%）（示範資料）",

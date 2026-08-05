@@ -53,6 +53,9 @@
 
   .us-panel { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
   @media (max-width: 760px) { .us-panel { grid-template-columns: 1fr; } }
+  .us-panel.cols-4 { grid-template-columns: repeat(4, 1fr); }
+  @media (max-width: 900px) { .us-panel.cols-4 { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 480px) { .us-panel.cols-4 { grid-template-columns: 1fr; } }
   .us-item { border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; }
   .us-item .label { font-size: 13px; color: var(--text-secondary); margin-bottom: 8px; }
   .us-item .close { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
@@ -287,37 +290,57 @@
 
   <div class="card">
     <h2>7. 台指期近月合約收盤與基差</h2>
-    {% if txf_summary.available %}
-    <div class="us-panel">
+    <div class="us-panel cols-4">
       <div class="us-item">
-        <div class="label">台指期近月合約收盤（結算價）</div>
-        <div class="close">{{ "%.1f"|format(txf_summary.close) }}</div>
-        <div class="change {{ 'pos' if txf_summary.pct_change >= 0 else 'neg' }}">{{ "%+.2f"|format(txf_summary.pct_change) }}%</div>
-        <div class="date">收盤日期：{{ txf_summary.date }}</div>
+        <div class="label">台指期日盤收盤（08:45–13:45，結算價）</div>
+        {% if txf_summary_day.available %}
+        <div class="close">{{ "%.1f"|format(txf_summary_day.close) }}</div>
+        <div class="change {{ 'pos' if txf_summary_day.pct_change >= 0 else 'neg' }}">{{ "%+.2f"|format(txf_summary_day.pct_change) }}%</div>
+        <div class="date">收盤日期：{{ txf_summary_day.date }}</div>
+        {% else %}
+        <div class="close">—</div>
+        <div class="date">{{ txf_summary_day.reason or "資料不足" }}</div>
+        {% endif %}
+      </div>
+      <div class="us-item">
+        <div class="label">台指期夜盤收盤（15:00–次日05:00）</div>
+        {% if txf_summary_night.available %}
+        <div class="close">{{ "%.1f"|format(txf_summary_night.close) }}</div>
+        <div class="change {{ 'pos' if txf_summary_night.pct_change >= 0 else 'neg' }}">{{ "%+.2f"|format(txf_summary_night.pct_change) }}%</div>
+        <div class="date">收盤日期：{{ txf_summary_night.date }}</div>
+        {% else %}
+        <div class="close">—</div>
+        <div class="date">{{ txf_summary_night.reason or "資料不足" }}</div>
+        {% endif %}
       </div>
       <div class="us-item">
         <div class="label">加權指數（現貨）收盤</div>
+        {% if twii_summary.available %}
         <div class="close">{{ "%.1f"|format(twii_summary.close) }}</div>
-        {% if twii_summary.pct_change is not none %}
         <div class="change {{ 'pos' if twii_summary.pct_change >= 0 else 'neg' }}">{{ "%+.2f"|format(twii_summary.pct_change) }}%</div>
-        {% endif %}
         <div class="date">收盤日期：{{ twii_summary.date }}</div>
+        {% else %}
+        <div class="close">—</div>
+        <div class="date">{{ twii_summary.reason or "資料不足" }}</div>
+        {% endif %}
       </div>
-      {% if futures_basis.available %}
       <div class="us-item">
-        <div class="label">基差（期貨－現貨）</div>
+        <div class="label">基差（台指期日盤－現貨）</div>
+        {% if futures_basis.available %}
         <div class="close">{{ "%+.1f"|format(futures_basis.basis) }}</div>
         <div class="change {{ 'pos' if futures_basis.basis >= 0 else 'neg' }}">{{ futures_basis.label }}（{{ "%+.2f"|format(futures_basis.basis_pct) }}%）</div>
+        {% else %}
+        <div class="close">—</div>
+        <div class="date">{{ futures_basis.reason or "資料不足" }}</div>
+        {% endif %}
       </div>
-      {% endif %}
     </div>
-    {% else %}
-    <div class="unavailable">目前資料不足，無法取得台指期收盤資料：{{ txf_summary.reason }}</div>
-    {% endif %}
     <div class="footnote">
-      資料來源：FinMind「TaiwanFuturesDaily」資料集（data_id=TX），取每個交易日近月合約（尚未到期、契約月份最近者）的結算價，
-      同一天日盤／夜盤各一筆時取成交量較大者代表當天；這是收盤後才會更新的公開資料（非即時報價），跟個股資料共用同一組 FinMind token。
-      基差＝台指期收盤－加權指數收盤：正價差常被解讀為市場對後市偏多或反映利率高於除息預期，逆價差則相反，也可能只是反映除權息旺季；
+      日盤與夜盤是兩個獨立的交易時段，各自的收盤／漲跌幅分開顯示，都是台指期近月合約的官方公開收盤資料（優先採用結算價），不是即時報價。
+      夜盤橫跨整個美股交易時段（涵蓋美股從開盤到收盤的完整反應），時間點比前一個日盤收盤更接近隔天台股開盤，可以當作「看完整個美股行情之後」的較新參考，
+      但兩者本質上是不同時段，不宜直接互相比較漲跌。資料來源：FinMind「TaiwanFuturesDaily」資料集（data_id=TX），跟個股資料共用同一組 FinMind token。<br>
+      基差計算固定用「台指期日盤」對「加權指數現貨」，因為現貨只在日盤交易，兩者要在同一個時間基準上比較才有意義；用夜盤去對前一天的現貨收盤算基差，時間點會對不齊，故意不這樣做。
+      基差＝台指期日盤收盤－加權指數收盤：正價差常被解讀為市場對後市偏多或反映利率高於除息預期，逆價差則相反，也可能只是反映除權息旺季；
       這是市場資金成本／情緒面的參考指標，不是直接的漲跌訊號，期貨到期時理論上會與現貨價格收斂。
     </div>
   </div>
@@ -389,6 +412,8 @@
     <div class="footnote">
       計算方式跟卡片5／6完全相同，差別只在於這裡是直接用台指期近月合約自己的每日收盤資料計算，不是借用加權指數的數字；
       支撐／壓力／ATR波動區間／下一關鍵點位／歷史突破後續統計，定義同上，同樣只供研判參考、不是精確預測。
+      這裡固定只用「日盤」資料計算（不含夜盤），理由跟基差一樣：日盤才有完整、連續的每日收盤歷史可以拿來算近期高低點與均線，
+      夜盤如果混進來，同一天會有兩筆價位，「近N日高低點」這種以「日」為單位的概念會失去意義。
       台指期跟加權指數走勢通常高度連動但不完全相同（差異主要來自基差變化），兩張卡片的關鍵點位數字本來就會有落差，這是正常現象。
     </div>
     {% else %}

@@ -134,7 +134,7 @@
       <h1>今日大盤／期貨情境</h1>
     </div>
     <div class="meta">
-      產出時間：2026-08-07 11:52｜<a class="back-link" href="index.html">← 回總覽頁</a>
+      產出時間：2026-08-10 11:53｜<a class="back-link" href="index.html">← 回總覽頁</a>
     </div>
   </div>
 
@@ -153,9 +153,9 @@
       <div class="us-item">
         <div class="label">納斯達克綜合指數</div>
         
-        <div class="close">26348.35</div>
-        <div class="change neg">-0.06%</div>
-        <div class="date">收盤日期：2026-08-06</div>
+        <div class="close">26690.62</div>
+        <div class="change pos">+1.30%</div>
+        <div class="date">收盤日期：2026-08-07</div>
         
       </div>
       
@@ -163,9 +163,9 @@
       <div class="us-item">
         <div class="label">費城半導體指數</div>
         
-        <div class="close">12048.69</div>
-        <div class="change pos">+0.33%</div>
-        <div class="date">收盤日期：2026-08-06</div>
+        <div class="close">12356.79</div>
+        <div class="change pos">+2.56%</div>
+        <div class="date">收盤日期：2026-08-07</div>
         
       </div>
       
@@ -173,9 +173,9 @@
       <div class="us-item">
         <div class="label">道瓊工業指數</div>
         
-        <div class="close">53885.10</div>
-        <div class="change neg">-0.85%</div>
-        <div class="date">收盤日期：2026-08-06</div>
+        <div class="close">54036.93</div>
+        <div class="change pos">+0.28%</div>
+        <div class="date">收盤日期：2026-08-07</div>
         
       </div>
       
@@ -187,10 +187,10 @@
     <h2>2. 方法 A：規則式綜合評分</h2>
     
     <div class="bias-banner">
-      <span class="num">-0.02%</span>
-      <span class="pill neutral">中性</span>
+      <span class="num">+1.73%</span>
+      <span class="pill bullish">偏多</span>
     </div>
-    <div class="footnote">綜合加權漲跌幅 -0.02%（費城半導體指數+0.33%、納斯達克綜合指數-0.06%、道瓊工業指數-0.85%），規則式判斷台股開盤情境「中性」</div>
+    <div class="footnote">綜合加權漲跌幅 +1.73%（費城半導體指數+2.56%、納斯達克綜合指數+1.30%、道瓊工業指數+0.28%），規則式判斷台股開盤情境「偏多」</div>
     
     <div class="footnote">計算方式：三大美股指數前一交易日漲跌幅依權重加總（預設費城半導體指數權重最高，因台股半導體權值比重高），對照門檻判斷「偏多／中性／偏空」；任一指數缺資料會自動排除並重新分配權重。</div>
   </div>
@@ -199,10 +199,10 @@
     <h2>3. 方法 B：歷史迴歸模型預測</h2>
     
     <div class="bias-banner">
-      <span class="num">-0.00%</span>
-      <span class="pill neutral">R² = 0.336</span>
+      <span class="num">+0.94%</span>
+      <span class="pill neutral">R² = 0.335</span>
     </div>
-    <div class="footnote">以近 727 個可比對交易日樣本訓練的迴歸模型（R²=0.336），預測今日台股加權指數報酬約 -0.00%（±1個標準差區間 -1.23% ～ +1.22%）</div>
+    <div class="footnote">以近 725 個可比對交易日樣本訓練的迴歸模型（R²=0.335），預測今日台股加權指數報酬約 +0.94%（±1個標準差區間 -0.28% ～ +2.17%）</div>
     
     <div class="footnote">計算方式：用過去數年「美股前一交易日報酬 → 台股加權指數當日報酬」的歷史資料做複迴歸，估算今日預測報酬與 ±1 個標準差區間；R² 代表模型解釋力（0~1，越高代表美股對台股當日報酬的解釋力越強，但台股當日報酬仍受台股自身籌碼、消息面影響，R² 不會也不應該接近 1）；樣本數不足時會直接標示「資料不足」，不會硬湊出一個數字。</div>
   </div>
@@ -210,7 +210,7 @@
   <div class="card">
     <h2>4. 兩種方法對照</h2>
     
-    <div class="compare-box agree">規則式評分判斷「中性」，迴歸模型預測報酬 -0.00%（對應方向「中性」）——兩種方法方向一致，可信度相對較高</div>
+    <div class="compare-box agree">規則式評分判斷「偏多」，迴歸模型預測報酬 +0.94%（對應方向「偏多」）——兩種方法方向一致，可信度相對較高</div>
     
     <div class="footnote">兩種方法各自獨立計算，這裡只是並列對照，不會取平均硬湊出單一答案；方向一致時可信度相對較高，方向不一致時建議降低對今日方向判斷的信心，改以下方關鍵點位的實際表態為準。</div>
   </div>
@@ -221,11 +221,11 @@
     <div class="levels-panel">
       <div class="level-item prev">
         <div class="label">前一交易日收盤</div>
-        <div class="value">44225.9</div>
+        <div class="value">44928.8</div>
       </div>
       <div class="level-item resistance">
         <div class="label">近20日壓力（區間高點）</div>
-        <div class="value">46330.9</div>
+        <div class="value">45881.9</div>
       </div>
       <div class="level-item support">
         <div class="label">近20日支撐（區間低點）</div>
@@ -233,13 +233,13 @@
       </div>
       <div class="level-item range">
         <div class="label">ATR(14日)估算今日波動區間</div>
-        <div class="value">42789.4 ～ 45662.4</div>
+        <div class="value">43548.7 ～ 46308.9</div>
       </div>
     </div>
     <div class="ma-row">
-      均線參考：MA5 <b>43996.3</b>
-      MA20 <b>43618.6</b>
-      MA60 <b>44278.8</b>
+      均線參考：MA5 <b>44304.7</b>
+      MA20 <b>43596.0</b>
+      MA60 <b>44331.7</b>
     </div>
     
     <div class="footnote">計算方式：支撐／壓力取近 N 個交易日加權指數的最低／最高價；ATR（真實波動幅度）取近期每日「真實波動幅度」的平均值，用「前一交易日收盤 ± ATR」估算今日可能的合理波動區間，是統計上的粗略估計，不是精確預測；這一整張卡片完全獨立於美股連動判斷之外，純粹是加權指數自身的價格行為分析。</div>
@@ -252,7 +252,7 @@
       <div class="scenario-box up">
         <div class="scenario-head">
           <span class="pill bullish">若站穩突破壓力</span>
-          <span class="scenario-trigger">收盤價 &gt; 46469.9</span>
+          <span class="scenario-trigger">收盤價 &gt; 46019.5</span>
         </div>
         <div class="scenario-next">下一關鍵點位：<b>48218.9</b>（近60日高點）</div>
         
@@ -295,32 +295,32 @@
       <div class="us-item">
         <div class="label">台指期日盤收盤（08:45–13:45，結算價）</div>
         
-        <div class="close">44297.0</div>
-        <div class="change pos">+0.09%</div>
-        <div class="date">收盤日期：2026-08-07</div>
+        <div class="close">44990.0</div>
+        <div class="change pos">+1.56%</div>
+        <div class="date">收盤日期：2026-08-10</div>
         
       </div>
       <div class="us-item">
         <div class="label">台指期夜盤收盤（15:00–次日05:00）</div>
         
-        <div class="close">44543.0</div>
-        <div class="change pos">+0.60%</div>
-        <div class="date">收盤日期：2026-08-07</div>
+        <div class="close">45033.0</div>
+        <div class="change pos">+1.10%</div>
+        <div class="date">收盤日期：2026-08-10</div>
         
       </div>
       <div class="us-item">
         <div class="label">加權指數（現貨）收盤</div>
         
-        <div class="close">44225.9</div>
-        <div class="change neg">-0.38%</div>
-        <div class="date">收盤日期：2026-08-07</div>
+        <div class="close">44928.8</div>
+        <div class="change pos">+1.59%</div>
+        <div class="date">收盤日期：2026-08-10</div>
         
       </div>
       <div class="us-item">
         <div class="label">基差（台指期日盤－現貨）</div>
         
-        <div class="close">+71.1</div>
-        <div class="change pos">正價差（+0.16%）</div>
+        <div class="close">+61.2</div>
+        <div class="change pos">正價差（+0.14%）</div>
         
       </div>
     </div>
@@ -340,11 +340,11 @@
     <div class="levels-panel">
       <div class="level-item prev">
         <div class="label">前一交易日收盤</div>
-        <div class="value">44297.0</div>
+        <div class="value">44990.0</div>
       </div>
       <div class="level-item resistance">
         <div class="label">近20日壓力（區間高點）</div>
-        <div class="value">46378.0</div>
+        <div class="value">46248.0</div>
       </div>
       <div class="level-item support">
         <div class="label">近20日支撐（區間低點）</div>
@@ -352,20 +352,20 @@
       </div>
       <div class="level-item range">
         <div class="label">ATR(14日)估算今日波動區間</div>
-        <div class="value">42782.4 ～ 45811.6</div>
+        <div class="value">43534.0 ～ 46446.0</div>
       </div>
     </div>
     <div class="ma-row">
-      均線參考：MA5 <b>43931.0</b>
-      MA20 <b>43716.8</b>
-      MA60 <b>44446.7</b>
+      均線參考：MA5 <b>44285.2</b>
+      MA20 <b>43688.1</b>
+      MA60 <b>44502.6</b>
     </div>
     
     <div class="scenario-grid">
       <div class="scenario-box up">
         <div class="scenario-head">
           <span class="pill bullish">若站穩突破壓力</span>
-          <span class="scenario-trigger">收盤價 &gt; 46517.1</span>
+          <span class="scenario-trigger">收盤價 &gt; 46386.7</span>
         </div>
         <div class="scenario-next">下一關鍵點位：<b>48711.0</b>（近60日高點）</div>
         

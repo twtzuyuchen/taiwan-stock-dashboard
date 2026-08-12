@@ -146,6 +146,13 @@
   .signal-card .signal-dot.neutral { background: var(--text-muted); }
   .signal-card .signal-text { font-size: 13.5px; line-height: 1.6; color: var(--text-primary); }
   .signal-card .signal-text.neutral { color: var(--text-secondary); }
+  .signal-card .signal-price-levels { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+  .signal-card .signal-price-item {
+    background: var(--blue-bg); border-radius: 8px; padding: 6px 10px;
+    font-size: 12.5px; display: flex; gap: 6px; align-items: baseline;
+  }
+  .signal-card .signal-price-item .k { color: var(--text-secondary); }
+  .signal-card .signal-price-item .v { font-weight: 700; color: var(--blue); }
 
   .footnote { font-size: 12.5px; color: var(--text-muted); line-height: 1.8; margin-top: 8px; }
   .chip-breakdown { font-size: 12px; color: var(--text-muted); margin-top: 4px; line-height: 1.5; }
@@ -197,7 +204,7 @@
         <span class="tag caution">區間操作</span>
       </div>
       <div class="meta">
-        分析週期：3-6個月｜風險偏好：穩健｜持股狀態：是｜產出時間：2026-08-12 11:51
+        分析週期：3-6個月｜風險偏好：穩健｜持股狀態：是｜產出時間：2026-08-12 13:31
       </div>
     </div>
     <div>
@@ -213,7 +220,7 @@
         
         <tr><td class="k">經營績效 CSV 日期</td><td class="v">2026-08-12</td></tr>
         
-        <tr><td class="k">SIGNAL_SUMMARY</td><td class="v">2026-08-12T11:51:01</td></tr>
+        <tr><td class="k">SIGNAL_SUMMARY</td><td class="v">2026-08-12T13:31:01</td></tr>
         
       </table>
     </div>
@@ -397,6 +404,7 @@
         <div class="signal-text neutral">
           <span class="signal-dot neutral"></span>近期無均線交叉
         </div>
+        
       </div>
       
       <div class="signal-card  neutral">
@@ -407,6 +415,7 @@
         <div class="signal-text neutral">
           <span class="signal-dot neutral"></span>維持在「區間」區間，無轉折
         </div>
+        
       </div>
       
       <div class="signal-card active red">
@@ -417,6 +426,7 @@
         <div class="signal-text ">
           <span class="signal-dot red"></span>現價已跌破主力估算成本 2.9%，主力可能同步套牢，留意籌碼鬆動風險
         </div>
+        
       </div>
       
       <div class="signal-card  neutral">
@@ -427,33 +437,78 @@
         <div class="signal-text neutral">
           <span class="signal-dot neutral"></span>未觸發主力建倉訊號：買超力道未加速
         </div>
-      </div>
-      
-      <div class="signal-card active green">
-        <div class="signal-card-head">
-          <span class="name">左側交易進場提醒</span>
-          <span class="kind-tag">狀態型</span>
-        </div>
-        <div class="signal-text ">
-          <span class="signal-dot green"></span>現價已低於主力估算成本 147.27 元，來到相對低檔參考區間，可考慮左側分批佈局（非買點保證，逆勢承接風險較高，請自行評估部位）
-        </div>
+        
       </div>
       
       <div class="signal-card  neutral">
         <div class="signal-card-head">
-          <span class="name">右側交易進場提醒</span>
+          <span class="name">短線進場提醒（1-2週）</span>
           <span class="kind-tag">狀態型</span>
         </div>
         <div class="signal-text neutral">
-          <span class="signal-dot neutral"></span>尚未觸發右側進場訊號：近10個交易日內無均線黃金交叉；尚未突破近20個交易日收盤高點 191.50 元；成交量僅為均量的45%，未達放量確認門檻150%
+          <span class="signal-dot neutral"></span>尚未觸發短線進場訊號：現價143.00元未貼近近10個交易日低點110.00元（需落在116.60元以下）；近5個交易日低檔區無看漲反轉K線型態；今日價量關係為「價漲量縮」（量能為均量45%），未達價漲量增且量能≥均量130%的確認門檻
         </div>
+        
+      </div>
+      
+      <div class="signal-card  green">
+        <div class="signal-card-head">
+          <span class="name">短線出場提醒（1-2週）</span>
+          <span class="kind-tag">狀態型</span>
+        </div>
+        <div class="signal-text neutral">
+          <span class="signal-dot green"></span>停損參考價 131.90 元（現價-1.2倍ATR）、停利參考價 161.50 元（現價+2.0倍ATR）；目前無技術反轉警訊
+        </div>
+        
+        <div class="signal-price-levels">
+          
+          <div class="signal-price-item"><span class="k">停損參考價</span><span class="v">131.90 元</span></div>
+          
+          <div class="signal-price-item"><span class="k">停利參考價</span><span class="v">161.50 元</span></div>
+          
+        </div>
+        
+      </div>
+      
+      <div class="signal-card  neutral">
+        <div class="signal-card-head">
+          <span class="name">波段進場提醒（1-2個月）</span>
+          <span class="kind-tag">狀態型</span>
+        </div>
+        <div class="signal-text neutral">
+          <span class="signal-dot neutral"></span>尚未觸發波段進場訊號：中期均線未呈多頭排列（20日均線142.00元 <= 60日均線143.67元），波段格局尚未轉多；現價143.00元未拉回至近20個交易日低點110.00元附近（需落在118.80元以下）；近10個交易日拉回區間無看漲反轉K線型態；今日價量關係為「價漲量縮」（量能為均量45%），未達價漲量增且量能≥均量130%的確認門檻
+        </div>
+        
+      </div>
+      
+      <div class="signal-card active red">
+        <div class="signal-card-head">
+          <span class="name">波段出場提醒（1-2個月）</span>
+          <span class="kind-tag">狀態型</span>
+        </div>
+        <div class="signal-text ">
+          <span class="signal-dot red"></span>停損參考價 120.60 元（現價-2.0倍ATR）、停利參考價 182.20 元（現價+3.5倍ATR）；技術反轉警訊：20日均線下穿60日均線，波段中期趨勢轉弱，建議留意獲利了結或執行停損
+        </div>
+        
+        <div class="signal-price-levels">
+          
+          <div class="signal-price-item"><span class="k">停損參考價</span><span class="v">120.60 元</span></div>
+          
+          <div class="signal-price-item"><span class="k">停利參考價</span><span class="v">182.20 元</span></div>
+          
+        </div>
+        
       </div>
       
     </div>
     <div class="footnote">
       事件型訊號（均線交叉、評分區間轉換）只在「發生變化的當天」出現，隔天若沒有新變化就會顯示「無訊號」；
-      狀態型訊號（主力成本防守價、主力建倉訊號、左側交易進場提醒、右側交易進場提醒）只要條件持續成立就會一直顯示，不是只出現一次。
-      六者皆為規則式計算，僅供研判參考，不構成投資建議；左側／右側交易進場提醒尤其只是進場時機的參考，不是買賣建議，實際進出場請自行評估風險與部位大小。
+      狀態型訊號（主力成本防守價、主力建倉訊號、短線／波段進出場提醒）只要條件持續成立就會一直顯示，不是只出現一次。
+      短線（約1-2週）與波段（約1-2個月）進出場提醒以價量關係與K線型態為判斷基礎：進場看「是否貼近近期低點 +
+      看漲反轉K線型態（多頭吞噬／槌子線）+ 價漲量增」，波段進場額外多一層中期均線多頭排列的趨勢過濾；
+      出場則同時提供「ATR估算的停利停損參考價位」（任何時候都會顯示，方便隨時對照）與「技術反轉警訊」
+      （看跌反轉K線型態、價跌量增、或波段適用的中期均線死亡交叉）。全部皆為規則式計算，僅供研判參考，
+      不構成投資建議，實際進出場請自行評估風險與部位大小，停利停損參考價位也不是保證能成交的價格。
     </div>
   </div>
 

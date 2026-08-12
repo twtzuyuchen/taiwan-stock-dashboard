@@ -419,9 +419,10 @@ def analyze_stock(stock_id: str, config: dict, cache_dir: str = "output/cache",
         state_dir=state_dir,
         lookback_days=lookback,
         accumulation_detail=scoring.get("accumulation_detail", {}),
-        pessimistic_price=valuation.get("pessimistic_price"),
-        left_side_entry_detail=scoring.get("left_side_entry_detail", {}),
-        right_side_entry_detail=scoring.get("right_side_entry_detail", {}),
+        short_term_entry_detail=scoring.get("short_term_entry_detail", {}),
+        short_term_exit_detail=scoring.get("short_term_exit_detail", {}),
+        swing_entry_detail=scoring.get("swing_entry_detail", {}),
+        swing_exit_detail=scoring.get("swing_exit_detail", {}),
     )
 
     return {

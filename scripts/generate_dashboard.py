@@ -79,11 +79,21 @@ def build_context(stock_id: str, stock_name: str, watch_cfg: dict, analysis: dic
     score_transition = signals.get("score_transition", {})
     cost_breach = signals.get("cost_breach", {})
     accumulation = signals.get("accumulation", {})
-    left_side_entry = signals.get("left_side_entry", {})
-    right_side_entry = signals.get("right_side_entry", {})
+    short_term_entry = signals.get("short_term_entry", {})
+    short_term_exit = signals.get("short_term_exit", {})
+    swing_entry = signals.get("swing_entry", {})
+    swing_exit = signals.get("swing_exit", {})
 
     def _signal_class(light):
         return light or "neutral"
+
+    def _price_levels(sig):
+        levels = []
+        if sig.get("stop_loss_price") is not None:
+            levels.append({"label": "停損參考價", "value": f"{sig['stop_loss_price']:.2f} 元"})
+        if sig.get("take_profit_price") is not None:
+            levels.append({"label": "停利參考價", "value": f"{sig['take_profit_price']:.2f} 元"})
+        return levels
 
     signal_cards = [
         {
@@ -115,18 +125,34 @@ def build_context(stock_id: str, stock_name: str, watch_cfg: dict, analysis: dic
             "active": accumulation.get("active") is True,
         },
         {
-            "name": "左側交易進場提醒",
+            "name": "短線進場提醒（1-2週）",
             "kind": "狀態型",
-            "text": left_side_entry.get("text", "資料不足"),
-            "light": _signal_class(left_side_entry.get("light")),
-            "active": left_side_entry.get("active") is True,
+            "text": short_term_entry.get("text", "資料不足"),
+            "light": _signal_class(short_term_entry.get("light")),
+            "active": short_term_entry.get("active") is True,
         },
         {
-            "name": "右側交易進場提醒",
+            "name": "短線出場提醒（1-2週）",
             "kind": "狀態型",
-            "text": right_side_entry.get("text", "資料不足"),
-            "light": _signal_class(right_side_entry.get("light")),
-            "active": right_side_entry.get("active") is True,
+            "text": short_term_exit.get("text", "資料不足"),
+            "light": _signal_class(short_term_exit.get("light")),
+            "active": short_term_exit.get("active") is True,
+            "price_levels": _price_levels(short_term_exit),
+        },
+        {
+            "name": "波段進場提醒（1-2個月）",
+            "kind": "狀態型",
+            "text": swing_entry.get("text", "資料不足"),
+            "light": _signal_class(swing_entry.get("light")),
+            "active": swing_entry.get("active") is True,
+        },
+        {
+            "name": "波段出場提醒（1-2個月）",
+            "kind": "狀態型",
+            "text": swing_exit.get("text", "資料不足"),
+            "light": _signal_class(swing_exit.get("light")),
+            "active": swing_exit.get("active") is True,
+            "price_levels": _price_levels(swing_exit),
         },
     ]
 
@@ -267,17 +293,42 @@ def demo_analysis(stock_id: str) -> dict:
                 "pattern_evidence_confirmed": ["關鍵價位量增不漲", "盤整期量縮至極致"],
                 "pattern_evidence_available_count": 3,
             },
-            "left_side_entry": {
+            "short_term_entry": {
+                "signal": "short_term_entry",
+                "active": True,
+                "horizon": "短線（約1-2週）",
+                "text": "現價貼近近10個交易日低點（68.20元），且2026-08-10於低檔出現槌子線（長下影線），"
+                         "今日價量關係為價漲量增（量能達均量165%），符合短線（約1-2週）進場參考條件",
+                "light": "green",
+                "reference_low": 68.2,
+                "pattern_date": "2026-08-10",
+                "pattern_name": "槌子線（長下影線）",
+            },
+            "short_term_exit": {
                 "signal": None,
                 "active": False,
-                "text": "現價尚未跌破主力估算成本或模型悲觀價，暫無左側佈局參考價位",
+                "horizon": "短線（約1-2週）",
+                "text": "停損參考價 69.30 元（現價-1.2倍ATR）、停利參考價 73.60 元（現價+2.0倍ATR）；目前無技術反轉警訊",
+                "light": "green",
+                "stop_loss_price": 69.3,
+                "take_profit_price": 73.6,
+            },
+            "swing_entry": {
+                "signal": None,
+                "active": False,
+                "horizon": "波段（約1-2個月）",
+                "text": "尚未觸發波段進場訊號：現價71.20元未拉回至近20個交易日低點68.20元附近（需落在73.66元以下）",
                 "light": None,
             },
-            "right_side_entry": {
-                "signal": "right_side_entry",
+            "swing_exit": {
+                "signal": "swing_exit_warning",
                 "active": True,
-                "text": "近10個交易日內出現黃金交叉且延續、股價突破近20個交易日收盤高點、且帶量確認，符合右側轉強進場條件",
-                "light": "green",
+                "horizon": "波段（約1-2個月）",
+                "text": "停損參考價 65.80 元（現價-2.0倍ATR）、停利參考價 82.10 元（現價+3.5倍ATR）；"
+                         "技術反轉警訊：2026-08-11 於近高點出現流星線（長上影線），建議留意獲利了結或執行停損",
+                "light": "red",
+                "stop_loss_price": 65.8,
+                "take_profit_price": 82.1,
             },
         },
     }

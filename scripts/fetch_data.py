@@ -30,7 +30,6 @@ DATASETS = {
     "institutional": "TaiwanStockInstitutionalInvestorsBuySell",
     "shareholding": "TaiwanStockHoldingSharesPer",
     "month_revenue": "TaiwanStockMonthRevenue",
-    "financial_statements": "TaiwanStockFinancialStatements",
     "balance_sheet": "TaiwanStockBalanceSheet",
     "per": "TaiwanStockPER",
 }
@@ -81,10 +80,10 @@ def fetch_all(stock_id: str, config: dict, cache_dir: str = "output/cache") -> d
     # 用到的回溯天數(lookback_trading_days、holder_lookback_snapshots)遠小於100天，同樣受惠。
     chip_start = (today - dt.timedelta(days=100)).isoformat()
     fin_start = (today - dt.timedelta(days=400)).isoformat()
-    # 「本益比河流圖」估價模型需要數年本益比歷史才有統計意義，不能沿用短天期的 chip_start，
-    # 另外用獨立、可設定的回溯天數（預設約3年）。
-    valuation_lookback_days = config.get("finmind", {}).get("valuation_lookback_days", 1095)
-    valuation_start = (today - dt.timedelta(days=valuation_lookback_days)).isoformat()
+    # 基本面催化卡片的本益比分位數（per_percentile）需要數年本益比歷史才有統計意義，
+    # 不能沿用短天期的 chip_start，另外用獨立、可設定的回溯天數（預設約3年）。
+    per_lookback_days = config.get("finmind", {}).get("valuation_lookback_days", 1095)
+    per_start = (today - dt.timedelta(days=per_lookback_days)).isoformat()
 
     start_by_key = {
         "price": chip_start,
@@ -92,9 +91,8 @@ def fetch_all(stock_id: str, config: dict, cache_dir: str = "output/cache") -> d
         "institutional": chip_start,
         "shareholding": chip_start,
         "month_revenue": fin_start,
-        "financial_statements": fin_start,
         "balance_sheet": fin_start,
-        "per": valuation_start,
+        "per": per_start,
     }
 
     Path(cache_dir).mkdir(parents=True, exist_ok=True)

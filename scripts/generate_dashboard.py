@@ -35,7 +35,6 @@ def build_context(stock_id: str, stock_name: str, watch_cfg: dict, analysis: dic
     chip = analysis["chip_cleanliness"]
     tech = analysis["technical"]
     fund = analysis["fundamental"]
-    valuation = analysis.get("valuation_band", {"available": False, "reason": "尚無評估資料"})
 
     composite = analysis["composite_score"]
     composite_light = "green" if composite >= 70 else ("yellow" if composite >= 40 else "red")
@@ -156,6 +155,9 @@ def build_context(stock_id: str, stock_name: str, watch_cfg: dict, analysis: dic
         },
     ]
 
+    analyst_report = watch_cfg.get("analyst_report") or {}
+    analyst_report_available = bool(analyst_report)
+
     return dict(
         is_demo=is_demo,
         stock_id=stock_id,
@@ -201,19 +203,22 @@ def build_context(stock_id: str, stock_name: str, watch_cfg: dict, analysis: dic
         lights=lights,
         scoring_limit_note="未觸發主力中期或基本面限制" if composite >= 50 else "評分受基本面／籌碼轉弱限制，建議降低部位",
         signal_cards=signal_cards,
-        # 未來一年樂觀價／穩健價／悲觀價（本益比河流圖量化模型，非分析師報告）
-        valuation_available=valuation.get("available", False),
-        valuation_reason=valuation.get("reason", ""),
-        valuation_pessimistic=valuation.get("pessimistic_price"),
-        valuation_steady=valuation.get("steady_price"),
-        valuation_optimistic=valuation.get("optimistic_price"),
-        valuation_eps_ttm=valuation.get("eps_ttm"),
-        valuation_eps_forward=valuation.get("eps_forward"),
-        valuation_growth_used=valuation.get("revenue_yoy_pct_used"),
-        valuation_per_low=valuation.get("per_low"),
-        valuation_per_mid=valuation.get("per_mid"),
-        valuation_per_high=valuation.get("per_high"),
-        valuation_sample_size=valuation.get("per_sample_size"),
+        # 分析師關鍵價位與情境策略：人工整理的個人分析師報告重點，完全由 config.yaml 該檔股票的
+        # analyst_report 欄位手動維護，非程式自動抓取或計算（見 config.example.yaml 註解說明）
+        analyst_report_available=analyst_report_available,
+        ar_report_date=analyst_report.get("report_date"),
+        ar_reference_price=analyst_report.get("reference_price"),
+        ar_reference_price_change_pct=analyst_report.get("reference_price_change_pct"),
+        ar_position_stance=analyst_report.get("position_stance"),
+        ar_holding_cost=analyst_report.get("holding_cost"),
+        ar_key_support=analyst_report.get("key_support"),
+        ar_key_resistance=analyst_report.get("key_resistance"),
+        ar_key_levels=analyst_report.get("key_levels", []),
+        ar_technical_analysis=analyst_report.get("technical_analysis"),
+        ar_chip_analysis=analyst_report.get("chip_analysis"),
+        ar_scenarios=analyst_report.get("scenarios", []),
+        ar_source=analyst_report.get("source"),
+        ar_updated_at=analyst_report.get("updated_at"),
     )
 
 
@@ -254,17 +259,6 @@ def demo_analysis(stock_id: str) -> dict:
         },
         "technical": {"trend": "偏多", "bias_pct": 8.3, "bias_safe": True, "score": 65, "light": "yellow"},
         "fundamental": {"revenue_yoy_pct": 18.4, "per_percentile": 42.0, "score": 78, "light": "green"},
-        "valuation_band": {
-            "available": True,
-            "current_price": 71.2,
-            "eps_ttm": 4.85,
-            "revenue_yoy_pct_used": 18.4,
-            "eps_forward": 5.74,
-            "per_low": 12.3, "per_mid": 15.8, "per_high": 19.6,
-            "per_sample_size": 620,
-            "pessimistic_price": 70.6, "steady_price": 90.7, "optimistic_price": 112.5,
-            "note": "量化本益比河流模型估算，非分析師報告或共識目標價",
-        },
         "signals": {
             "ma_cross": {
                 "signal": "golden_cross",

@@ -43,33 +43,10 @@ watchlist:
   # sector／business_summary／us_relation 三個欄位不會每日自動更新，是靜態的公司背景介紹，
   # 新增股票或公司業務有重大變化時，請自行更新這幾個欄位的文字。
   #
-  # analyst_report（選填）：貼上個人分析師報告的重點整理，會在該股儀表板頁面顯示「分析師關鍵
-  # 價位與情境策略」卡片。跟 sector／business_summary／us_relation 一樣是純人工維護的靜態內容，
-  # 不會被程式每日自動計算或覆蓋；沒有填這個欄位的股票，該卡片就不會出現，不影響其他功能。
-  # 完整欄位說明（每個子欄位都可省略，省略的部分該區塊或該行就不會顯示）：
-  #   analyst_report:
-  #     report_date: "報告日期文字，例如 2026年8月"
-  #     reference_price: 195.00              # 報告當時的參考現價（數字）
-  #     reference_price_change_pct: 1.56      # 參考現價當日漲跌幅（數字，選填，省略則不顯示漲跌幅）
-  #     position_stance: "短線格局文字，例如：超跌後量縮反彈 / 觀察月線支撐"
-  #     holding_cost: "持有成本文字，例如：200.00 以上"
-  #     key_support: "關鍵下檔防守文字，例如：184.00 - 185.00（月線/半年線）"
-  #     key_resistance: "主要上檔壓力文字，例如：219.00 - 224.00（季線扣抵）"
-  #     key_levels:            # 關鍵價格位階表，可放任意筆數，依報告內容增減
-  #       - price_range: "219.00 - 224.28"
-  #         meaning: "季線(60MA)下壓關卡"        # 技術/籌碼意涵
-  #         structure: "重度解套賣壓區"           # 結構屬性
-  #         action: "強壓力區，建議全數離場"       # 對應操作建議
-  #     technical_analysis: "技術面解析文字，可用 > 區塊純量寫多行"
-  #     chip_analysis: "籌碼面解析文字，可用 > 區塊純量寫多行"
-  #     scenarios:              # 情境策略，可放任意筆數，依報告內容增減
-  #       - name: "情境A：無量順勢衝高"
-  #         probability: "高"                    # 發生機率文字
-  #         tone: "neutral"                       # 卡片顏色：good(綠)／neutral(藍)／bad(紅)，依報告對這個情境的偏多偏空程度自行判斷
-  #         pattern: "盤勢特徵文字"
-  #         action: "建議行動文字"
-  #     source: "資料來源說明文字，例如：個人分析師報告 2026/08"
-  #     updated_at: "2026-08-13"              # 這份報告的更新日期，方便自己判斷是否過舊
+  # 「分析師關鍵價位與情境策略」卡片（儀表板卡片5）已改為完全自動計算（見 scripts/analyst_outlook.py
+  # 與下方 scoring.analyst_outlook_detail 設定），不需要在這裡手動填任何欄位，每一檔追蹤股票都會
+  # 自動顯示這張卡片。唯一的例外是「持有成本」——那是你自己的私人交易紀錄，程式無從得知，改成
+  # 直接在儀表板網頁上輸入，存在瀏覽器 localStorage，不需要也不會寫回這個設定檔。
   - stock_id: "2303"
     name: "聯電"
     risk_preference: "積極"
@@ -206,61 +183,6 @@ watchlist:
     sector: "尚未設定，請自行補上族群分類"
     business_summary: "尚未設定，請於此補上主要業務內容（可提供公司名稱與產業別，我可以幫忙查證後補上）"
     us_relation: "尚未設定，請於此補上與美國公司的業務關聯（如未查證到明確關聯，也可以先填「尚無公開資料佐證」）"
-    analyst_report:
-      report_date: "2026年8月"
-      reference_price: 195.00
-      reference_price_change_pct: 1.56
-      position_stance: "超跌後量縮反彈 / 觀察月線支撐"
-      holding_cost: "200.00 以上"
-      key_support: "184.00 - 185.00（月線/半年線）"
-      key_resistance: "219.00 - 224.00（季線扣抵）"
-      key_levels:
-        - price_range: "219.00 - 224.28"
-          meaning: "季線(60MA)下壓關卡"
-          structure: "重度解套賣壓區"
-          action: "強壓力區，建議全數離場"
-        - price_range: "200.00 - 205.00"
-          meaning: "您的持有成本區 & 心理關卡"
-          structure: "保本 / 減碼區"
-          action: "反彈無量時分批賣出減碼"
-        - price_range: "195.00"
-          meaning: "目前市場現價"
-          structure: "現況位置"
-          action: "觀望，注意日量是否放大"
-        - price_range: "184.12 - 185.31"
-          meaning: "月線(20MA) / 半年線(120MA)"
-          structure: "關鍵防守線"
-          action: "扣抵支撐區，跌破宜停損"
-        - price_range: "142.00"
-          meaning: "8月初急跌止跌點"
-          structure: "末端底部支撐"
-          action: "前波打底低點"
-      technical_analysis: >
-        股價自6月高點$297.00回檔後，於8月初在$142.00築底反彈，目前重新站回月線（$184.12）之上。
-        然上方60日季線（$224.28）呈下彎趨勢，且每日成交量約落在1,100至2,000張，屬於「無量弱勢反彈」。
-        若要一舉突破季線，需要成交量放大至5,000–8,000張以上。
-      chip_analysis: >
-        法人動向：外資近期呈現買賣交替、力道收斂，本土投信則無明顯進場布局跡象，缺乏三大法人強推推升力道。
-        資券變化：融資自7月底的9,000多張大幅洗盤至7,200張後，於反彈過程中有微幅增加（例如8/12增123張），
-        顯示部分散戶回頭接盤，籌碼安定度稍降。
-      scenarios:
-        - name: "情境A：無量順勢衝高"
-          probability: "高"
-          tone: "good"
-          pattern: "隨大盤順勢衝過成本價$200，進入$205-$215元，但單日成交量小於5,000張。"
-          action: "此屬於無量解套波，上攻動能有限。建議採取「分批賣出減碼」策略，少虧離場，避免季線二次下壓風險。"
-        - name: "情境B：帶量強勢攻擊"
-          probability: "中"
-          tone: "neutral"
-          pattern: "突破$200元關卡且單日成交量大於6,000張，法人轉為大幅買超。"
-          action: "持股可續抱至$218-$224元（季線扣抵區）再做全數獲利或平手出場。"
-        - name: "情境C：跌破月線轉弱"
-          probability: "低至中"
-          tone: "bad"
-          pattern: "股價無法站穩月線，跌破$184.00關鍵支撐。"
-          action: "代表反彈波已告結束，股價可能再次下探尋求第二隻腳。建議嚴格執行停損，防範套牢程度擴大。"
-      source: "個人分析師報告 2026/08"
-      updated_at: "2026-08-13"
 
 
 scoring:
@@ -356,6 +278,22 @@ scoring:
     volume_warn_multiplier: 1.3
     trend_ma_fast: 20                 # 中期均線死亡交叉判斷用的快均線天數
     trend_ma_slow: 60                 # 中期均線死亡交叉判斷用的慢均線天數
+
+  # 「分析師關鍵價位與情境策略」卡片（卡片5）自動計算細項設定，可省略，省略時採用下列預設值。
+  # 邏輯跟「今日大盤/期貨情境」頁面的加權指數關鍵點位/突破情境完全相同，只是套用在個股價格
+  # （見 scripts/analyst_outlook.py）。
+  analyst_outlook_detail:
+    key_level_detail:
+      recent_range_days: 20   # 近期支撐/壓力抓近幾個交易日的高低點
+      atr_days: 14             # ATR（真實波動幅度）回溯天數，用來估算今日可能波動區間
+    breakout_scenario_detail:
+      confirm_buffer_pct: 0.5   # 收盤價超出支撐/壓力這個百分比以上，才算「站穩」突破，不是盤中碰一下就算
+      extended_range_days: 60   # 次一層關鍵點位（更長期的高低點）回溯天數，需大於 key_level_detail.recent_range_days
+      follow_through_days: 5    # 歷史事件統計往後看幾個交易日的報酬
+      min_event_samples: 8      # 歷史上符合條件的站穩突破事件至少要有這麼多次，統計才算數，不夠就明講樣本不足
+    narrative_detail:
+      recent_vol_days: 5        # 技術面解析敘述文字：「近期量能」抓近幾個交易日均量
+      prior_vol_days: 20        # 技術面解析敘述文字：跟前面幾個交易日均量比較
 
 output:
   dashboard_dir: "output"

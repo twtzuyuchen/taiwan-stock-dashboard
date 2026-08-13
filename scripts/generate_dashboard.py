@@ -155,8 +155,11 @@ def build_context(stock_id: str, stock_name: str, watch_cfg: dict, analysis: dic
         },
     ]
 
-    analyst_report = watch_cfg.get("analyst_report") or {}
-    analyst_report_available = bool(analyst_report)
+    outlook = analysis.get("analyst_outlook", {"available": False})
+    outlook_price_change = outlook.get("price_change", {})
+    outlook_key_levels = outlook.get("key_levels", {})
+    outlook_technical = outlook.get("technical_narrative", {})
+    outlook_chip = outlook.get("chip_narrative", {})
 
     return dict(
         is_demo=is_demo,
@@ -195,6 +198,9 @@ def build_context(stock_id: str, stock_name: str, watch_cfg: dict, analysis: dic
         fund_light=fund["light"],
         inst_cost_text=(f"{inst['cost']:.2f} 元" if inst.get("cost") else "資料不足"),
         current_price_text=(f"{inst['current_price']:.2f} 元" if inst.get("current_price") else "N/A"),
+        # 持有成本卡片（卡片5頂端）在瀏覽器端用 localStorage 記住使用者輸入，需要一個原始數字
+        # （不是格式化字串）給 JavaScript 算浮盈虧用；沒有現價資料時傳 None，樣板會處理成 null
+        current_price_raw=inst.get("current_price"),
         unrealized_text=unrealized_text,
         unrealized_class=unrealized_class,
         lookback_days=lookback_days,
@@ -203,22 +209,24 @@ def build_context(stock_id: str, stock_name: str, watch_cfg: dict, analysis: dic
         lights=lights,
         scoring_limit_note="未觸發主力中期或基本面限制" if composite >= 50 else "評分受基本面／籌碼轉弱限制，建議降低部位",
         signal_cards=signal_cards,
-        # 分析師關鍵價位與情境策略：人工整理的個人分析師報告重點，完全由 config.yaml 該檔股票的
-        # analyst_report 欄位手動維護，非程式自動抓取或計算（見 config.example.yaml 註解說明）
-        analyst_report_available=analyst_report_available,
-        ar_report_date=analyst_report.get("report_date"),
-        ar_reference_price=analyst_report.get("reference_price"),
-        ar_reference_price_change_pct=analyst_report.get("reference_price_change_pct"),
-        ar_position_stance=analyst_report.get("position_stance"),
-        ar_holding_cost=analyst_report.get("holding_cost"),
-        ar_key_support=analyst_report.get("key_support"),
-        ar_key_resistance=analyst_report.get("key_resistance"),
-        ar_key_levels=analyst_report.get("key_levels", []),
-        ar_technical_analysis=analyst_report.get("technical_analysis"),
-        ar_chip_analysis=analyst_report.get("chip_analysis"),
-        ar_scenarios=analyst_report.get("scenarios", []),
-        ar_source=analyst_report.get("source"),
-        ar_updated_at=analyst_report.get("updated_at"),
+        # 分析師關鍵價位與情境策略：完全由 analyze.py 的 compute_analyst_outlook() 自動計算
+        # （見 scripts/analyst_outlook.py），不需要任何人工設定，所有追蹤股票都會顯示這張卡片；
+        # 唯一的例外是「持有成本」——那是使用者自己的私人交易紀錄，程式無從得知，改成在網頁上
+        # 讓使用者自行輸入，存在瀏覽器 localStorage（見樣板內嵌的 JavaScript），不會回傳到伺服器。
+        ao_available=outlook.get("available", False),
+        ao_reason=outlook.get("reason"),
+        ao_price=outlook_price_change.get("price"),
+        ao_change_pct=outlook_price_change.get("change_pct"),
+        ao_support=outlook_key_levels.get("support"),
+        ao_resistance=outlook_key_levels.get("resistance"),
+        ao_range_days=outlook_key_levels.get("range_days"),
+        ao_expected_range_low=outlook_key_levels.get("expected_range_low"),
+        ao_expected_range_high=outlook_key_levels.get("expected_range_high"),
+        ao_technical_available=outlook_technical.get("available", False),
+        ao_technical_text=outlook_technical.get("text") or outlook_technical.get("reason"),
+        ao_chip_available=outlook_chip.get("available", False),
+        ao_chip_text=outlook_chip.get("text") or outlook_chip.get("reason"),
+        ao_scenarios=outlook.get("scenarios", []),
     )
 
 
@@ -324,6 +332,48 @@ def demo_analysis(stock_id: str) -> dict:
                 "stop_loss_price": 65.8,
                 "take_profit_price": 82.1,
             },
+        },
+        "analyst_outlook": {
+            "available": True,
+            "reason": None,
+            "price_change": {"available": True, "price": 71.2, "change_pct": 0.85},
+            "key_levels": {
+                "available": True, "current_price": 71.2, "resistance": 74.5, "support": 68.2,
+                "range_days": 20, "ma5": 70.8, "ma20": 69.5, "ma60": 66.4,
+                "atr": 1.6, "atr_days": 14, "expected_range_low": 69.6, "expected_range_high": 72.8,
+            },
+            "technical_narrative": {
+                "available": True,
+                "text": "技術趨勢判定為「偏多」，距60日均線乖離+7.2%（屬安全範圍）。近20個交易日高低點區間為 "
+                        "68.2 - 74.5 元，5日均線70.8元、20日均線69.5元，60日均線66.4元。近5日均量為前20日均量的118%，量能持平。",
+            },
+            "chip_narrative": {
+                "available": True,
+                "text": "近20個交易日三大法人買超天數14天；估算主力成本約68.40元；融資餘額近期減少8.2%；"
+                        "融資使用率22.5%；大戶持股比例46.8%，較上次上升1.60個百分點。",
+            },
+            "scenarios": [
+                {
+                    "name": "情境A：區間整理", "tone": "neutral",
+                    "pattern": "現價 71.2 元，介於近20日支撐 68.2 元與壓力 74.5 元之間",
+                    "stats_available": True,
+                    "stats_text": "ATR（近14日真實波動幅度均值）估算今日可能波動區間為 69.6 - 72.8 元（此為區間整理假設下的參考範圍，非歷史事件統計）",
+                },
+                {
+                    "name": "情境B：站穩突破壓力", "tone": "good",
+                    "pattern": "收盤價站穩突破 74.87 元（近20日壓力 × 0.5% 緩衝）",
+                    "stats_available": True,
+                    "stats_text": "近60日內共11次同類事件，事件發生後5個交易日平均報酬+2.34%、中位數+1.85%、"
+                                   "方向延續比例64%（次一關鍵壓力位約 79.30 元，近60日高點）",
+                },
+                {
+                    "name": "情境C：站穩跌破支撐", "tone": "bad",
+                    "pattern": "收盤價站穩跌破 67.86 元（近20日支撐 × 0.5% 緩衝）",
+                    "stats_available": False,
+                    "stats_text": "歷史上符合條件的站穩突破事件只有 5 次，少於門檻 8 次，樣本太少不具參考意義"
+                                   "（次一關鍵支撐位約 61.20 元，近60日低點）",
+                },
+            ],
         },
     }
 

@@ -9,6 +9,7 @@ import pandas as pd
 import yaml
 
 from signals import compute_all_signals
+from analyst_outlook import compute_analyst_outlook
 
 
 def _read_cache(cache_dir: str, stock_id: str, key: str) -> pd.DataFrame:
@@ -321,6 +322,11 @@ def analyze_stock(stock_id: str, config: dict, cache_dir: str = "output/cache",
         swing_exit_detail=scoring.get("swing_exit_detail", {}),
     )
 
+    analyst_outlook = compute_analyst_outlook(
+        price_df, tech, chip, inst_cost,
+        detail_config=scoring.get("analyst_outlook_detail", {}),
+    )
+
     return {
         "stock_id": stock_id,
         "composite_score": composite,
@@ -330,6 +336,7 @@ def analyze_stock(stock_id: str, config: dict, cache_dir: str = "output/cache",
         "technical": {**tech, "light": score_to_light(tech["score"], thresholds)},
         "fundamental": {**fund, "light": score_to_light(fund["score"], thresholds)},
         "signals": signals,
+        "analyst_outlook": analyst_outlook,
     }
 
 

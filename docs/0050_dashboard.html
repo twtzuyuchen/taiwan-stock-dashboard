@@ -146,6 +146,13 @@
   .signal-card .signal-dot.neutral { background: var(--text-muted); }
   .signal-card .signal-text { font-size: 13.5px; line-height: 1.6; color: var(--text-primary); }
   .signal-card .signal-text.neutral { color: var(--text-secondary); }
+  .signal-card .signal-price-levels { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+  .signal-card .signal-price-item {
+    background: var(--blue-bg); border-radius: 8px; padding: 6px 10px;
+    font-size: 12.5px; display: flex; gap: 6px; align-items: baseline;
+  }
+  .signal-card .signal-price-item .k { color: var(--text-secondary); }
+  .signal-card .signal-price-item .v { font-weight: 700; color: var(--blue); }
 
   .footnote { font-size: 12.5px; color: var(--text-muted); line-height: 1.8; margin-top: 8px; }
   .chip-breakdown { font-size: 12px; color: var(--text-muted); margin-top: 4px; line-height: 1.5; }
@@ -155,24 +162,38 @@
   .profile-item .label { font-size: 12.5px; color: var(--text-secondary); margin-bottom: 6px; font-weight: 600; }
   .profile-item .value { font-size: 13.5px; line-height: 1.7; color: var(--text-primary); }
 
-  .valuation-banner {
+  .analyst-banner {
     background: var(--blue-bg); color: var(--blue); border-radius: 8px;
-    padding: 8px 14px; font-size: 12.5px; margin-bottom: 16px;
+    padding: 8px 14px; font-size: 12.5px; margin-bottom: 14px;
   }
-  .valuation-panel { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-  @media (max-width: 760px) { .valuation-panel { grid-template-columns: 1fr; } }
-  .valuation-item { border-radius: 10px; padding: 16px 18px; text-align: center; }
-  .valuation-item.pessimistic { background: var(--critical-bg); }
-  .valuation-item.steady { background: var(--blue-bg); }
-  .valuation-item.optimistic { background: var(--good-bg); }
-  .valuation-item .label { font-size: 13px; color: var(--text-secondary); margin-bottom: 8px; }
-  .valuation-item .price { font-size: 26px; font-weight: 700; }
-  .valuation-item.pessimistic .price { color: var(--critical); }
-  .valuation-item.steady .price { color: var(--blue); }
-  .valuation-item.optimistic .price { color: var(--good); }
-  .valuation-unavailable {
+  .analyst-meta { font-size: 13.5px; color: var(--text-secondary); margin-bottom: 18px; line-height: 1.8; }
+  .analyst-summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 22px; }
+  @media (max-width: 760px) { .analyst-summary-grid { grid-template-columns: 1fr; } }
+  .analyst-summary-item { background: var(--page-plane); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; }
+  .analyst-summary-item .label { font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; }
+  .analyst-summary-item .value { font-size: 14.5px; font-weight: 700; }
+  .analyst-narrative-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 22px; }
+  @media (max-width: 760px) { .analyst-narrative-grid { grid-template-columns: 1fr; } }
+  .analyst-narrative-block .label { font-size: 13px; font-weight: 700; margin-bottom: 8px; }
+  .analyst-narrative-block .text { font-size: 13.5px; line-height: 1.8; color: var(--text-primary); white-space: pre-line; }
+  .analyst-narrative-block .text.neutral { color: var(--text-secondary); }
+  .analyst-scenario-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+  .analyst-scenario-card { border-radius: 10px; padding: 16px 18px; border: 1px solid var(--border); }
+  .analyst-scenario-card.good { background: var(--good-bg); }
+  .analyst-scenario-card.neutral { background: var(--blue-bg); }
+  .analyst-scenario-card.bad { background: var(--critical-bg); }
+  .analyst-scenario-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 6px; }
+  .analyst-scenario-head .name { font-size: 14px; font-weight: 700; }
+  .analyst-scenario-body .k { font-size: 11.5px; color: var(--text-secondary); margin-top: 8px; }
+  .analyst-scenario-body .v { font-size: 13px; line-height: 1.6; }
+  .analyst-unavailable {
     padding: 16px 18px; border-radius: 10px; background: var(--warning-bg); color: #8a5a00; font-size: 13.5px;
   }
+  .holding-cost-input {
+    width: 100%; font-size: 15px; font-weight: 700; padding: 6px 8px; border-radius: 6px;
+    border: 1px solid var(--border); background: var(--surface-1); color: var(--text-primary); box-sizing: border-box;
+  }
+  .holding-cost-pl { font-size: 12.5px; margin-top: 6px; font-weight: 600; min-height: 16px; }
   .demo-banner {
     background: var(--warning-bg);
     color: #8a5a00;
@@ -197,23 +218,23 @@
         <span class="tag caution">區間操作</span>
       </div>
       <div class="meta">
-        分析週期：3-6個月｜風險偏好：穩健｜持股狀態：是｜產出時間：2026-07-12 08:43
+        分析週期：6-12個月｜風險偏好：穩健｜持股狀態：否｜產出時間：2026-08-13 13:49
       </div>
     </div>
     <div>
       <table class="infotable">
         
-        <tr><td class="k">股價日期</td><td class="v">2026-07-12</td></tr>
+        <tr><td class="k">股價日期</td><td class="v">2026-08-13</td></tr>
         
-        <tr><td class="k">融資日期</td><td class="v">2026-07-12</td></tr>
+        <tr><td class="k">融資日期</td><td class="v">2026-08-13</td></tr>
         
-        <tr><td class="k">法人日期</td><td class="v">2026-07-12</td></tr>
+        <tr><td class="k">法人日期</td><td class="v">2026-08-13</td></tr>
         
-        <tr><td class="k">籌碼分佈 CSV 日期</td><td class="v">2026-07-12</td></tr>
+        <tr><td class="k">籌碼分佈 CSV 日期</td><td class="v">2026-08-13</td></tr>
         
-        <tr><td class="k">經營績效 CSV 日期</td><td class="v">2026-07-12</td></tr>
+        <tr><td class="k">經營績效 CSV 日期</td><td class="v">2026-08-13</td></tr>
         
-        <tr><td class="k">SIGNAL_SUMMARY</td><td class="v">2026-07-12T08:43:09</td></tr>
+        <tr><td class="k">SIGNAL_SUMMARY</td><td class="v">2026-08-13T13:49:48</td></tr>
         
       </table>
     </div>
@@ -224,15 +245,15 @@
     <div class="profile-grid">
       <div class="profile-item">
         <div class="label">所屬族群</div>
-        <div class="value">ETF（市值型，追蹤台灣50指數）</div>
+        <div class="value">ETF－大型股/市值型（追蹤臺灣50指數）</div>
       </div>
       <div class="profile-item">
         <div class="label">主要涉及業務</div>
-        <div class="value">非單一公司，為追蹤「台灣50指數」的被動式市值型ETF，成分股為台灣證交所市值前50大上市公司，前十大成分股包含台積電、鴻海、聯發科等權值股，會隨指數成分定期調整。</div>
+        <div class="value">元大投信發行的股票型ETF，2003年6月30日上市，是台灣歷史最悠久的ETF之一。追蹤「臺灣50指數」（FTSE TWSE Taiwan 50 Index，臺灣證交所與富時國際共同編製），成分股為台股上市公司中市值最大的50家。基金規模約新台幣2.37兆元（2026年8月資料），是台股規模最大的ETF。持股高度集中於權值股，前五大持股依權重為：台積電(2330) 58.17%、聯發科(2454) 5.83%、台達電(2308) 3.41%、鴻海(2317) 3.25%、日月光投控(3711) 2.03%，單一持股（台積電）權重逾五成，报酬與台積電股價連動性極高，不是完全分散的持股組合。</div>
       </div>
       <div class="profile-item">
         <div class="label">與美國公司業務關聯</div>
-        <div class="value">無單一美國業務關聯；但前十大成分股多為與美系科技供應鏈高度連動的企業（如台積電、鴻海），間接曝險於美國科技需求景氣。</div>
+        <div class="value">本身為被動追蹤指數的基金，不是個別公司，沒有自己的業務或客戶，因此沒有「與美國公司業務關聯」這個概念可以直接套用；但因最大成分股台積電權重高達58.17%，0050的報酬走勢實質上高度連動台積電營運與蘋果(Apple)、輝達(Nvidia)、超微(AMD)、高通(Qualcomm)等美系客戶的晶圓代工需求，第二大成分股聯發科同樣有相當比重的美系IC設計競爭與供應鏈往來。此處僅描述成分股結構上的間接連動，不代表0050本身與美國有直接業務往來。</div>
       </div>
     </div>
     <div class="footnote">此區塊為人工整理的靜態公司背景資訊，非每日自動更新；資料維護於 config.yaml 該檔股票的 sector／business_summary／us_relation 欄位，異動時請自行更新。</div>
@@ -243,24 +264,24 @@
     <div class="score-grid">
       <div class="score-item">
         <div class="label">綜合評分</div>
-        <div class="score-value"><span class="num">57/100</span><span class="dot yellow"></span></div>
+        <div class="score-value"><span class="num">59/100</span><span class="dot yellow"></span></div>
       </div>
       <div class="score-item">
         <div class="label">風險等級</div>
         <div class="score-value"><span class="pill yellow">中</span></div>
       </div>
-      <div class="score-item" title="融資動能 55／融資使用率 100／大戶集中度 —（資料不足的子項已自動略過並重新分配權重）">
+      <div class="score-item" title="融資動能 51／融資使用率 100／大戶集中度 —（資料不足的子項已自動略過並重新分配權重）">
         <div class="label">籌碼乾淨度</div>
-        <div class="score-value"><span class="num">71/100</span><span class="dot green"></span></div>
-        <div class="chip-breakdown">融資動能55‧使用率100‧大戶—</div>
+        <div class="score-value"><span class="num">69/100</span><span class="dot yellow"></span></div>
+        <div class="chip-breakdown">融資動能51‧使用率100‧大戶—</div>
       </div>
       <div class="score-item">
         <div class="label">主力布局分數</div>
-        <div class="score-value"><span class="num">36/100</span><span class="dot red"></span></div>
+        <div class="score-value"><span class="num">65/100</span><span class="dot yellow"></span></div>
       </div>
       <div class="score-item">
         <div class="label">技術趨勢</div>
-        <div class="score-value"><span class="pill green">偏多</span></div>
+        <div class="score-value"><span class="pill yellow">盤整</span></div>
       </div>
       <div class="score-item">
         <div class="label">技術線型</div>
@@ -287,15 +308,15 @@
     <div class="cost-panel">
       <div class="cost-item">
         <div class="label">估算主力成本</div>
-        <div class="value">106.96 元</div>
+        <div class="value">104.15 元</div>
       </div>
       <div class="cost-item">
         <div class="label">現價</div>
-        <div class="value">105.80 元</div>
+        <div class="value">106.70 元</div>
       </div>
       <div class="cost-item">
         <div class="label">浮盈／浮虧</div>
-        <div class="value neg">-1.08%</div>
+        <div class="value pos">+2.45%</div>
       </div>
       <div class="cost-item">
         <div class="label">近 20 交易日買超天數</div>
@@ -309,39 +330,31 @@
   </div>
 
   <div class="card">
-    <h2>3. 未來一年價格情境估算</h2>
-    <div class="valuation-banner">⚠ 以下三個價位是量化「本益比河流圖」模型估算結果，並非分析師報告或市場共識目標價，僅供研判參考。</div>
-    
-    <div class="valuation-unavailable">目前資料不足，無法計算：近四季EPS資料不足（需要 TaiwanStockFinancialStatements 至少4季資料）</div>
-    
-  </div>
-
-  <div class="card">
-    <h2>4. 籌碼與技術風險燈號</h2>
+    <h2>3. 籌碼與技術風險燈號</h2>
     <div class="light-grid">
       
       <div class="light-item">
         <div class="name">融資浮額清洗</div>
-        <div class="dot green"></div>
-        <div class="status green">良好</div>
+        <div class="dot yellow"></div>
+        <div class="status yellow">留意</div>
       </div>
       
       <div class="light-item">
         <div class="name">籌碼集中度</div>
-        <div class="dot red"></div>
-        <div class="status red">警示</div>
+        <div class="dot yellow"></div>
+        <div class="status yellow">留意</div>
       </div>
       
       <div class="light-item">
         <div class="name">主力承接</div>
-        <div class="dot red"></div>
-        <div class="status red">警示</div>
+        <div class="dot yellow"></div>
+        <div class="status yellow">留意</div>
       </div>
       
       <div class="light-item">
         <div class="name">技術趨勢</div>
-        <div class="dot green"></div>
-        <div class="status green">良好</div>
+        <div class="dot yellow"></div>
+        <div class="status yellow">留意</div>
       </div>
       
       <div class="light-item">
@@ -367,7 +380,7 @@
   </div>
 
   <div class="card">
-    <h2>5. 買賣訊號</h2>
+    <h2>4. 買賣訊號</h2>
     <div class="signal-grid">
       
       <div class="signal-card  neutral">
@@ -378,6 +391,7 @@
         <div class="signal-text neutral">
           <span class="signal-dot neutral"></span>近期無均線交叉
         </div>
+        
       </div>
       
       <div class="signal-card  neutral">
@@ -388,16 +402,18 @@
         <div class="signal-text neutral">
           <span class="signal-dot neutral"></span>維持在「區間」區間，無轉折
         </div>
+        
       </div>
       
-      <div class="signal-card active red">
+      <div class="signal-card  green">
         <div class="signal-card-head">
           <span class="name">主力成本防守價</span>
           <span class="kind-tag">狀態型</span>
         </div>
-        <div class="signal-text ">
-          <span class="signal-dot red"></span>現價已跌破主力估算成本 1.1%，主力可能同步套牢，留意籌碼鬆動風險
+        <div class="signal-text neutral">
+          <span class="signal-dot green"></span>現價仍在主力估算成本之上，尚未跌破防守價
         </div>
+        
       </div>
       
       <div class="signal-card  neutral">
@@ -406,38 +422,193 @@
           <span class="kind-tag">狀態型</span>
         </div>
         <div class="signal-text neutral">
-          <span class="signal-dot neutral"></span>未觸發主力建倉訊號：買超天數比例僅35%（門檻70%）；買超力道未加速
+          <span class="signal-dot neutral"></span>未觸發主力建倉訊號：買超天數比例僅35%（門檻70%）
         </div>
-      </div>
-      
-      <div class="signal-card active green">
-        <div class="signal-card-head">
-          <span class="name">左側交易進場提醒</span>
-          <span class="kind-tag">狀態型</span>
-        </div>
-        <div class="signal-text ">
-          <span class="signal-dot green"></span>現價已低於主力估算成本 106.96 元，來到相對低檔參考區間，可考慮左側分批佈局（非買點保證，逆勢承接風險較高，請自行評估部位）
-        </div>
+        
       </div>
       
       <div class="signal-card  neutral">
         <div class="signal-card-head">
-          <span class="name">右側交易進場提醒</span>
+          <span class="name">短線進場提醒（1-2週）</span>
           <span class="kind-tag">狀態型</span>
         </div>
         <div class="signal-text neutral">
-          <span class="signal-dot neutral"></span>尚未觸發右側進場訊號：近10個交易日內無均線黃金交叉；尚未突破近20個交易日收盤高點 111.15 元；成交量僅為均量的45%，未達放量確認門檻150%
+          <span class="signal-dot neutral"></span>尚未觸發短線進場訊號：現價106.70元未貼近近10個交易日低點99.75元（需落在105.73元以下）；今日價量關係為「價漲量縮」（量能為均量46%），未達價漲量增且量能≥均量130%的確認門檻
         </div>
+        
+      </div>
+      
+      <div class="signal-card active red">
+        <div class="signal-card-head">
+          <span class="name">短線出場提醒（1-2週）</span>
+          <span class="kind-tag">狀態型</span>
+        </div>
+        <div class="signal-text ">
+          <span class="signal-dot red"></span>停損參考價 103.47 元（現價-1.2倍ATR）、停利參考價 112.09 元（現價+2.0倍ATR）；技術反轉警訊：2026-08-07 於近高點出現空頭吞噬，建議留意獲利了結或執行停損
+        </div>
+        
+        <div class="signal-price-levels">
+          
+          <div class="signal-price-item"><span class="k">停損參考價</span><span class="v">103.47 元</span></div>
+          
+          <div class="signal-price-item"><span class="k">停利參考價</span><span class="v">112.09 元</span></div>
+          
+        </div>
+        
+      </div>
+      
+      <div class="signal-card  neutral">
+        <div class="signal-card-head">
+          <span class="name">波段進場提醒（1-2個月）</span>
+          <span class="kind-tag">狀態型</span>
+        </div>
+        <div class="signal-text neutral">
+          <span class="signal-dot neutral"></span>尚未觸發波段進場訊號：中期均線未呈多頭排列（20日均線101.67元 <= 60日均線103.59元），波段格局尚未轉多；現價106.70元未拉回至近20個交易日低點91.80元附近（需落在99.14元以下）；近10個交易日拉回區間無看漲反轉K線型態；今日價量關係為「價漲量縮」（量能為均量46%），未達價漲量增且量能≥均量130%的確認門檻
+        </div>
+        
+      </div>
+      
+      <div class="signal-card active red">
+        <div class="signal-card-head">
+          <span class="name">波段出場提醒（1-2個月）</span>
+          <span class="kind-tag">狀態型</span>
+        </div>
+        <div class="signal-text ">
+          <span class="signal-dot red"></span>停損參考價 100.57 元（現價-2.0倍ATR）、停利參考價 117.43 元（現價+3.5倍ATR）；技術反轉警訊：2026-08-07 於近高點出現空頭吞噬，建議留意獲利了結或執行停損
+        </div>
+        
+        <div class="signal-price-levels">
+          
+          <div class="signal-price-item"><span class="k">停損參考價</span><span class="v">100.57 元</span></div>
+          
+          <div class="signal-price-item"><span class="k">停利參考價</span><span class="v">117.43 元</span></div>
+          
+        </div>
+        
       </div>
       
     </div>
     <div class="footnote">
       事件型訊號（均線交叉、評分區間轉換）只在「發生變化的當天」出現，隔天若沒有新變化就會顯示「無訊號」；
-      狀態型訊號（主力成本防守價、主力建倉訊號、左側交易進場提醒、右側交易進場提醒）只要條件持續成立就會一直顯示，不是只出現一次。
-      六者皆為規則式計算，僅供研判參考，不構成投資建議；左側／右側交易進場提醒尤其只是進場時機的參考，不是買賣建議，實際進出場請自行評估風險與部位大小。
+      狀態型訊號（主力成本防守價、主力建倉訊號、短線／波段進出場提醒）只要條件持續成立就會一直顯示，不是只出現一次。
+      短線（約1-2週）與波段（約1-2個月）進出場提醒以價量關係與K線型態為判斷基礎：進場看「是否貼近近期低點 +
+      看漲反轉K線型態（多頭吞噬／槌子線）+ 價漲量增」，波段進場額外多一層中期均線多頭排列的趨勢過濾；
+      出場則同時提供「ATR估算的停利停損參考價位」（任何時候都會顯示，方便隨時對照）與「技術反轉警訊」
+      （看跌反轉K線型態、價跌量增、或波段適用的中期均線死亡交叉）。全部皆為規則式計算，僅供研判參考，
+      不構成投資建議，實際進出場請自行評估風險與部位大小，停利停損參考價位也不是保證能成交的價格。
     </div>
   </div>
 
+  <div class="card">
+    <h2>5. 分析師關鍵價位與情境策略</h2>
+    <div class="analyst-banner">⚠ 除了「您的持有成本」是您自行輸入（只存在您的瀏覽器，不會回傳伺服器），其餘內容皆為規則式自動計算（近期支撐/壓力、ATR波動區間、歷史事件統計），非分析師主觀報告，僅供研判參考，不構成投資建議。</div>
+
+    
+    <div class="analyst-meta">
+      參考現價：106.7（+1.43%）
+    </div>
+
+    <div class="analyst-summary-grid">
+      <div class="analyst-summary-item">
+        <div class="label">您的持有成本（自行輸入，僅存於您的瀏覽器）</div>
+        <input type="number" step="0.01" min="0" class="holding-cost-input" id="holdingCostInput-0050" placeholder="輸入您的持有成本">
+        <div class="holding-cost-pl" id="holdingCostPL-0050"></div>
+      </div>
+      <div class="analyst-summary-item"><div class="label">近20日下檔支撐</div><div class="value">91.8</div></div>
+      <div class="analyst-summary-item"><div class="label">近20日上檔壓力</div><div class="value">107.0</div></div>
+    </div>
+
+    <div class="analyst-narrative-grid">
+      <div class="analyst-narrative-block">
+        <div class="label">技術面解析（自動計算）</div>
+        <div class="text ">技術趨勢判定為「盤整」，距60日均線乖離+3.0%（屬安全範圍）。近20個交易日高低點區間為 91.8 - 107.0 元，5日均線104.72元、20日均線101.66元，60日均線103.59元。近5日均量為前20日均量的36%，量能明顯萎縮。</div>
+      </div>
+      <div class="analyst-narrative-block">
+        <div class="label">籌碼面解析（自動計算）</div>
+        <div class="text ">近20個交易日三大法人買超天數7天；估算主力成本約104.15元；融資餘額近期增加9.4%；融資使用率0.4%。</div>
+      </div>
+    </div>
+
+    
+    <div class="analyst-scenario-grid">
+      
+      <div class="analyst-scenario-card neutral">
+        <div class="analyst-scenario-head">
+          <span class="name">情境A：區間整理</span>
+        </div>
+        <div class="analyst-scenario-body">
+          <div class="k">盤勢特徵</div><div class="v">現價 106.7 元，介於近20日支撐 91.8 元與壓力 107.0 元之間</div>
+          <div class="k">歷史事件統計</div><div class="v">ATR（近14日真實波動幅度均值）估算今日可能波動區間為 103.66 - 109.74 元（此為區間整理假設下的參考範圍，非歷史事件統計）</div>
+        </div>
+      </div>
+      
+      <div class="analyst-scenario-card good">
+        <div class="analyst-scenario-head">
+          <span class="name">情境B：站穩突破壓力</span>
+        </div>
+        <div class="analyst-scenario-body">
+          <div class="k">盤勢特徵</div><div class="v">收盤價站穩突破 107.53 元（近20日壓力 × 0.5% 緩衝）</div>
+          <div class="k">統計說明</div><div class="v">歷史上符合條件的站穩突破事件只有 2 次，少於門檻 8 次，樣本太少不具參考意義（次一關鍵壓力位約 112.3 元，近60日高點）</div>
+        </div>
+      </div>
+      
+      <div class="analyst-scenario-card bad">
+        <div class="analyst-scenario-head">
+          <span class="name">情境C：站穩跌破支撐</span>
+        </div>
+        <div class="analyst-scenario-body">
+          <div class="k">盤勢特徵</div><div class="v">收盤價站穩跌破 91.34 元（近20日支撐 × 0.5% 緩衝）</div>
+          <div class="k">統計說明</div><div class="v">歷史上符合條件的站穩突破事件只有 4 次，少於門檻 8 次，樣本太少不具參考意義（近期低點已是近期區間內相對低點，需留意創新低後的價格發現階段（缺乏歷史低點參考））</div>
+        </div>
+      </div>
+      
+    </div>
+    
+
+    <div class="footnote">
+      關鍵支撐/壓力與ATR波動區間：近20個交易日高低點與真實波動幅度均值計算，跟「今日大盤/期貨情境」頁面加權指數關鍵點位方法相同。
+      情境B/C的歷史事件統計：純粹的歷史事件統計（event study），衡量過去每次「收盤價站穩突破/跌破近期高低點」後接下來幾個交易日的報酬分佈；
+      事件之間可能重疊、樣本並非完全獨立，只能當作方向性的歷史頻率參考，不是嚴謹的統計推論，也不是對未來的預測或保證。
+      技術面/籌碼面解析：由左側「總控儀表板」「主力持倉成本分析」「籌碼與技術風險燈號」已經算好的數字組成敘述文字，非新的計算邏輯。
+      全部皆為規則式計算，僅供研判參考，不構成投資建議，實際進出場請自行評估風險並考量部位大小。
+    </div>
+    
+  </div>
+
 </div>
+<script>
+(function () {
+  var stockId = "0050";
+  var currentPrice = 106.7;
+  var input = document.getElementById("holdingCostInput-" + stockId);
+  var plDiv = document.getElementById("holdingCostPL-" + stockId);
+  if (!input || !plDiv) { return; }
+  var storageKey = "taiwan_stock_dashboard_holding_cost_" + stockId;
+
+  function render() {
+    var v = parseFloat(input.value);
+    if (!isNaN(v) && v > 0 && currentPrice !== null) {
+      var pct = (currentPrice - v) / v * 100;
+      var sign = pct >= 0 ? "+" : "";
+      plDiv.textContent = "浮盈虧 " + sign + pct.toFixed(2) + "%（現價 " + currentPrice.toFixed(2) + " 元）";
+      plDiv.style.color = pct >= 0 ? "#0ca30c" : "#d03b3b";
+    } else {
+      plDiv.textContent = "";
+    }
+  }
+
+  try {
+    var saved = window.localStorage.getItem(storageKey);
+    if (saved) { input.value = saved; }
+  } catch (e) { /* 瀏覽器封鎖 localStorage 時（例如無痕模式部分情況）安靜略過，不影響其他功能 */ }
+
+  render();
+
+  input.addEventListener("input", function () {
+    try { window.localStorage.setItem(storageKey, input.value); } catch (e) {}
+    render();
+  });
+})();
+</script>
 </body>
 </html>

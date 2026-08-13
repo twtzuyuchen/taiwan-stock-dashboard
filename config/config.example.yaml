@@ -198,6 +198,69 @@ watchlist:
     sector: "網通設備－寬頻用戶終端設備（CPE）／衛星通訊終端"
     business_summary: "網通設備大廠，主要從事天線與射頻模組、寬頻CPE路由器、低軌衛星地面終端設備之設計與製造，近年並跨足800G資料中心交換器與車用電子（毫米波雷達、鏡頭模組）領域。"
     us_relation: "美國電信商Verizon官網證實其部分路由器產品由啟碁代工（型號RTR VZ ROUTER WNC），為公開可查之客戶關係；另公司法說會揭露低軌衛星（LEO）營收占比已逾一成，市場及多家外資報告推測其為SpaceX星鏈（Starlink）地面終端天線／路由器主要供應商之一，惟SpaceX官方未正式點名供應商，此部分屬公開報導與市場推論，非官方直接證實，投資時應留意此不確定性。"
+  - stock_id: "8027"
+    name: "鈦昇"
+    risk_preference: "積極"
+    holding: true
+    analysis_period: "1-3個月"
+    sector: "尚未設定，請自行補上族群分類"
+    business_summary: "尚未設定，請於此補上主要業務內容（可提供公司名稱與產業別，我可以幫忙查證後補上）"
+    us_relation: "尚未設定，請於此補上與美國公司的業務關聯（如未查證到明確關聯，也可以先填「尚無公開資料佐證」）"
+    analyst_report:
+      report_date: "2026年8月"
+      reference_price: 195.00
+      reference_price_change_pct: 1.56
+      position_stance: "超跌後量縮反彈 / 觀察月線支撐"
+      holding_cost: "200.00 以上"
+      key_support: "184.00 - 185.00（月線/半年線）"
+      key_resistance: "219.00 - 224.00（季線扣抵）"
+      key_levels:
+        - price_range: "219.00 - 224.28"
+          meaning: "季線(60MA)下壓關卡"
+          structure: "重度解套賣壓區"
+          action: "強壓力區，建議全數離場"
+        - price_range: "200.00 - 205.00"
+          meaning: "您的持有成本區 & 心理關卡"
+          structure: "保本 / 減碼區"
+          action: "反彈無量時分批賣出減碼"
+        - price_range: "195.00"
+          meaning: "目前市場現價"
+          structure: "現況位置"
+          action: "觀望，注意日量是否放大"
+        - price_range: "184.12 - 185.31"
+          meaning: "月線(20MA) / 半年線(120MA)"
+          structure: "關鍵防守線"
+          action: "扣抵支撐區，跌破宜停損"
+        - price_range: "142.00"
+          meaning: "8月初急跌止跌點"
+          structure: "末端底部支撐"
+          action: "前波打底低點"
+      technical_analysis: >
+        股價自6月高點$297.00回檔後，於8月初在$142.00築底反彈，目前重新站回月線（$184.12）之上。
+        然上方60日季線（$224.28）呈下彎趨勢，且每日成交量約落在1,100至2,000張，屬於「無量弱勢反彈」。
+        若要一舉突破季線，需要成交量放大至5,000–8,000張以上。
+      chip_analysis: >
+        法人動向：外資近期呈現買賣交替、力道收斂，本土投信則無明顯進場布局跡象，缺乏三大法人強推推升力道。
+        資券變化：融資自7月底的9,000多張大幅洗盤至7,200張後，於反彈過程中有微幅增加（例如8/12增123張），
+        顯示部分散戶回頭接盤，籌碼安定度稍降。
+      scenarios:
+        - name: "情境A：無量順勢衝高"
+          probability: "高"
+          tone: "good"
+          pattern: "隨大盤順勢衝過成本價$200，進入$205-$215元，但單日成交量小於5,000張。"
+          action: "此屬於無量解套波，上攻動能有限。建議採取「分批賣出減碼」策略，少虧離場，避免季線二次下壓風險。"
+        - name: "情境B：帶量強勢攻擊"
+          probability: "中"
+          tone: "neutral"
+          pattern: "突破$200元關卡且單日成交量大於6,000張，法人轉為大幅買超。"
+          action: "持股可續抱至$218-$224元（季線扣抵區）再做全數獲利或平手出場。"
+        - name: "情境C：跌破月線轉弱"
+          probability: "低至中"
+          tone: "bad"
+          pattern: "股價無法站穩月線，跌破$184.00關鍵支撐。"
+          action: "代表反彈波已告結束，股價可能再次下探尋求第二隻腳。建議嚴格執行停損，防範套牢程度擴大。"
+      source: "個人分析師報告 2026/08"
+      updated_at: "2026-08-13"
 
 
 scoring:

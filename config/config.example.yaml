@@ -8,8 +8,8 @@ finmind:
   token: "YOUR_FINMIND_TOKEN"
   # 主力成本與籌碼乾淨度融資動能子項共用的回溯交易日數（20 個交易日 ≈ 4 週）
   lookback_trading_days: 20
-  # 「未來一年價格情境估算」本益比河流圖模型用的本益比歷史回溯天數（日曆天，預設約3年）。
-  # 這個天數只影響 fetch_data.py 抓 TaiwanStockPER 的區間，不影響其他資料集。
+  # 「基本面催化」卡片本益比分位數（per_percentile）計算用的本益比歷史回溯天數（日曆天，預設約3年），
+  # 天數越長分位數統計上越有意義。這個天數只影響 fetch_data.py 抓 TaiwanStockPER 的區間，不影響其他資料集。
   valuation_lookback_days: 1095
 
 market_overview:
@@ -42,6 +42,34 @@ watchlist:
   # 每檔股票的代號、名稱、風險偏好、持股狀態，以及人工整理的產業資訊。
   # sector／business_summary／us_relation 三個欄位不會每日自動更新，是靜態的公司背景介紹，
   # 新增股票或公司業務有重大變化時，請自行更新這幾個欄位的文字。
+  #
+  # analyst_report（選填）：貼上個人分析師報告的重點整理，會在該股儀表板頁面顯示「分析師關鍵
+  # 價位與情境策略」卡片。跟 sector／business_summary／us_relation 一樣是純人工維護的靜態內容，
+  # 不會被程式每日自動計算或覆蓋；沒有填這個欄位的股票，該卡片就不會出現，不影響其他功能。
+  # 完整欄位說明（每個子欄位都可省略，省略的部分該區塊或該行就不會顯示）：
+  #   analyst_report:
+  #     report_date: "報告日期文字，例如 2026年8月"
+  #     reference_price: 195.00              # 報告當時的參考現價（數字）
+  #     reference_price_change_pct: 1.56      # 參考現價當日漲跌幅（數字，選填，省略則不顯示漲跌幅）
+  #     position_stance: "短線格局文字，例如：超跌後量縮反彈 / 觀察月線支撐"
+  #     holding_cost: "持有成本文字，例如：200.00 以上"
+  #     key_support: "關鍵下檔防守文字，例如：184.00 - 185.00（月線/半年線）"
+  #     key_resistance: "主要上檔壓力文字，例如：219.00 - 224.00（季線扣抵）"
+  #     key_levels:            # 關鍵價格位階表，可放任意筆數，依報告內容增減
+  #       - price_range: "219.00 - 224.28"
+  #         meaning: "季線(60MA)下壓關卡"        # 技術/籌碼意涵
+  #         structure: "重度解套賣壓區"           # 結構屬性
+  #         action: "強壓力區，建議全數離場"       # 對應操作建議
+  #     technical_analysis: "技術面解析文字，可用 > 區塊純量寫多行"
+  #     chip_analysis: "籌碼面解析文字，可用 > 區塊純量寫多行"
+  #     scenarios:              # 情境策略，可放任意筆數，依報告內容增減
+  #       - name: "情境A：無量順勢衝高"
+  #         probability: "高"                    # 發生機率文字
+  #         tone: "neutral"                       # 卡片顏色：good(綠)／neutral(藍)／bad(紅)，依報告對這個情境的偏多偏空程度自行判斷
+  #         pattern: "盤勢特徵文字"
+  #         action: "建議行動文字"
+  #     source: "資料來源說明文字，例如：個人分析師報告 2026/08"
+  #     updated_at: "2026-08-13"              # 這份報告的更新日期，方便自己判斷是否過舊
   - stock_id: "2303"
     name: "聯電"
     risk_preference: "積極"
@@ -197,15 +225,6 @@ scoring:
     big_holder_min_shares: 400000
     # 大戶集中度比較最近幾次集保股權分散表（每週更新，4 次約等於近一個月）
     holder_lookback_snapshots: 4
-
-  # 未來一年樂觀價／穩健價／悲觀價（本益比河流圖模型）細項設定，可省略。
-  # 這是量化模型估算，不是分析師報告或共識目標價；任何資料不足的情況都會明確顯示原因，不會硬湊數字。
-  valuation_band_detail:
-    per_percentile_low: 20      # 悲觀價使用的本益比分位數
-    per_percentile_mid: 50      # 穩健價使用的本益比分位數（中位數）
-    per_percentile_high: 80     # 樂觀價使用的本益比分位數
-    growth_rate_cap_pct: 30     # 用營收年增率估算未來EPS成長時，正負限制在這個百分比以內
-    min_per_samples: 60         # 本益比歷史樣本至少要有這麼多筆，才視為統計上足夠可靠
 
   # 主力建倉訊號（悄悄吸籌）細項設定，可省略，省略時採用下列預設值
   # 三個條件同時成立才會觸發：買超天數比例夠高、買超力道加速、股價尚未大幅表態

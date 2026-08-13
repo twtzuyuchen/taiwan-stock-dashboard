@@ -162,24 +162,38 @@
   .profile-item .label { font-size: 12.5px; color: var(--text-secondary); margin-bottom: 6px; font-weight: 600; }
   .profile-item .value { font-size: 13.5px; line-height: 1.7; color: var(--text-primary); }
 
-  .valuation-banner {
+  .analyst-banner {
     background: var(--blue-bg); color: var(--blue); border-radius: 8px;
-    padding: 8px 14px; font-size: 12.5px; margin-bottom: 16px;
+    padding: 8px 14px; font-size: 12.5px; margin-bottom: 14px;
   }
-  .valuation-panel { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-  @media (max-width: 760px) { .valuation-panel { grid-template-columns: 1fr; } }
-  .valuation-item { border-radius: 10px; padding: 16px 18px; text-align: center; }
-  .valuation-item.pessimistic { background: var(--critical-bg); }
-  .valuation-item.steady { background: var(--blue-bg); }
-  .valuation-item.optimistic { background: var(--good-bg); }
-  .valuation-item .label { font-size: 13px; color: var(--text-secondary); margin-bottom: 8px; }
-  .valuation-item .price { font-size: 26px; font-weight: 700; }
-  .valuation-item.pessimistic .price { color: var(--critical); }
-  .valuation-item.steady .price { color: var(--blue); }
-  .valuation-item.optimistic .price { color: var(--good); }
-  .valuation-unavailable {
-    padding: 16px 18px; border-radius: 10px; background: var(--warning-bg); color: #8a5a00; font-size: 13.5px;
+  .analyst-meta { font-size: 13.5px; color: var(--text-secondary); margin-bottom: 18px; line-height: 1.8; }
+  .analyst-summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 22px; }
+  @media (max-width: 760px) { .analyst-summary-grid { grid-template-columns: 1fr; } }
+  .analyst-summary-item { background: var(--page-plane); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; }
+  .analyst-summary-item .label { font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; }
+  .analyst-summary-item .value { font-size: 14.5px; font-weight: 700; }
+  .analyst-level-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 22px; }
+  .analyst-level-table th {
+    text-align: left; font-size: 12px; color: var(--text-secondary); font-weight: 600;
+    padding: 8px 10px; border-bottom: 2px solid var(--gridline);
   }
+  .analyst-level-table td { padding: 10px; border-bottom: 1px solid var(--gridline); vertical-align: top; }
+  .analyst-narrative-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 22px; }
+  @media (max-width: 760px) { .analyst-narrative-grid { grid-template-columns: 1fr; } }
+  .analyst-narrative-block .label { font-size: 13px; font-weight: 700; margin-bottom: 8px; }
+  .analyst-narrative-block .text { font-size: 13.5px; line-height: 1.8; color: var(--text-primary); white-space: pre-line; }
+  .analyst-scenario-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+  .analyst-scenario-card { border-radius: 10px; padding: 16px 18px; border: 1px solid var(--border); }
+  .analyst-scenario-card.good { background: var(--good-bg); }
+  .analyst-scenario-card.neutral { background: var(--blue-bg); }
+  .analyst-scenario-card.bad { background: var(--critical-bg); }
+  .analyst-scenario-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 6px; }
+  .analyst-scenario-head .name { font-size: 14px; font-weight: 700; }
+  .analyst-scenario-head .prob-tag {
+    font-size: 11.5px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: rgba(255,255,255,0.65);
+  }
+  .analyst-scenario-body .k { font-size: 11.5px; color: var(--text-secondary); margin-top: 8px; }
+  .analyst-scenario-body .v { font-size: 13px; line-height: 1.6; }
   .demo-banner {
     background: var(--warning-bg);
     color: #8a5a00;
@@ -204,23 +218,23 @@
         <span class="tag caution">區間操作</span>
       </div>
       <div class="meta">
-        分析週期：3-6個月｜風險偏好：穩健｜持股狀態：是｜產出時間：2026-08-12 23:47
+        分析週期：3-6個月｜風險偏好：穩健｜持股狀態：是｜產出時間：2026-08-13 07:01
       </div>
     </div>
     <div>
       <table class="infotable">
         
-        <tr><td class="k">股價日期</td><td class="v">2026-08-12</td></tr>
+        <tr><td class="k">股價日期</td><td class="v">2026-08-13</td></tr>
         
-        <tr><td class="k">融資日期</td><td class="v">2026-08-12</td></tr>
+        <tr><td class="k">融資日期</td><td class="v">2026-08-13</td></tr>
         
-        <tr><td class="k">法人日期</td><td class="v">2026-08-12</td></tr>
+        <tr><td class="k">法人日期</td><td class="v">2026-08-13</td></tr>
         
-        <tr><td class="k">籌碼分佈 CSV 日期</td><td class="v">2026-08-12</td></tr>
+        <tr><td class="k">籌碼分佈 CSV 日期</td><td class="v">2026-08-13</td></tr>
         
-        <tr><td class="k">經營績效 CSV 日期</td><td class="v">2026-08-12</td></tr>
+        <tr><td class="k">經營績效 CSV 日期</td><td class="v">2026-08-13</td></tr>
         
-        <tr><td class="k">SIGNAL_SUMMARY</td><td class="v">2026-08-12T23:47:24</td></tr>
+        <tr><td class="k">SIGNAL_SUMMARY</td><td class="v">2026-08-13T07:01:17</td></tr>
         
       </table>
     </div>
@@ -298,11 +312,11 @@
       </div>
       <div class="cost-item">
         <div class="label">現價</div>
-        <div class="value">209.00 元</div>
+        <div class="value">212.00 元</div>
       </div>
       <div class="cost-item">
         <div class="label">浮盈／浮虧</div>
-        <div class="value pos">+5.44%</div>
+        <div class="value pos">+6.95%</div>
       </div>
       <div class="cost-item">
         <div class="label">近 20 交易日買超天數</div>
@@ -316,34 +330,7 @@
   </div>
 
   <div class="card">
-    <h2>3. 未來一年價格情境估算</h2>
-    <div class="valuation-banner">⚠ 以下三個價位是量化「本益比河流圖」模型估算結果，並非分析師報告或市場共識目標價，僅供研判參考。</div>
-    
-    <div class="valuation-panel">
-      <div class="valuation-item pessimistic">
-        <div class="label">悲觀價</div>
-        <div class="price">94.2</div>
-      </div>
-      <div class="valuation-item steady">
-        <div class="label">穩健價</div>
-        <div class="price">120.6</div>
-      </div>
-      <div class="valuation-item optimistic">
-        <div class="label">樂觀價</div>
-        <div class="price">168.0</div>
-      </div>
-    </div>
-    <div class="footnote">
-      計算方式：近四季EPS合計 6.21 元，以近12個月營收年增率（16.0%，已限制在 ±30% 內避免失真）
-      估算未來一年EPS為 7.2 元；再用近 728 筆本益比歷史資料的
-      20% / 50% / 80% 分位數（13.1 / 16.7 / 23.3 倍）分別相乘，
-      得出悲觀價／穩健價／樂觀價三種情境。
-    </div>
-    
-  </div>
-
-  <div class="card">
-    <h2>4. 籌碼與技術風險燈號</h2>
+    <h2>3. 籌碼與技術風險燈號</h2>
     <div class="light-grid">
       
       <div class="light-item">
@@ -393,7 +380,7 @@
   </div>
 
   <div class="card">
-    <h2>5. 買賣訊號</h2>
+    <h2>4. 買賣訊號</h2>
     <div class="signal-grid">
       
       <div class="signal-card  neutral">
@@ -446,25 +433,25 @@
           <span class="kind-tag">狀態型</span>
         </div>
         <div class="signal-text neutral">
-          <span class="signal-dot neutral"></span>尚未觸發短線進場訊號：現價209.00元未貼近近10個交易日低點154.00元（需落在163.24元以下）；近5個交易日低檔區無看漲反轉K線型態；今日價量關係為「價跌量縮」（量能為均量38%），未達價漲量增且量能≥均量130%的確認門檻
+          <span class="signal-dot neutral"></span>尚未觸發短線進場訊號：現價212.00元未貼近近10個交易日低點166.50元（需落在176.49元以下）；近5個交易日低檔區無看漲反轉K線型態；今日價量關係為「價漲量縮」（量能為均量73%），未達價漲量增且量能≥均量130%的確認門檻
         </div>
         
       </div>
       
-      <div class="signal-card  green">
+      <div class="signal-card active red">
         <div class="signal-card-head">
           <span class="name">短線出場提醒（1-2週）</span>
           <span class="kind-tag">狀態型</span>
         </div>
-        <div class="signal-text neutral">
-          <span class="signal-dot green"></span>停損參考價 192.02 元（現價-1.2倍ATR）、停利參考價 237.30 元（現價+2.0倍ATR）；目前無技術反轉警訊
+        <div class="signal-text ">
+          <span class="signal-dot red"></span>停損參考價 195.14 元（現價-1.2倍ATR）、停利參考價 240.10 元（現價+2.0倍ATR）；技術反轉警訊：2026-08-13 於近高點出現流星線（長上影線），建議留意獲利了結或執行停損
         </div>
         
         <div class="signal-price-levels">
           
-          <div class="signal-price-item"><span class="k">停損參考價</span><span class="v">192.02 元</span></div>
+          <div class="signal-price-item"><span class="k">停損參考價</span><span class="v">195.14 元</span></div>
           
-          <div class="signal-price-item"><span class="k">停利參考價</span><span class="v">237.30 元</span></div>
+          <div class="signal-price-item"><span class="k">停利參考價</span><span class="v">240.10 元</span></div>
           
         </div>
         
@@ -476,25 +463,25 @@
           <span class="kind-tag">狀態型</span>
         </div>
         <div class="signal-text neutral">
-          <span class="signal-dot neutral"></span>尚未觸發波段進場訊號：中期均線未呈多頭排列（20日均線201.10元 <= 60日均線235.23元），波段格局尚未轉多；現價209.00元未拉回至近20個交易日低點154.00元附近（需落在166.32元以下）；近10個交易日拉回區間無看漲反轉K線型態；今日價量關係為「價跌量縮」（量能為均量38%），未達價漲量增且量能≥均量130%的確認門檻
+          <span class="signal-dot neutral"></span>尚未觸發波段進場訊號：中期均線未呈多頭排列（20日均線199.93元 <= 60日均線234.50元），波段格局尚未轉多；現價212.00元未拉回至近20個交易日低點154.00元附近（需落在166.32元以下）；近10個交易日拉回區間無看漲反轉K線型態；今日價量關係為「價漲量縮」（量能為均量73%），未達價漲量增且量能≥均量130%的確認門檻
         </div>
         
       </div>
       
-      <div class="signal-card  green">
+      <div class="signal-card active red">
         <div class="signal-card-head">
           <span class="name">波段出場提醒（1-2個月）</span>
           <span class="kind-tag">狀態型</span>
         </div>
-        <div class="signal-text neutral">
-          <span class="signal-dot green"></span>停損參考價 179.55 元（現價-2.0倍ATR）、停利參考價 260.54 元（現價+3.5倍ATR）；目前無技術反轉警訊
+        <div class="signal-text ">
+          <span class="signal-dot red"></span>停損參考價 182.25 元（現價-2.0倍ATR）、停利參考價 264.06 元（現價+3.5倍ATR）；技術反轉警訊：2026-08-13 於近高點出現流星線（長上影線），建議留意獲利了結或執行停損
         </div>
         
         <div class="signal-price-levels">
           
-          <div class="signal-price-item"><span class="k">停損參考價</span><span class="v">179.55 元</span></div>
+          <div class="signal-price-item"><span class="k">停損參考價</span><span class="v">182.25 元</span></div>
           
-          <div class="signal-price-item"><span class="k">停利參考價</span><span class="v">260.54 元</span></div>
+          <div class="signal-price-item"><span class="k">停利參考價</span><span class="v">264.06 元</span></div>
           
         </div>
         
@@ -511,6 +498,8 @@
       不構成投資建議，實際進出場請自行評估風險與部位大小，停利停損參考價位也不是保證能成交的價格。
     </div>
   </div>
+
+  
 
 </div>
 </body>

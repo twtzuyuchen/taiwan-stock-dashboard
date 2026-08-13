@@ -172,16 +172,11 @@
   .analyst-summary-item { background: var(--page-plane); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; }
   .analyst-summary-item .label { font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; }
   .analyst-summary-item .value { font-size: 14.5px; font-weight: 700; }
-  .analyst-level-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 22px; }
-  .analyst-level-table th {
-    text-align: left; font-size: 12px; color: var(--text-secondary); font-weight: 600;
-    padding: 8px 10px; border-bottom: 2px solid var(--gridline);
-  }
-  .analyst-level-table td { padding: 10px; border-bottom: 1px solid var(--gridline); vertical-align: top; }
   .analyst-narrative-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 22px; }
   @media (max-width: 760px) { .analyst-narrative-grid { grid-template-columns: 1fr; } }
   .analyst-narrative-block .label { font-size: 13px; font-weight: 700; margin-bottom: 8px; }
   .analyst-narrative-block .text { font-size: 13.5px; line-height: 1.8; color: var(--text-primary); white-space: pre-line; }
+  .analyst-narrative-block .text.neutral { color: var(--text-secondary); }
   .analyst-scenario-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
   .analyst-scenario-card { border-radius: 10px; padding: 16px 18px; border: 1px solid var(--border); }
   .analyst-scenario-card.good { background: var(--good-bg); }
@@ -189,11 +184,16 @@
   .analyst-scenario-card.bad { background: var(--critical-bg); }
   .analyst-scenario-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 6px; }
   .analyst-scenario-head .name { font-size: 14px; font-weight: 700; }
-  .analyst-scenario-head .prob-tag {
-    font-size: 11.5px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: rgba(255,255,255,0.65);
-  }
   .analyst-scenario-body .k { font-size: 11.5px; color: var(--text-secondary); margin-top: 8px; }
   .analyst-scenario-body .v { font-size: 13px; line-height: 1.6; }
+  .analyst-unavailable {
+    padding: 16px 18px; border-radius: 10px; background: var(--warning-bg); color: #8a5a00; font-size: 13.5px;
+  }
+  .holding-cost-input {
+    width: 100%; font-size: 15px; font-weight: 700; padding: 6px 8px; border-radius: 6px;
+    border: 1px solid var(--border); background: var(--surface-1); color: var(--text-primary); box-sizing: border-box;
+  }
+  .holding-cost-pl { font-size: 12.5px; margin-top: 6px; font-weight: 600; min-height: 16px; }
   .demo-banner {
     background: var(--warning-bg);
     color: #8a5a00;
@@ -218,7 +218,7 @@
         <span class="tag caution">區間操作</span>
       </div>
       <div class="meta">
-        分析週期：3-6個月｜風險偏好：穩健｜持股狀態：是｜產出時間：2026-08-13 07:43
+        分析週期：3-6個月｜風險偏好：穩健｜持股狀態：是｜產出時間：2026-08-13 08:15
       </div>
     </div>
     <div>
@@ -234,7 +234,7 @@
         
         <tr><td class="k">經營績效 CSV 日期</td><td class="v">2026-08-13</td></tr>
         
-        <tr><td class="k">SIGNAL_SUMMARY</td><td class="v">2026-08-13T07:43:30</td></tr>
+        <tr><td class="k">SIGNAL_SUMMARY</td><td class="v">2026-08-13T08:15:22</td></tr>
         
       </table>
     </div>
@@ -499,8 +499,116 @@
     </div>
   </div>
 
-  
+  <div class="card">
+    <h2>5. 分析師關鍵價位與情境策略</h2>
+    <div class="analyst-banner">⚠ 除了「您的持有成本」是您自行輸入（只存在您的瀏覽器，不會回傳伺服器），其餘內容皆為規則式自動計算（近期支撐/壓力、ATR波動區間、歷史事件統計），非分析師主觀報告，僅供研判參考，不構成投資建議。</div>
+
+    
+    <div class="analyst-meta">
+      參考現價：30.55（-1.13%）
+    </div>
+
+    <div class="analyst-summary-grid">
+      <div class="analyst-summary-item">
+        <div class="label">您的持有成本（自行輸入，僅存於您的瀏覽器）</div>
+        <input type="number" step="0.01" min="0" class="holding-cost-input" id="holdingCostInput-1307" placeholder="輸入您的持有成本">
+        <div class="holding-cost-pl" id="holdingCostPL-1307"></div>
+      </div>
+      <div class="analyst-summary-item"><div class="label">近20日下檔支撐</div><div class="value">30.0</div></div>
+      <div class="analyst-summary-item"><div class="label">近20日上檔壓力</div><div class="value">33.0</div></div>
+    </div>
+
+    <div class="analyst-narrative-grid">
+      <div class="analyst-narrative-block">
+        <div class="label">技術面解析（自動計算）</div>
+        <div class="text ">技術趨勢判定為「偏空」，距60日均線乖離-7.6%（屬安全範圍）。近20個交易日高低點區間為 30.0 - 33.0 元，5日均線31.17元、20日均線31.59元，60日均線33.06元。近5日均量為前20日均量的143%，量能明顯放大。</div>
+      </div>
+      <div class="analyst-narrative-block">
+        <div class="label">籌碼面解析（自動計算）</div>
+        <div class="text ">近20個交易日三大法人買超天數11天；估算主力成本約31.99元；融資餘額近期增加4.8%；融資使用率1.4%。</div>
+      </div>
+    </div>
+
+    
+    <div class="analyst-scenario-grid">
+      
+      <div class="analyst-scenario-card neutral">
+        <div class="analyst-scenario-head">
+          <span class="name">情境A：區間整理</span>
+        </div>
+        <div class="analyst-scenario-body">
+          <div class="k">盤勢特徵</div><div class="v">現價 30.55 元，介於近20日支撐 30.0 元與壓力 33.0 元之間</div>
+          <div class="k">歷史事件統計</div><div class="v">ATR（近14日真實波動幅度均值）估算今日可能波動區間為 29.71 - 31.39 元（此為區間整理假設下的參考範圍，非歷史事件統計）</div>
+        </div>
+      </div>
+      
+      <div class="analyst-scenario-card good">
+        <div class="analyst-scenario-head">
+          <span class="name">情境B：站穩突破壓力</span>
+        </div>
+        <div class="analyst-scenario-body">
+          <div class="k">盤勢特徵</div><div class="v">收盤價站穩突破 33.16 元（近20日壓力 × 0.5% 緩衝）</div>
+          <div class="k">統計說明</div><div class="v">歷史上符合條件的站穩突破事件只有 3 次，少於門檻 8 次，樣本太少不具參考意義（次一關鍵壓力位約 38.3 元，近60日高點）</div>
+        </div>
+      </div>
+      
+      <div class="analyst-scenario-card bad">
+        <div class="analyst-scenario-head">
+          <span class="name">情境C：站穩跌破支撐</span>
+        </div>
+        <div class="analyst-scenario-body">
+          <div class="k">盤勢特徵</div><div class="v">收盤價站穩跌破 29.85 元（近20日支撐 × 0.5% 緩衝）</div>
+          <div class="k">統計說明</div><div class="v">歷史上符合條件的站穩突破事件只有 2 次，少於門檻 8 次，樣本太少不具參考意義（近期低點已是近期區間內相對低點，需留意創新低後的價格發現階段（缺乏歷史低點參考））</div>
+        </div>
+      </div>
+      
+    </div>
+    
+
+    <div class="footnote">
+      關鍵支撐/壓力與ATR波動區間：近20個交易日高低點與真實波動幅度均值計算，跟「今日大盤/期貨情境」頁面加權指數關鍵點位方法相同。
+      情境B/C的歷史事件統計：純粹的歷史事件統計（event study），衡量過去每次「收盤價站穩突破/跌破近期高低點」後接下來幾個交易日的報酬分佈；
+      事件之間可能重疊、樣本並非完全獨立，只能當作方向性的歷史頻率參考，不是嚴謹的統計推論，也不是對未來的預測或保證。
+      技術面/籌碼面解析：由左側「總控儀表板」「主力持倉成本分析」「籌碼與技術風險燈號」已經算好的數字組成敘述文字，非新的計算邏輯。
+      全部皆為規則式計算，僅供研判參考，不構成投資建議，實際進出場請自行評估風險並考量部位大小。
+    </div>
+    
+  </div>
 
 </div>
+<script>
+(function () {
+  var stockId = "1307";
+  var currentPrice = 30.55;
+  var input = document.getElementById("holdingCostInput-" + stockId);
+  var plDiv = document.getElementById("holdingCostPL-" + stockId);
+  if (!input || !plDiv) { return; }
+  var storageKey = "taiwan_stock_dashboard_holding_cost_" + stockId;
+
+  function render() {
+    var v = parseFloat(input.value);
+    if (!isNaN(v) && v > 0 && currentPrice !== null) {
+      var pct = (currentPrice - v) / v * 100;
+      var sign = pct >= 0 ? "+" : "";
+      plDiv.textContent = "浮盈虧 " + sign + pct.toFixed(2) + "%（現價 " + currentPrice.toFixed(2) + " 元）";
+      plDiv.style.color = pct >= 0 ? "#0ca30c" : "#d03b3b";
+    } else {
+      plDiv.textContent = "";
+    }
+  }
+
+  try {
+    var saved = window.localStorage.getItem(storageKey);
+    if (saved) { input.value = saved; }
+  } catch (e) { /* 瀏覽器封鎖 localStorage 時（例如無痕模式部分情況）安靜略過，不影響其他功能 */ }
+
+  render();
+
+  input.addEventListener("input", function () {
+    try { window.localStorage.setItem(storageKey, input.value); } catch (e) {}
+    render();
+  });
+})();
+</script>
 </body>
 </html>

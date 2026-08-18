@@ -134,7 +134,7 @@
       <h1>今日大盤／期貨情境</h1>
     </div>
     <div class="meta">
-      產出時間：2026-08-18 11:29｜<a class="back-link" href="index.html">← 回總覽頁</a>
+      產出時間：2026-08-18 14:16｜<a class="back-link" href="index.html">← 回總覽頁</a>
     </div>
   </div>
 
@@ -153,9 +153,9 @@
       <div class="us-item">
         <div class="label">納斯達克綜合指數</div>
         
-        <div class="close">nan</div>
-        <div class="change neg">+nan%</div>
-        <div class="date">收盤日期：2026-08-17</div>
+        <div class="close">26306.50</div>
+        <div class="change neg">-1.58%</div>
+        <div class="date">收盤日期：2026-08-18</div>
         
       </div>
       
@@ -163,9 +163,9 @@
       <div class="us-item">
         <div class="label">費城半導體指數</div>
         
-        <div class="close">nan</div>
-        <div class="change neg">+nan%</div>
-        <div class="date">收盤日期：2026-08-17</div>
+        <div class="close">11974.06</div>
+        <div class="change neg">-3.57%</div>
+        <div class="date">收盤日期：2026-08-18</div>
         
       </div>
       
@@ -173,9 +173,9 @@
       <div class="us-item">
         <div class="label">道瓊工業指數</div>
         
-        <div class="close">nan</div>
-        <div class="change neg">+nan%</div>
-        <div class="date">收盤日期：2026-08-17</div>
+        <div class="close">53427.20</div>
+        <div class="change neg">-0.57%</div>
+        <div class="date">收盤日期：2026-08-18</div>
         
       </div>
       
@@ -187,10 +187,10 @@
     <h2>2. 方法 A：規則式綜合評分</h2>
     
     <div class="bias-banner">
-      <span class="num">+nan%</span>
-      <span class="pill neutral">中性</span>
+      <span class="num">-2.37%</span>
+      <span class="pill bearish">偏空</span>
     </div>
-    <div class="footnote">綜合加權漲跌幅 +nan%（費城半導體指數+nan%、納斯達克綜合指數+nan%、道瓊工業指數+nan%），規則式判斷台股開盤情境「中性」</div>
+    <div class="footnote">綜合加權漲跌幅 -2.37%（費城半導體指數-3.57%、納斯達克綜合指數-1.58%、道瓊工業指數-0.57%），規則式判斷台股開盤情境「偏空」</div>
     
     <div class="footnote">計算方式：三大美股指數前一交易日漲跌幅依權重加總（預設費城半導體指數權重最高，因台股半導體權值比重高），對照門檻判斷「偏多／中性／偏空」；任一指數缺資料會自動排除並重新分配權重。</div>
   </div>
@@ -199,10 +199,10 @@
     <h2>3. 方法 B：歷史迴歸模型預測</h2>
     
     <div class="bias-banner">
-      <span class="num">+nan%</span>
-      <span class="pill neutral">R² = 0.33</span>
+      <span class="num">-1.15%</span>
+      <span class="pill neutral">R² = 0.326</span>
     </div>
-    <div class="footnote">以近 724 個可比對交易日樣本訓練的迴歸模型（R²=0.33），預測今日台股加權指數報酬約 +nan%（±1個標準差區間 +nan% ～ +nan%）</div>
+    <div class="footnote">以近 721 個可比對交易日樣本訓練的迴歸模型（R²=0.326），預測今日台股加權指數報酬約 -1.15%（±1個標準差區間 -2.40% ～ +0.10%）</div>
     
     <div class="footnote">計算方式：用過去數年「美股前一交易日報酬 → 台股加權指數當日報酬」的歷史資料做複迴歸，估算今日預測報酬與 ±1 個標準差區間；R² 代表模型解釋力（0~1，越高代表美股對台股當日報酬的解釋力越強，但台股當日報酬仍受台股自身籌碼、消息面影響，R² 不會也不應該接近 1）；樣本數不足時會直接標示「資料不足」，不會硬湊出一個數字。</div>
   </div>
@@ -210,7 +210,7 @@
   <div class="card">
     <h2>4. 兩種方法對照</h2>
     
-    <div class="compare-box agree">規則式評分判斷「中性」，迴歸模型預測報酬 +nan%（對應方向「中性」）——兩種方法方向一致，可信度相對較高</div>
+    <div class="compare-box agree">規則式評分判斷「偏空」，迴歸模型預測報酬 -1.15%（對應方向「偏空」）——兩種方法方向一致，可信度相對較高</div>
     
     <div class="footnote">兩種方法各自獨立計算，這裡只是並列對照，不會取平均硬湊出單一答案；方向一致時可信度相對較高，方向不一致時建議降低對今日方向判斷的信心，改以下方關鍵點位的實際表態為準。</div>
   </div>
@@ -233,13 +233,13 @@
       </div>
       <div class="level-item range">
         <div class="label">ATR(14日)估算今日波動區間</div>
-        <div class="value">44126.9 ～ 46490.5</div>
+        <div class="value">44010.1 ～ 46607.3</div>
       </div>
     </div>
     <div class="ma-row">
       均線參考：MA5 <b>45556.0</b>
-      MA20 <b>43929.2</b>
-      MA60 <b>44734.2</b>
+      MA20 <b>43857.6</b>
+      MA60 <b>44557.3</b>
     </div>
     
     <div class="footnote">計算方式：支撐／壓力取近 N 個交易日加權指數的最低／最高價；ATR（真實波動幅度）取近期每日「真實波動幅度」的平均值，用「前一交易日收盤 ± ATR」估算今日可能的合理波動區間，是統計上的粗略估計，不是精確預測；這一整張卡片完全獨立於美股連動判斷之外，純粹是加權指數自身的價格行為分析。</div>
@@ -273,9 +273,9 @@
         
         <div class="scenario-stats">
           歷史統計（近5個交易日後）：22 次類似事件，
-          平均報酬 <b class="neg">+2.08%</b>，
-          中位數 +2.91%，
-          18.2% 的情況延續下跌
+          平均報酬 <b class="neg">+1.59%</b>，
+          中位數 +2.52%，
+          27.3% 的情況延續下跌
         </div>
         
       </div>

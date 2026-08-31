@@ -194,6 +194,13 @@
     border: 1px solid var(--border); background: var(--surface-1); color: var(--text-primary); box-sizing: border-box;
   }
   .holding-cost-pl { font-size: 12.5px; margin-top: 6px; font-weight: 600; min-height: 16px; }
+
+  .roce-table { width: 100%; border-collapse: collapse; font-size: 13.5px; margin: 4px 0 18px; }
+  .roce-table th, .roce-table td { padding: 8px 10px; border-bottom: 1px solid var(--gridline); text-align: right; }
+  .roce-table th:first-child, .roce-table td:first-child { text-align: left; }
+  .roce-table th { color: var(--text-secondary); font-weight: 600; font-size: 12.5px; }
+  .roce-table td.pos { color: var(--good); font-weight: 700; }
+  .roce-table td.neg { color: var(--critical); font-weight: 700; }
   .demo-banner {
     background: var(--warning-bg);
     color: #8a5a00;
@@ -218,23 +225,23 @@
         <span class="tag caution">區間操作</span>
       </div>
       <div class="meta">
-        分析週期：1-3個月｜風險偏好：積極｜持股狀態：是｜產出時間：2026-08-28 21:20
+        分析週期：1-3個月｜風險偏好：積極｜持股狀態：是｜產出時間：2026-08-31 09:23
       </div>
     </div>
     <div>
       <table class="infotable">
         
-        <tr><td class="k">股價日期</td><td class="v">2026-08-28</td></tr>
+        <tr><td class="k">股價日期</td><td class="v">2026-08-31</td></tr>
         
-        <tr><td class="k">融資日期</td><td class="v">2026-08-28</td></tr>
+        <tr><td class="k">融資日期</td><td class="v">2026-08-31</td></tr>
         
-        <tr><td class="k">法人日期</td><td class="v">2026-08-28</td></tr>
+        <tr><td class="k">法人日期</td><td class="v">2026-08-31</td></tr>
         
-        <tr><td class="k">籌碼分佈 CSV 日期</td><td class="v">2026-08-28</td></tr>
+        <tr><td class="k">籌碼分佈 CSV 日期</td><td class="v">2026-08-31</td></tr>
         
-        <tr><td class="k">經營績效 CSV 日期</td><td class="v">2026-08-28</td></tr>
+        <tr><td class="k">經營績效 CSV 日期</td><td class="v">2026-08-31</td></tr>
         
-        <tr><td class="k">SIGNAL_SUMMARY</td><td class="v">2026-08-28T21:20:05</td></tr>
+        <tr><td class="k">SIGNAL_SUMMARY</td><td class="v">2026-08-31T09:23:01</td></tr>
         
       </table>
     </div>
@@ -277,7 +284,7 @@
       </div>
       <div class="score-item">
         <div class="label">主力布局分數</div>
-        <div class="score-value"><span class="num">56/100</span><span class="dot yellow"></span></div>
+        <div class="score-value"><span class="num">55/100</span><span class="dot yellow"></span></div>
       </div>
       <div class="score-item">
         <div class="label">技術趨勢</div>
@@ -312,11 +319,11 @@
       </div>
       <div class="cost-item">
         <div class="label">現價</div>
-        <div class="value">130.00 元</div>
+        <div class="value">129.00 元</div>
       </div>
       <div class="cost-item">
         <div class="label">浮盈／浮虧</div>
-        <div class="value pos">+2.77%</div>
+        <div class="value pos">+1.98%</div>
       </div>
       <div class="cost-item">
         <div class="label">近 20 交易日買超天數</div>
@@ -433,25 +440,25 @@
           <span class="kind-tag">狀態型</span>
         </div>
         <div class="signal-text neutral">
-          <span class="signal-dot neutral"></span>尚未觸發短線進場訊號：現價130.00元未貼近近10個交易日低點112.00元（需落在118.72元以下）；近5個交易日低檔區無看漲反轉K線型態
+          <span class="signal-dot neutral"></span>尚未觸發短線進場訊號：現價129.00元未貼近近10個交易日低點112.00元（需落在118.72元以下）；近5個交易日低檔區無看漲反轉K線型態；今日價量關係為「價跌量增」（量能為均量138%），未達價漲量增且量能≥均量130%的確認門檻
         </div>
         
       </div>
       
-      <div class="signal-card  green">
+      <div class="signal-card active red">
         <div class="signal-card-head">
           <span class="name">短線出場提醒（1-2週）</span>
           <span class="kind-tag">狀態型</span>
         </div>
-        <div class="signal-text neutral">
-          <span class="signal-dot green"></span>停損參考價 122.44 元（現價-1.2倍ATR）、停利參考價 142.60 元（現價+2.0倍ATR）；目前無技術反轉警訊
+        <div class="signal-text ">
+          <span class="signal-dot red"></span>停損參考價 121.08 元（現價-1.2倍ATR）、停利參考價 142.20 元（現價+2.0倍ATR）；技術反轉警訊：今日價跌量增（量能達均量138%），賣壓浮現，建議留意獲利了結或執行停損
         </div>
         
         <div class="signal-price-levels">
           
-          <div class="signal-price-item"><span class="k">停損參考價</span><span class="v">122.44 元</span></div>
+          <div class="signal-price-item"><span class="k">停損參考價</span><span class="v">121.08 元</span></div>
           
-          <div class="signal-price-item"><span class="k">停利參考價</span><span class="v">142.60 元</span></div>
+          <div class="signal-price-item"><span class="k">停利參考價</span><span class="v">142.20 元</span></div>
           
         </div>
         
@@ -463,25 +470,25 @@
           <span class="kind-tag">狀態型</span>
         </div>
         <div class="signal-text neutral">
-          <span class="signal-dot neutral"></span>尚未觸發波段進場訊號：中期均線未呈多頭排列（20日均線120.95元 <= 60日均線136.84元），波段格局尚未轉多；現價130.00元未拉回至近20個交易日低點112.00元附近（需落在120.96元以下）；近10個交易日拉回區間無看漲反轉K線型態
+          <span class="signal-dot neutral"></span>尚未觸發波段進場訊號：中期均線未呈多頭排列（20日均線121.50元 <= 60日均線136.91元），波段格局尚未轉多；現價129.00元未拉回至近20個交易日低點112.00元附近（需落在120.96元以下）；近10個交易日拉回區間無看漲反轉K線型態；今日價量關係為「價跌量增」（量能為均量138%），未達價漲量增且量能≥均量130%的確認門檻
         </div>
         
       </div>
       
-      <div class="signal-card  green">
+      <div class="signal-card active red">
         <div class="signal-card-head">
           <span class="name">波段出場提醒（1-2個月）</span>
           <span class="kind-tag">狀態型</span>
         </div>
-        <div class="signal-text neutral">
-          <span class="signal-dot green"></span>停損參考價 116.95 元（現價-2.0倍ATR）、停利參考價 152.84 元（現價+3.5倍ATR）；目前無技術反轉警訊
+        <div class="signal-text ">
+          <span class="signal-dot red"></span>停損參考價 116.35 元（現價-2.0倍ATR）、停利參考價 151.14 元（現價+3.5倍ATR）；技術反轉警訊：今日價跌量增（量能達均量138%），賣壓浮現，建議留意獲利了結或執行停損
         </div>
         
         <div class="signal-price-levels">
           
-          <div class="signal-price-item"><span class="k">停損參考價</span><span class="v">116.95 元</span></div>
+          <div class="signal-price-item"><span class="k">停損參考價</span><span class="v">116.35 元</span></div>
           
-          <div class="signal-price-item"><span class="k">停利參考價</span><span class="v">152.84 元</span></div>
+          <div class="signal-price-item"><span class="k">停利參考價</span><span class="v">151.14 元</span></div>
           
         </div>
         
@@ -505,7 +512,7 @@
 
     
     <div class="analyst-meta">
-      參考現價：130.0（+9.70%）
+      參考現價：129.0（-0.77%）
     </div>
 
     <div class="analyst-summary-grid">
@@ -521,7 +528,7 @@
     <div class="analyst-narrative-grid">
       <div class="analyst-narrative-block">
         <div class="label">技術面解析（自動計算）</div>
-        <div class="text ">技術趨勢判定為「盤整」，距60日均線乖離-5.0%（屬安全範圍）。近20個交易日高低點區間為 112.0 - 130.5 元，5日均線124.1元、20日均線120.95元，60日均線136.84元。近5日均量為前20日均量的111%，量能持平。</div>
+        <div class="text ">技術趨勢判定為「盤整」，距60日均線乖離-5.8%（屬安全範圍）。近20個交易日高低點區間為 112.0 - 130.5 元，5日均線125.2元、20日均線121.5元，60日均線136.91元。近5日均量為前20日均量的114%，量能持平。</div>
       </div>
       <div class="analyst-narrative-block">
         <div class="label">籌碼面解析（自動計算）</div>
@@ -537,8 +544,8 @@
           <span class="name">情境A：區間整理</span>
         </div>
         <div class="analyst-scenario-body">
-          <div class="k">盤勢特徵</div><div class="v">現價 130.0 元，介於近20日支撐 112.0 元與壓力 130.5 元之間</div>
-          <div class="k">歷史事件統計</div><div class="v">ATR（近14日真實波動幅度均值）估算今日可能波動區間為 123.93 - 136.07 元（此為區間整理假設下的參考範圍，非歷史事件統計）</div>
+          <div class="k">盤勢特徵</div><div class="v">現價 129.0 元，介於近20日支撐 112.0 元與壓力 130.5 元之間</div>
+          <div class="k">歷史事件統計</div><div class="v">ATR（近14日真實波動幅度均值）估算今日可能波動區間為 122.82 - 135.18 元（此為區間整理假設下的參考範圍，非歷史事件統計）</div>
         </div>
       </div>
       
@@ -548,7 +555,7 @@
         </div>
         <div class="analyst-scenario-body">
           <div class="k">盤勢特徵</div><div class="v">收盤價站穩突破 131.15 元（近20日壓力 × 0.5% 緩衝）</div>
-          <div class="k">統計說明</div><div class="v">歷史上符合條件的站穩突破事件只有 3 次，少於門檻 8 次，樣本太少不具參考意義（次一關鍵壓力位約 185.5 元，近60日高點）</div>
+          <div class="k">統計說明</div><div class="v">歷史上符合條件的站穩突破事件只有 2 次，少於門檻 8 次，樣本太少不具參考意義（次一關鍵壓力位約 185.5 元，近60日高點）</div>
         </div>
       </div>
       
@@ -575,11 +582,87 @@
     
   </div>
 
+  <div class="card">
+    <h2>6. 資本回報與獲利品質（ROCE 近5年趨勢）</h2>
+    <div class="analyst-banner">⚠ 已動用資本回報率（ROCE）＝ 年度營業利益（作為稅前息前利益 EBIT 的代理，未扣除業外損益）÷ 年底已動用資本（總資產－流動負債）。以「完整會計年度」為單位規則式計算，反映公司運用資本創造獲利的效率；本卡片僅呈現歷史數字，非對未來的預測，也不構成投資建議。</div>
+
+    
+    
+
+    <div class="analyst-summary-grid">
+      <div class="analyst-summary-item">
+        <div class="label">最新完整年度 ROCE（2025）</div>
+        <div class="value">8.94%</div>
+      </div>
+      <div class="analyst-summary-item">
+        <div class="label">近5年平均 ROCE</div>
+        <div class="value">14.18%</div>
+      </div>
+      <div class="analyst-summary-item">
+        <div class="label">資料年度範圍</div>
+        <div class="value">2021 － 2025</div>
+      </div>
+    </div>
+
+    <table class="roce-table">
+      <thead>
+        <tr><th>年度</th><th>營業利益（EBIT代理）</th><th>年底已動用資本</th><th>ROCE</th></tr>
+      </thead>
+      <tbody>
+        
+        <tr>
+          <td>2021</td>
+          <td>51,686,286,000</td>
+          <td>358,973,042,000</td>
+          <td class="pos">14.40%</td>
+        </tr>
+        
+        <tr>
+          <td>2022</td>
+          <td>104,292,225,000</td>
+          <td>424,486,927,000</td>
+          <td class="pos">24.57%</td>
+        </tr>
+        
+        <tr>
+          <td>2023</td>
+          <td>57,890,661,000</td>
+          <td>460,172,194,000</td>
+          <td class="pos">12.58%</td>
+        </tr>
+        
+        <tr>
+          <td>2024</td>
+          <td>51,612,570,000</td>
+          <td>494,940,488,000</td>
+          <td class="pos">10.43%</td>
+        </tr>
+        
+        <tr>
+          <td>2025</td>
+          <td>43,948,688,000</td>
+          <td>491,397,872,000</td>
+          <td class="pos">8.94%</td>
+        </tr>
+        
+      </tbody>
+    </table>
+
+    <div class="footnote">
+      資料來源：FinMind TaiwanStockFinancialStatements（損益表，逐季 OperatingIncome 加總為年度EBIT代理，需湊滿4季才算完整會計年度）
+      與 TaiwanStockBalanceSheet（資產負債表，取每年底/Q4快照的總資產與流動負債）。表格中營業利益／已動用資本的金額單位
+      以 FinMind 原始回傳的數字為準（台股財報慣例上多數項目以千元為單位申報），未另外換算，如覺得數字量級不合理，
+      請對照該公司官方財報確認實際單位。已動用資本＝總資產－流動負債，是常見的簡化版 ROCE 算法，未扣除商譽等無形資產調整；
+      跨產業比較時建議搭配產業特性判讀（例如資本密集產業與輕資產產業的合理 ROCE 區間本來就不同）。純歷史數字，非對未來的預測或投資建議。
+    </div>
+    
+  </div>
+
 </div>
 <script>
 (function () {
   var stockId = "2303";
-  var currentPrice = 130.0;
+  var currentPrice = 129.0;
   var input = document.getElementById("holdingCostInput-" + stockId);
   var plDiv = document.getElementById("holdingCostPL-" + stockId);
   if (!input || !plDiv) { return; }

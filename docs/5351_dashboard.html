@@ -194,6 +194,13 @@
     border: 1px solid var(--border); background: var(--surface-1); color: var(--text-primary); box-sizing: border-box;
   }
   .holding-cost-pl { font-size: 12.5px; margin-top: 6px; font-weight: 600; min-height: 16px; }
+
+  .roce-table { width: 100%; border-collapse: collapse; font-size: 13.5px; margin: 4px 0 18px; }
+  .roce-table th, .roce-table td { padding: 8px 10px; border-bottom: 1px solid var(--gridline); text-align: right; }
+  .roce-table th:first-child, .roce-table td:first-child { text-align: left; }
+  .roce-table th { color: var(--text-secondary); font-weight: 600; font-size: 12.5px; }
+  .roce-table td.pos { color: var(--good); font-weight: 700; }
+  .roce-table td.neg { color: var(--critical); font-weight: 700; }
   .demo-banner {
     background: var(--warning-bg);
     color: #8a5a00;
@@ -215,26 +222,26 @@
       <div class="eyebrow">台股波段 AI Agent HTML 圖像化報告</div>
       <div class="title-row">
         <h1>5351 鈺創</h1>
-        <span class="tag ">建議布局</span>
+        <span class="tag caution">區間操作</span>
       </div>
       <div class="meta">
-        分析週期：3-6個月｜風險偏好：穩健｜持股狀態：是｜產出時間：2026-08-28 21:21
+        分析週期：3-6個月｜風險偏好：穩健｜持股狀態：是｜產出時間：2026-08-31 09:24
       </div>
     </div>
     <div>
       <table class="infotable">
         
-        <tr><td class="k">股價日期</td><td class="v">2026-08-28</td></tr>
+        <tr><td class="k">股價日期</td><td class="v">2026-08-31</td></tr>
         
-        <tr><td class="k">融資日期</td><td class="v">2026-08-28</td></tr>
+        <tr><td class="k">融資日期</td><td class="v">2026-08-31</td></tr>
         
-        <tr><td class="k">法人日期</td><td class="v">2026-08-28</td></tr>
+        <tr><td class="k">法人日期</td><td class="v">2026-08-31</td></tr>
         
-        <tr><td class="k">籌碼分佈 CSV 日期</td><td class="v">2026-08-28</td></tr>
+        <tr><td class="k">籌碼分佈 CSV 日期</td><td class="v">2026-08-31</td></tr>
         
-        <tr><td class="k">經營績效 CSV 日期</td><td class="v">2026-08-28</td></tr>
+        <tr><td class="k">經營績效 CSV 日期</td><td class="v">2026-08-31</td></tr>
         
-        <tr><td class="k">SIGNAL_SUMMARY</td><td class="v">2026-08-28T21:21:13</td></tr>
+        <tr><td class="k">SIGNAL_SUMMARY</td><td class="v">2026-08-31T09:24:24</td></tr>
         
       </table>
     </div>
@@ -264,11 +271,11 @@
     <div class="score-grid">
       <div class="score-item">
         <div class="label">綜合評分</div>
-        <div class="score-value"><span class="num">72/100</span><span class="dot green"></span></div>
+        <div class="score-value"><span class="num">65/100</span><span class="dot yellow"></span></div>
       </div>
       <div class="score-item">
         <div class="label">風險等級</div>
-        <div class="score-value"><span class="pill green">低</span></div>
+        <div class="score-value"><span class="pill yellow">中</span></div>
       </div>
       <div class="score-item" title="融資動能 100／融資使用率 100／大戶集中度 —（資料不足的子項已自動略過並重新分配權重）">
         <div class="label">籌碼乾淨度</div>
@@ -277,19 +284,19 @@
       </div>
       <div class="score-item">
         <div class="label">主力布局分數</div>
-        <div class="score-value"><span class="num">36/100</span><span class="dot red"></span></div>
+        <div class="score-value"><span class="num">32/100</span><span class="dot red"></span></div>
       </div>
       <div class="score-item">
         <div class="label">技術趨勢</div>
-        <div class="score-value"><span class="pill green">偏多</span></div>
+        <div class="score-value"><span class="pill yellow">盤整</span></div>
       </div>
       <div class="score-item">
         <div class="label">技術線型</div>
-        <div class="score-value"><span class="pill green">良好</span></div>
+        <div class="score-value"><span class="pill yellow">普通</span></div>
       </div>
       <div class="score-item">
         <div class="label">長期均線乖離</div>
-        <div class="score-value"><span class="pill green">安全</span></div>
+        <div class="score-value"><span class="pill red">偏離過大</span></div>
       </div>
       <div class="score-item">
         <div class="label">基本面催化</div>
@@ -308,19 +315,19 @@
     <div class="cost-panel">
       <div class="cost-item">
         <div class="label">估算主力成本</div>
-        <div class="value">106.27 元</div>
+        <div class="value">106.99 元</div>
       </div>
       <div class="cost-item">
         <div class="label">現價</div>
-        <div class="value">116.00 元</div>
+        <div class="value">118.00 元</div>
       </div>
       <div class="cost-item">
         <div class="label">浮盈／浮虧</div>
-        <div class="value pos">+9.16%</div>
+        <div class="value pos">+10.30%</div>
       </div>
       <div class="cost-item">
         <div class="label">近 20 交易日買超天數</div>
-        <div class="value">13 / 20 天</div>
+        <div class="value">12 / 20 天</div>
       </div>
     </div>
     <div class="footnote">
@@ -353,14 +360,14 @@
       
       <div class="light-item">
         <div class="name">技術趨勢</div>
-        <div class="dot green"></div>
-        <div class="status green">良好</div>
+        <div class="dot yellow"></div>
+        <div class="status yellow">留意</div>
       </div>
       
       <div class="light-item">
         <div class="name">長期均線乖離</div>
-        <div class="dot green"></div>
-        <div class="status green">安全</div>
+        <div class="dot red"></div>
+        <div class="status red">偏離過大</div>
       </div>
       
       <div class="light-item">
@@ -371,8 +378,8 @@
       
       <div class="light-item">
         <div class="name">綜合風險</div>
-        <div class="dot green"></div>
-        <div class="status green">良好</div>
+        <div class="dot yellow"></div>
+        <div class="status yellow">留意</div>
       </div>
       
     </div>
@@ -383,24 +390,24 @@
     <h2>4. 買賣訊號</h2>
     <div class="signal-grid">
       
-      <div class="signal-card  neutral">
+      <div class="signal-card active red">
         <div class="signal-card-head">
           <span class="name">均線黃金／死亡交叉</span>
           <span class="kind-tag">事件型</span>
         </div>
-        <div class="signal-text neutral">
-          <span class="signal-dot neutral"></span>近期無均線交叉
+        <div class="signal-text ">
+          <span class="signal-dot red"></span>死亡交叉：5日均線下穿20日均線，偏空訊號
         </div>
         
       </div>
       
-      <div class="signal-card  neutral">
+      <div class="signal-card active red">
         <div class="signal-card-head">
           <span class="name">評分區間轉換</span>
           <span class="kind-tag">事件型</span>
         </div>
-        <div class="signal-text neutral">
-          <span class="signal-dot neutral"></span>維持在「布局」區間，無轉折
+        <div class="signal-text ">
+          <span class="signal-dot red"></span>評分轉弱：由「布局」轉為「區間」
         </div>
         
       </div>
@@ -422,7 +429,7 @@
           <span class="kind-tag">狀態型</span>
         </div>
         <div class="signal-text neutral">
-          <span class="signal-dot neutral"></span>未觸發主力建倉訊號：買超天數比例僅65%（門檻70%）；買超力道未加速；股價漲幅已達+45.2%（門檻15%），可能已被市場表態
+          <span class="signal-dot neutral"></span>未觸發主力建倉訊號：買超天數比例僅60%（門檻70%）；買超力道未加速；股價漲幅已達+34.4%（門檻15%），可能已被市場表態
         </div>
         
       </div>
@@ -433,7 +440,7 @@
           <span class="kind-tag">狀態型</span>
         </div>
         <div class="signal-text neutral">
-          <span class="signal-dot neutral"></span>尚未觸發短線進場訊號：今日價量關係為「價跌量縮」（量能為均量47%），未達價漲量增且量能≥均量130%的確認門檻
+          <span class="signal-dot neutral"></span>尚未觸發短線進場訊號：現價118.00元未貼近近10個交易日低點111.00元（需落在117.66元以下）；今日價量關係為「價漲量縮」（量能為均量57%），未達價漲量增且量能≥均量130%的確認門檻
         </div>
         
       </div>
@@ -444,14 +451,14 @@
           <span class="kind-tag">狀態型</span>
         </div>
         <div class="signal-text neutral">
-          <span class="signal-dot green"></span>停損參考價 105.14 元（現價-1.2倍ATR）、停利參考價 134.10 元（現價+2.0倍ATR）；目前無技術反轉警訊
+          <span class="signal-dot green"></span>停損參考價 107.20 元（現價-1.2倍ATR）、停利參考價 136.00 元（現價+2.0倍ATR）；目前無技術反轉警訊
         </div>
         
         <div class="signal-price-levels">
           
-          <div class="signal-price-item"><span class="k">停損參考價</span><span class="v">105.14 元</span></div>
+          <div class="signal-price-item"><span class="k">停損參考價</span><span class="v">107.20 元</span></div>
           
-          <div class="signal-price-item"><span class="k">停利參考價</span><span class="v">134.10 元</span></div>
+          <div class="signal-price-item"><span class="k">停利參考價</span><span class="v">136.00 元</span></div>
           
         </div>
         
@@ -463,7 +470,7 @@
           <span class="kind-tag">狀態型</span>
         </div>
         <div class="signal-text neutral">
-          <span class="signal-dot neutral"></span>尚未觸發波段進場訊號：現價116.00元未拉回至近20個交易日低點79.10元附近（需落在85.43元以下）；近10個交易日拉回區間無看漲反轉K線型態；今日價量關係為「價跌量縮」（量能為均量47%），未達價漲量增且量能≥均量130%的確認門檻
+          <span class="signal-dot neutral"></span>尚未觸發波段進場訊號：現價118.00元未拉回至近20個交易日低點84.80元附近（需落在91.58元以下）；近10個交易日拉回區間無看漲反轉K線型態；今日價量關係為「價漲量縮」（量能為均量57%），未達價漲量增且量能≥均量130%的確認門檻
         </div>
         
       </div>
@@ -474,14 +481,14 @@
           <span class="kind-tag">狀態型</span>
         </div>
         <div class="signal-text neutral">
-          <span class="signal-dot green"></span>停損參考價 98.45 元（現價-2.0倍ATR）、停利參考價 146.71 元（現價+3.5倍ATR）；目前無技術反轉警訊
+          <span class="signal-dot green"></span>停損參考價 100.57 元（現價-2.0倍ATR）、停利參考價 148.50 元（現價+3.5倍ATR）；目前無技術反轉警訊
         </div>
         
         <div class="signal-price-levels">
           
-          <div class="signal-price-item"><span class="k">停損參考價</span><span class="v">98.45 元</span></div>
+          <div class="signal-price-item"><span class="k">停損參考價</span><span class="v">100.57 元</span></div>
           
-          <div class="signal-price-item"><span class="k">停利參考價</span><span class="v">146.71 元</span></div>
+          <div class="signal-price-item"><span class="k">停利參考價</span><span class="v">148.50 元</span></div>
           
         </div>
         
@@ -505,7 +512,7 @@
 
     
     <div class="analyst-meta">
-      參考現價：116.0（-0.43%）
+      參考現價：118.0（+1.72%）
     </div>
 
     <div class="analyst-summary-grid">
@@ -514,18 +521,18 @@
         <input type="number" step="0.01" min="0" class="holding-cost-input" id="holdingCostInput-5351" placeholder="輸入您的持有成本">
         <div class="holding-cost-pl" id="holdingCostPL-5351"></div>
       </div>
-      <div class="analyst-summary-item"><div class="label">近20日下檔支撐</div><div class="value">79.1</div></div>
+      <div class="analyst-summary-item"><div class="label">近20日下檔支撐</div><div class="value">84.8</div></div>
       <div class="analyst-summary-item"><div class="label">近20日上檔壓力</div><div class="value">141.0</div></div>
     </div>
 
     <div class="analyst-narrative-grid">
       <div class="analyst-narrative-block">
         <div class="label">技術面解析（自動計算）</div>
-        <div class="text ">技術趨勢判定為「偏多」，距60日均線乖離+19.7%（屬安全範圍）。近20個交易日高低點區間為 79.1 - 141.0 元，5日均線116.6元、20日均線114.83元，60日均線96.89元。近5日均量為前20日均量的64%，量能明顯萎縮。</div>
+        <div class="text ">技術趨勢判定為「盤整」，距60日均線乖離+21.2%（偏離過大，留意追高追空風險）。近20個交易日高低點區間為 84.8 - 141.0 元，5日均線116.6元、20日均線116.74元，60日均線97.39元。近5日均量為前20日均量的57%，量能明顯萎縮。</div>
       </div>
       <div class="analyst-narrative-block">
         <div class="label">籌碼面解析（自動計算）</div>
-        <div class="text ">近20個交易日三大法人買超天數13天；估算主力成本約106.27元；融資餘額近期減少16.6%；融資使用率14.6%。</div>
+        <div class="text ">近20個交易日三大法人買超天數12天；估算主力成本約106.99元；融資餘額近期減少16.6%；融資使用率14.6%。</div>
       </div>
     </div>
 
@@ -537,8 +544,8 @@
           <span class="name">情境A：區間整理</span>
         </div>
         <div class="analyst-scenario-body">
-          <div class="k">盤勢特徵</div><div class="v">現價 116.0 元，介於近20日支撐 79.1 元與壓力 141.0 元之間</div>
-          <div class="k">歷史事件統計</div><div class="v">ATR（近14日真實波動幅度均值）估算今日可能波動區間為 107.11 - 124.89 元（此為區間整理假設下的參考範圍，非歷史事件統計）</div>
+          <div class="k">盤勢特徵</div><div class="v">現價 118.0 元，介於近20日支撐 84.8 元與壓力 141.0 元之間</div>
+          <div class="k">歷史事件統計</div><div class="v">ATR（近14日真實波動幅度均值）估算今日可能波動區間為 109.46 - 126.54 元（此為區間整理假設下的參考範圍，非歷史事件統計）</div>
         </div>
       </div>
       
@@ -548,7 +555,7 @@
         </div>
         <div class="analyst-scenario-body">
           <div class="k">盤勢特徵</div><div class="v">收盤價站穩突破 141.7 元（近20日壓力 × 0.5% 緩衝）</div>
-          <div class="k">統計說明</div><div class="v">歷史上符合條件的站穩突破事件只有 6 次，少於門檻 8 次，樣本太少不具參考意義（近期高點已是近期區間內相對高點，需留意創新高後的價格發現階段（缺乏歷史高點參考））</div>
+          <div class="k">統計說明</div><div class="v">歷史上符合條件的站穩突破事件只有 5 次，少於門檻 8 次，樣本太少不具參考意義（近期高點已是近期區間內相對高點，需留意創新高後的價格發現階段（缺乏歷史高點參考））</div>
         </div>
       </div>
       
@@ -557,7 +564,7 @@
           <span class="name">情境C：站穩跌破支撐</span>
         </div>
         <div class="analyst-scenario-body">
-          <div class="k">盤勢特徵</div><div class="v">收盤價站穩跌破 78.7 元（近20日支撐 × 0.5% 緩衝）</div>
+          <div class="k">盤勢特徵</div><div class="v">收盤價站穩跌破 84.38 元（近20日支撐 × 0.5% 緩衝）</div>
           <div class="k">統計說明</div><div class="v">歷史上符合條件的站穩突破事件只有 3 次，少於門檻 8 次，樣本太少不具參考意義（次一關鍵支撐位約 65.7 元，近60日低點）</div>
         </div>
       </div>
@@ -575,11 +582,87 @@
     
   </div>
 
+  <div class="card">
+    <h2>6. 資本回報與獲利品質（ROCE 近5年趨勢）</h2>
+    <div class="analyst-banner">⚠ 已動用資本回報率（ROCE）＝ 年度營業利益（作為稅前息前利益 EBIT 的代理，未扣除業外損益）÷ 年底已動用資本（總資產－流動負債）。以「完整會計年度」為單位規則式計算，反映公司運用資本創造獲利的效率；本卡片僅呈現歷史數字，非對未來的預測，也不構成投資建議。</div>
+
+    
+    
+
+    <div class="analyst-summary-grid">
+      <div class="analyst-summary-item">
+        <div class="label">最新完整年度 ROCE（2025）</div>
+        <div class="value">-10.51%</div>
+      </div>
+      <div class="analyst-summary-item">
+        <div class="label">近5年平均 ROCE</div>
+        <div class="value">-4.99%</div>
+      </div>
+      <div class="analyst-summary-item">
+        <div class="label">資料年度範圍</div>
+        <div class="value">2021 － 2025</div>
+      </div>
+    </div>
+
+    <table class="roce-table">
+      <thead>
+        <tr><th>年度</th><th>營業利益（EBIT代理）</th><th>年底已動用資本</th><th>ROCE</th></tr>
+      </thead>
+      <tbody>
+        
+        <tr>
+          <td>2021</td>
+          <td>1,128,929,000</td>
+          <td>4,926,516,000</td>
+          <td class="pos">22.92%</td>
+        </tr>
+        
+        <tr>
+          <td>2022</td>
+          <td>83,186,000</td>
+          <td>5,909,696,000</td>
+          <td class="pos">1.41%</td>
+        </tr>
+        
+        <tr>
+          <td>2023</td>
+          <td>-1,173,151,000</td>
+          <td>4,838,164,000</td>
+          <td class="neg">-24.25%</td>
+        </tr>
+        
+        <tr>
+          <td>2024</td>
+          <td>-651,993,000</td>
+          <td>4,490,188,000</td>
+          <td class="neg">-14.52%</td>
+        </tr>
+        
+        <tr>
+          <td>2025</td>
+          <td>-579,739,000</td>
+          <td>5,514,565,000</td>
+          <td class="neg">-10.51%</td>
+        </tr>
+        
+      </tbody>
+    </table>
+
+    <div class="footnote">
+      資料來源：FinMind TaiwanStockFinancialStatements（損益表，逐季 OperatingIncome 加總為年度EBIT代理，需湊滿4季才算完整會計年度）
+      與 TaiwanStockBalanceSheet（資產負債表，取每年底/Q4快照的總資產與流動負債）。表格中營業利益／已動用資本的金額單位
+      以 FinMind 原始回傳的數字為準（台股財報慣例上多數項目以千元為單位申報），未另外換算，如覺得數字量級不合理，
+      請對照該公司官方財報確認實際單位。已動用資本＝總資產－流動負債，是常見的簡化版 ROCE 算法，未扣除商譽等無形資產調整；
+      跨產業比較時建議搭配產業特性判讀（例如資本密集產業與輕資產產業的合理 ROCE 區間本來就不同）。純歷史數字，非對未來的預測或投資建議。
+    </div>
+    
+  </div>
+
 </div>
 <script>
 (function () {
   var stockId = "5351";
-  var currentPrice = 116.0;
+  var currentPrice = 118.0;
   var input = document.getElementById("holdingCostInput-" + stockId);
   var plDiv = document.getElementById("holdingCostPL-" + stockId);
   if (!input || !plDiv) { return; }

@@ -31,6 +31,7 @@ DATASETS = {
     "shareholding": "TaiwanStockHoldingSharesPer",
     "month_revenue": "TaiwanStockMonthRevenue",
     "balance_sheet": "TaiwanStockBalanceSheet",
+    "financial_statements": "TaiwanStockFinancialStatements",
     "per": "TaiwanStockPER",
 }
 
@@ -84,6 +85,11 @@ def fetch_all(stock_id: str, config: dict, cache_dir: str = "output/cache") -> d
     # 不能沿用短天期的 chip_start，另外用獨立、可設定的回溯天數（預設約3年）。
     per_lookback_days = config.get("finmind", {}).get("valuation_lookback_days", 1095)
     per_start = (today - dt.timedelta(days=per_lookback_days)).isoformat()
+    # 「資本回報與獲利品質」卡片（卡片6，見 scripts/capital_returns.py）計算近5個完整會計年度的
+    # ROCE 趨勢，需要損益表(financial_statements)與資產負債表(balance_sheet)至少涵蓋6年歷史
+    # （5年 + 1年緩衝，避免年度邊界剛好抓不滿4季）。預設 2200 天 ≈ 6年，可依需求調整年數時一併調整。
+    roce_lookback_days = config.get("finmind", {}).get("roce_lookback_days", 2200)
+    roce_start = (today - dt.timedelta(days=roce_lookback_days)).isoformat()
 
     start_by_key = {
         "price": chip_start,
@@ -91,7 +97,8 @@ def fetch_all(stock_id: str, config: dict, cache_dir: str = "output/cache") -> d
         "institutional": chip_start,
         "shareholding": chip_start,
         "month_revenue": fin_start,
-        "balance_sheet": fin_start,
+        "balance_sheet": roce_start,
+        "financial_statements": roce_start,
         "per": per_start,
     }
 

@@ -161,6 +161,8 @@ def build_context(stock_id: str, stock_name: str, watch_cfg: dict, analysis: dic
     outlook_technical = outlook.get("technical_narrative", {})
     outlook_chip = outlook.get("chip_narrative", {})
 
+    roce = analysis.get("capital_returns", {"available": False})
+
     return dict(
         is_demo=is_demo,
         stock_id=stock_id,
@@ -227,6 +229,14 @@ def build_context(stock_id: str, stock_name: str, watch_cfg: dict, analysis: dic
         ao_chip_available=outlook_chip.get("available", False),
         ao_chip_text=outlook_chip.get("text") or outlook_chip.get("reason"),
         ao_scenarios=outlook.get("scenarios", []),
+        # 資本回報與獲利品質（卡片6）：ROCE 近5個完整會計年度趨勢，完全由 analyze.py 的
+        # compute_roce_history() 自動計算（見 scripts/capital_returns.py），不需要任何人工設定。
+        roce_available=roce.get("available", False),
+        roce_reason=roce.get("reason"),
+        roce_note=roce.get("note"),
+        roce_years=roce.get("years", []),
+        roce_avg=roce.get("avg_roce_pct"),
+        roce_latest=roce.get("latest_roce_pct"),
     )
 
 
@@ -374,6 +384,20 @@ def demo_analysis(stock_id: str) -> dict:
                                    "（次一關鍵支撐位約 61.20 元，近60日低點）",
                 },
             ],
+        },
+        "capital_returns": {
+            "available": True,
+            "reason": None,
+            "note": None,
+            "years": [
+                {"year": 2021, "ebit": 587_400_000, "capital_employed": 2_010_000_000, "roce_pct": 29.22},
+                {"year": 2022, "ebit": 649_200_000, "capital_employed": 2_240_000_000, "roce_pct": 28.98},
+                {"year": 2023, "ebit": 512_600_000, "capital_employed": 2_380_000_000, "roce_pct": 21.54},
+                {"year": 2024, "ebit": 601_800_000, "capital_employed": 2_510_000_000, "roce_pct": 23.97},
+                {"year": 2025, "ebit": 668_900_000, "capital_employed": 2_690_000_000, "roce_pct": 24.87},
+            ],
+            "avg_roce_pct": 25.72,
+            "latest_roce_pct": 24.87,
         },
     }
 

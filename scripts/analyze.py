@@ -10,6 +10,7 @@ import yaml
 
 from signals import compute_all_signals
 from analyst_outlook import compute_analyst_outlook
+from capital_returns import compute_roce_history
 
 
 def _read_cache(cache_dir: str, stock_id: str, key: str) -> pd.DataFrame:
@@ -286,6 +287,8 @@ def analyze_stock(stock_id: str, config: dict, cache_dir: str = "output/cache",
     shareholding_df = _read_cache(cache_dir, stock_id, "shareholding")
     revenue_df = _read_cache(cache_dir, stock_id, "month_revenue")
     per_df = _read_cache(cache_dir, stock_id, "per")
+    financial_df = _read_cache(cache_dir, stock_id, "financial_statements")
+    balance_df = _read_cache(cache_dir, stock_id, "balance_sheet")
 
     inst_cost = compute_institutional_cost(price_df, inst_df, lookback)
     chip = compute_chip_cleanliness(
@@ -327,6 +330,11 @@ def analyze_stock(stock_id: str, config: dict, cache_dir: str = "output/cache",
         detail_config=scoring.get("analyst_outlook_detail", {}),
     )
 
+    capital_returns = compute_roce_history(
+        financial_df, balance_df,
+        detail_config=scoring.get("roce_detail", {}),
+    )
+
     return {
         "stock_id": stock_id,
         "composite_score": composite,
@@ -337,6 +345,7 @@ def analyze_stock(stock_id: str, config: dict, cache_dir: str = "output/cache",
         "fundamental": {**fund, "light": score_to_light(fund["score"], thresholds)},
         "signals": signals,
         "analyst_outlook": analyst_outlook,
+        "capital_returns": capital_returns,
     }
 
 

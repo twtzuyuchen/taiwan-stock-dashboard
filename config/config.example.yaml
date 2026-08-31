@@ -11,6 +11,10 @@ finmind:
   # 「基本面催化」卡片本益比分位數（per_percentile）計算用的本益比歷史回溯天數（日曆天，預設約3年），
   # 天數越長分位數統計上越有意義。這個天數只影響 fetch_data.py 抓 TaiwanStockPER 的區間，不影響其他資料集。
   valuation_lookback_days: 1095
+  # 「資本回報與獲利品質」卡片（卡片6，見 scripts/capital_returns.py）計算近5個完整會計年度的 ROCE
+  # 趨勢，需要損益表(financial_statements)與資產負債表(balance_sheet)較長的歷史回溯天數（日曆天，
+  # 預設約6年 = 5年 + 1年緩衝，避免年度邊界剛好抓不滿4季）。只影響這兩個資料集的抓取區間。
+  roce_lookback_days: 2200
 
 market_overview:
   # 「今日大盤/期貨情境」頁面的設定，資料來源是 yfinance（Yahoo Finance），完全獨立於 watchlist
@@ -302,6 +306,11 @@ scoring:
     narrative_detail:
       recent_vol_days: 5        # 技術面解析敘述文字：「近期量能」抓近幾個交易日均量
       prior_vol_days: 20        # 技術面解析敘述文字：跟前面幾個交易日均量比較
+
+  # 「資本回報與獲利品質」卡片（卡片6）自動計算細項設定，可省略，省略時採用下列預設值。
+  # ROCE = 年度營業利益（EBIT代理）÷ 年底已動用資本（總資產－流動負債），見 scripts/capital_returns.py。
+  roce_detail:
+    years: 5   # 顯示最近幾個「完整會計年度」的 ROCE 趨勢（需搭配 finmind.roce_lookback_days 抓夠長的歷史資料）
 
 output:
   dashboard_dir: "output"

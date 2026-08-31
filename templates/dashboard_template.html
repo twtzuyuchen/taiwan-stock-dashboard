@@ -194,6 +194,13 @@
     border: 1px solid var(--border); background: var(--surface-1); color: var(--text-primary); box-sizing: border-box;
   }
   .holding-cost-pl { font-size: 12.5px; margin-top: 6px; font-weight: 600; min-height: 16px; }
+
+  .roce-table { width: 100%; border-collapse: collapse; font-size: 13.5px; margin: 4px 0 18px; }
+  .roce-table th, .roce-table td { padding: 8px 10px; border-bottom: 1px solid var(--gridline); text-align: right; }
+  .roce-table th:first-child, .roce-table td:first-child { text-align: left; }
+  .roce-table th { color: var(--text-secondary); font-weight: 600; font-size: 12.5px; }
+  .roce-table td.pos { color: var(--good); font-weight: 700; }
+  .roce-table td.neg { color: var(--critical); font-weight: 700; }
   .demo-banner {
     background: var(--warning-bg);
     color: #8a5a00;
@@ -422,6 +429,56 @@
       事件之間可能重疊、樣本並非完全獨立，只能當作方向性的歷史頻率參考，不是嚴謹的統計推論，也不是對未來的預測或保證。
       技術面/籌碼面解析：由左側「總控儀表板」「主力持倉成本分析」「籌碼與技術風險燈號」已經算好的數字組成敘述文字，非新的計算邏輯。
       全部皆為規則式計算，僅供研判參考，不構成投資建議，實際進出場請自行評估風險並考量部位大小。
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <h2>6. 資本回報與獲利品質（ROCE 近{{ roce_years|length if roce_years else 5 }}年趨勢）</h2>
+    <div class="analyst-banner">⚠ 已動用資本回報率（ROCE）＝ 年度營業利益（作為稅前息前利益 EBIT 的代理，未扣除業外損益）÷ 年底已動用資本（總資產－流動負債）。以「完整會計年度」為單位規則式計算，反映公司運用資本創造獲利的效率；本卡片僅呈現歷史數字，非對未來的預測，也不構成投資建議。</div>
+
+    {% if not roce_available %}
+    <div class="analyst-unavailable">目前資料不足，無法計算：{{ roce_reason or "財報歷史資料不足" }}</div>
+    {% else %}
+    {% if roce_note %}<div class="analyst-meta">{{ roce_note }}</div>{% endif %}
+
+    <div class="analyst-summary-grid">
+      <div class="analyst-summary-item">
+        <div class="label">最新完整年度 ROCE（{{ roce_years[-1].year if roce_years else "—" }}）</div>
+        <div class="value">{{ "%.2f"|format(roce_latest) ~ "%" if roce_latest is not none else "—" }}</div>
+      </div>
+      <div class="analyst-summary-item">
+        <div class="label">近{{ roce_years|length }}年平均 ROCE</div>
+        <div class="value">{{ "%.2f"|format(roce_avg) ~ "%" if roce_avg is not none else "—" }}</div>
+      </div>
+      <div class="analyst-summary-item">
+        <div class="label">資料年度範圍</div>
+        <div class="value">{{ roce_years[0].year if roce_years else "—" }} － {{ roce_years[-1].year if roce_years else "—" }}</div>
+      </div>
+    </div>
+
+    <table class="roce-table">
+      <thead>
+        <tr><th>年度</th><th>營業利益（EBIT代理）</th><th>年底已動用資本</th><th>ROCE</th></tr>
+      </thead>
+      <tbody>
+        {% for row in roce_years %}
+        <tr>
+          <td>{{ row.year }}</td>
+          <td>{{ "{:,.0f}".format(row.ebit) }}</td>
+          <td>{{ "{:,.0f}".format(row.capital_employed) }}</td>
+          <td class="{{ 'pos' if row.roce_pct is not none and row.roce_pct >= 0 else 'neg' }}">{{ "%.2f"|format(row.roce_pct) ~ "%" if row.roce_pct is not none else "—" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="footnote">
+      資料來源：FinMind TaiwanStockFinancialStatements（損益表，逐季 OperatingIncome 加總為年度EBIT代理，需湊滿4季才算完整會計年度）
+      與 TaiwanStockBalanceSheet（資產負債表，取每年底/Q4快照的總資產與流動負債）。表格中營業利益／已動用資本的金額單位
+      以 FinMind 原始回傳的數字為準（台股財報慣例上多數項目以千元為單位申報），未另外換算，如覺得數字量級不合理，
+      請對照該公司官方財報確認實際單位。已動用資本＝總資產－流動負債，是常見的簡化版 ROCE 算法，未扣除商譽等無形資產調整；
+      跨產業比較時建議搭配產業特性判讀（例如資本密集產業與輕資產產業的合理 ROCE 區間本來就不同）。純歷史數字，非對未來的預測或投資建議。
     </div>
     {% endif %}
   </div>

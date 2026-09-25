@@ -323,6 +323,9 @@ def analyze_stock(stock_id: str, config: dict, cache_dir: str = "output/cache",
         short_term_exit_detail=scoring.get("short_term_exit_detail", {}),
         swing_entry_detail=scoring.get("swing_entry_detail", {}),
         swing_exit_detail=scoring.get("swing_exit_detail", {}),
+        shareholding_df=shareholding_df,
+        triple_institution_buy_detail=scoring.get("triple_institution_buy_detail", {}),
+        single_institution_streak_detail=scoring.get("single_institution_streak_detail", {}),
     )
 
     analyst_outlook = compute_analyst_outlook(

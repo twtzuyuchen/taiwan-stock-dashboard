@@ -78,6 +78,8 @@ def build_context(stock_id: str, stock_name: str, watch_cfg: dict, analysis: dic
     score_transition = signals.get("score_transition", {})
     cost_breach = signals.get("cost_breach", {})
     accumulation = signals.get("accumulation", {})
+    triple_institution_buy = signals.get("triple_institution_buy", {})
+    single_institution_streak = signals.get("single_institution_streak", {})
     short_term_entry = signals.get("short_term_entry", {})
     short_term_exit = signals.get("short_term_exit", {})
     swing_entry = signals.get("swing_entry", {})
@@ -122,6 +124,20 @@ def build_context(stock_id: str, stock_name: str, watch_cfg: dict, analysis: dic
             "text": accumulation.get("text", "資料不足"),
             "light": _signal_class(accumulation.get("light")),
             "active": accumulation.get("active") is True,
+        },
+        {
+            "name": "三大法人同買",
+            "kind": "狀態型",
+            "text": triple_institution_buy.get("text", "資料不足"),
+            "light": _signal_class(triple_institution_buy.get("light")),
+            "active": triple_institution_buy.get("active") is True,
+        },
+        {
+            "name": "單一法人連買",
+            "kind": "狀態型",
+            "text": single_institution_streak.get("text", "資料不足"),
+            "light": _signal_class(single_institution_streak.get("light")),
+            "active": single_institution_streak.get("active") is True,
         },
         {
             "name": "短線進場提醒（1-2週）",
@@ -304,6 +320,23 @@ def demo_analysis(stock_id: str) -> dict:
                 "sample_days": 20,
                 "pattern_evidence_confirmed": ["關鍵價位量增不漲", "盤整期量縮至極致"],
                 "pattern_evidence_available_count": 3,
+            },
+            "triple_institution_buy": {
+                "signal": "triple_institution_buy",
+                "active": True,
+                "text": "近20個交易日中，外資／投信／自營商三大法人同步淨買超達4天（就在最近一個交易日），籌碼面看法一致度高",
+                "light": "green",
+                "triple_buy_days": 4,
+                "sample_days": 20,
+            },
+            "single_institution_streak": {
+                "signal": "single_institution_streak",
+                "active": True,
+                "text": "投信連續6個交易日淨買超，且近20日買超天數比例達75.0%、大戶持股比例近期上升1.2個百分點，佐證買超具延續性",
+                "light": "green",
+                "leading_category": "投信",
+                "leading_streak_days": 6,
+                "streaks": {"外資": 2, "投信": 6, "自營商": 0},
             },
             "short_term_entry": {
                 "signal": "short_term_entry",

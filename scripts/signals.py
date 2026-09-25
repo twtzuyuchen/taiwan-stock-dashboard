@@ -82,13 +82,39 @@ signals.py
         則多看一層「波段格局本身是否轉弱」
      三項任一觸發即視為警訊，燈號轉紅；沒有警訊時維持顯示目前算出的停利停損參考價位。
 
-事件型（A、B）代表「今天發生了什麼變化」；狀態型（C 到 H）代表「現在是什麼狀態」。
-不同類型用途不同，儀表板會分開顯示。E 到 H 是短線／波段進出場時機的參考提醒，不是
-買賣建議，實際進出場請自行評估風險並考量部位大小。
+  I. 三大法人同買（狀態型訊號，只要近期同步買超夠頻繁就會持續顯示）
+     把 D「主力建倉訊號」用的三大法人合計淨買超，拆開來看外資／投信／自營商是否「同一天」
+     都淨買超。兩個條件同時成立才觸發：
+     1) 近 lookback_days 個交易日中，三大法人同步淨買超的天數 >= min_triple_buy_days
+        （預設3天）
+     2) 最近一次三大法人同步淨買超，發生在近 recency_days 個交易日以內（預設3天，確保
+        訊號夠新，不是三週前發生過一次就一直顯示）
+     三大法人同步買超通常代表籌碼面看法一致度較高，但仍只是歷史買賣超統計，不是買點保證。
+
+  J. 單一法人連買（狀態型訊號，只要連續買超型態持續成立就會持續顯示）
+     跟 I 相反，看的是「單一」法人類別（外資、投信、自營商三者之一，不要求其他兩類同步）
+     是否連續多個交易日都淨買超。判斷邏輯分兩層，缺資料時會自動略過對應層，不會整個
+     訊號失效：
+     1) 連續天數（必要條件）：三大法人類別中，挑出目前「連續淨買超天數」最長的一類，
+        天數需 >= min_consecutive_days（預設5個交易日）才算過關，並以該類別作為訊號主角
+     2) 輔助佐證（第一層過關後才檢查，兩項中至少 min_confirm_evidence 項成立才算觸發；
+        資料不足的項目會從分母排除，不強行湊數）：
+        - 買超連續性：把觀察窗拉長到 continuity_lookback_days（預設20個交易日），該類別
+          買超天數比例仍需 >= continuity_buy_ratio_threshold（預設60%），代表不是剛好連
+          5天運氣好，而是這段期間整體都偏買方
+        - 持股比例變化：集保股權分散表（每週更新）中，大戶持股比例最近幾次快照呈上升，
+          代表買超確實反映到實際持股集中度增加，跟籌碼乾淨度卡片用的是同一份資料
+     兩層都通過才會顯示「佐證買超具延續性」；連續天數沒過關就不會再往下看輔助佐證；
+     連續天數過關但輔助佐證不足，會明確顯示還缺哪些佐證。
+
+事件型（A、B）代表「今天發生了什麼變化」；狀態型（C 到 J）代表「現在是什麼狀態」。
+不同類型用途不同，儀表板會分開顯示。E 到 H 是短線／波段進出場時機的參考提醒，I、J 是
+三大法人買賣超的兩種不同角度觀察，都不是買賣建議，實際進出場請自行評估風險並考量部位大小。
 """
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 import pandas as pd
@@ -404,6 +430,224 @@ def detect_accumulation_signal(price_df: pd.DataFrame, inst_df: pd.DataFrame,
         **common_fields,
         **pattern_fields,
     }
+
+
+# ------------------------------------------------------------------------
+# 三大法人同買／單一法人連買共用的分類與輔助工具
+# ------------------------------------------------------------------------
+
+# FinMind TaiwanStockInstitutionalInvestorsBuySell 的 name 欄位命名可能是英文代碼
+# （例如 Foreign_Investor、Foreign_Dealer_Self、Investment_Trust、Dealer_self、
+# Dealer_Hedging）或中文（外資、外資自營商、投信、自營商...），這裡用關鍵字比對
+# 歸類到三大法人的三個類別；「外資自營商」同時含有「外資」與「自營商」關鍵字，
+# 依台灣三大法人慣例歸在外資，所以外資判斷要排在自營商之前。
+def _categorize_institution_name(name) -> str | None:
+    if not isinstance(name, str) or not name:
+        return None
+    lower = name.lower()
+    if "foreign" in lower or "外資" in name or "外陸資" in name or "外陆资" in name:
+        return "外資"
+    if "trust" in lower or "投信" in name:
+        return "投信"
+    if "dealer" in lower or "自營商" in name or "自营商" in name:
+        return "自營商"
+    return None
+
+
+def _daily_net_by_category(inst_df: pd.DataFrame) -> pd.DataFrame:
+    """回傳 date x 三大法人類別(外資/投信/自營商) 的每日淨買超股數 pivot table，
+    同一類別底下的子分類（例如外資自營商併入外資、自營商避險併入自營商）會加總。
+    找不到對應類別的 name 值會被忽略（不計入任何類別，但不影響其他類別計算）。"""
+    if inst_df is None or inst_df.empty or "name" not in inst_df.columns:
+        return pd.DataFrame()
+    df = inst_df.copy()
+    df["category"] = df["name"].apply(_categorize_institution_name)
+    df = df.dropna(subset=["category"])
+    if df.empty:
+        return pd.DataFrame()
+    df["net"] = df["buy"] - df["sell"]
+    pivot = df.groupby(["date", "category"])["net"].sum().unstack("category")
+    return pivot.sort_index()
+
+
+def _current_streak_len(series: pd.Series) -> int:
+    """從序列尾端往前數，回傳「淨值 > 0」連續出現的天數（遇到 <=0 或缺值就停止）。"""
+    streak = 0
+    for v in reversed(series.tolist()):
+        if pd.isna(v) or v <= 0:
+            break
+        streak += 1
+    return streak
+
+
+_LEVEL_LOWER_BOUND_RE = re.compile(r"([\d,]+)")
+
+
+def _holder_concentration_change(shareholding_df: pd.DataFrame | None, big_holder_min_shares: int,
+                                  lookback_snapshots: int) -> dict:
+    """大戶持股集中度變化：最近幾次集保股權分散表（每週更新）快照中，持股張數下限
+    >= big_holder_min_shares 的合計持股比例是否呈上升趨勢。跟籌碼乾淨度卡片
+    （scripts/analyze.py 的 _score_holder_concentration）用同一份資料與同樣的判斷邏輯，
+    這裡是獨立精簡版（只回傳是否上升與變化幅度，不換算成分數），避免 signals.py 和
+    analyze.py 互相 import 造成循環依賴。"""
+    if shareholding_df is None or shareholding_df.empty:
+        return {"available": False}
+    required = {"date", "HoldingSharesLevel", "percent"}
+    if not required.issubset(shareholding_df.columns):
+        return {"available": False}
+
+    df = shareholding_df.copy()
+
+    def lower_bound(level: str) -> int:
+        match = _LEVEL_LOWER_BOUND_RE.search(str(level))
+        return int(match.group(1).replace(",", "")) if match else -1
+
+    df["_lower_bound"] = df["HoldingSharesLevel"].apply(lower_bound)
+    big = df[df["_lower_bound"] >= big_holder_min_shares]
+    if big.empty:
+        return {"available": False}
+
+    by_date = big.groupby("date")["percent"].sum().sort_index().tail(lookback_snapshots)
+    if len(by_date) < 2:
+        return {"available": False}
+
+    change = float(by_date.iloc[-1] - by_date.iloc[0])
+    return {"available": True, "confirmed": change > 0, "change_pct": round(change, 2)}
+
+
+def detect_triple_institution_buy(price_df: pd.DataFrame, inst_df: pd.DataFrame,
+                                   lookback_days: int = 20, detail_config: dict | None = None) -> dict:
+    """三大法人同買訊號（狀態型）：判斷近期是否頻繁出現外資、投信、自營商三大法人
+    「同一天」都淨買超的情況。詳細判斷邏輯見模組開頭 I 段說明。"""
+    detail_config = detail_config or {}
+    min_triple_buy_days = detail_config.get("min_triple_buy_days", 3)
+    recency_days = detail_config.get("recency_days", 3)
+    min_days = detail_config.get("min_days", 5)
+
+    pivot = _daily_net_by_category(inst_df)
+    required_cols = ["外資", "投信", "自營商"]
+    missing_cols = [c for c in required_cols if c not in pivot.columns]
+    if pivot.empty or missing_cols:
+        missing = missing_cols or required_cols
+        return {"signal": None, "active": False,
+                "text": f"缺少「{'、'.join(missing)}」法人買賣超資料，無法判斷三大法人同買訊號",
+                "light": None}
+
+    recent = pivot[required_cols].tail(lookback_days).dropna()
+    n = len(recent)
+    if n < min_days:
+        return {"signal": None, "active": False,
+                "text": f"近期可比對資料只有 {n} 個交易日，少於門檻 {min_days} 天，暫不判斷三大法人同買訊號",
+                "light": None}
+
+    triple_buy_mask = (recent["外資"] > 0) & (recent["投信"] > 0) & (recent["自營商"] > 0)
+    triple_buy_days = int(triple_buy_mask.sum())
+
+    dates = list(recent.index)
+    triple_buy_positions = [i for i, ok in enumerate(triple_buy_mask.tolist()) if ok]
+    days_since_last = (n - 1 - triple_buy_positions[-1]) if triple_buy_positions else None
+
+    common_fields = {"triple_buy_days": triple_buy_days, "sample_days": n}
+
+    if triple_buy_days < min_triple_buy_days:
+        return {"signal": None, "active": False,
+                "text": f"近{n}個交易日三大法人同步淨買超僅{triple_buy_days}天（門檻{min_triple_buy_days}天），未觸發三大法人同買訊號",
+                "light": None, **common_fields}
+
+    if days_since_last is None or days_since_last > recency_days:
+        recency_text = f"{days_since_last}個交易日前" if days_since_last is not None else "N/A"
+        return {"signal": None, "active": False,
+                "text": f"近{n}個交易日三大法人同步淨買超達{triple_buy_days}天，但最近一次已是{recency_text}，訊號已不新，暫不觸發",
+                "light": "yellow", **common_fields}
+
+    recency_text = "就在最近一個交易日" if days_since_last == 0 else f"最近一次為{days_since_last}個交易日前"
+    return {"signal": "triple_institution_buy", "active": True,
+            "text": f"近{n}個交易日中，外資／投信／自營商三大法人同步淨買超達{triple_buy_days}天（{recency_text}），籌碼面看法一致度高",
+            "light": "green", **common_fields}
+
+
+def detect_single_institution_streak(price_df: pd.DataFrame, inst_df: pd.DataFrame,
+                                      shareholding_df: pd.DataFrame | None = None,
+                                      detail_config: dict | None = None) -> dict:
+    """單一法人連買訊號（狀態型）：判斷是否有單一法人類別連續多個交易日淨買超，
+    並用「買超連續性」與「持股比例變化」兩項輔助佐證。詳細判斷邏輯見模組開頭 J 段說明。"""
+    detail_config = detail_config or {}
+    min_consecutive_days = detail_config.get("min_consecutive_days", 5)
+    continuity_lookback_days = detail_config.get("continuity_lookback_days", 20)
+    continuity_buy_ratio_threshold = detail_config.get("continuity_buy_ratio_threshold", 0.6)
+    min_confirm_evidence = detail_config.get("min_confirm_evidence", 1)
+    holder_lookback_snapshots = detail_config.get("holder_lookback_snapshots", 4)
+    big_holder_min_shares = detail_config.get("big_holder_min_shares", 400_000)
+
+    pivot = _daily_net_by_category(inst_df)
+    categories = ["外資", "投信", "自營商"]
+    available_categories = [c for c in categories if c in pivot.columns]
+    if pivot.empty or not available_categories:
+        return {"signal": None, "active": False,
+                "text": "缺少三大法人（外資／投信／自營商）買賣超資料，無法判斷單一法人連買訊號",
+                "light": None}
+
+    window_size = max(continuity_lookback_days, min_consecutive_days) + 5
+    streaks = {c: _current_streak_len(pivot[c].tail(window_size)) for c in available_categories}
+
+    leading_category = max(streaks, key=streaks.get)
+    leading_streak = streaks[leading_category]
+
+    if leading_streak < min_consecutive_days:
+        best_text = "、".join(f"{c}{d}天" for c, d in sorted(streaks.items(), key=lambda kv: -kv[1]))
+        return {"signal": None, "active": False,
+                "text": f"目前各法人連續淨買超天數皆未達門檻{min_consecutive_days}天（{best_text}），未觸發單一法人連買訊號",
+                "light": None, "streaks": streaks}
+
+    evidence: dict[str, dict] = {}
+
+    window = pivot[leading_category].tail(continuity_lookback_days).dropna()
+    if len(window) >= min_consecutive_days:
+        buy_ratio = float((window > 0).mean())
+        evidence["buy_continuity"] = {
+            "available": True,
+            "confirmed": buy_ratio >= continuity_buy_ratio_threshold,
+            "buy_ratio_pct": round(buy_ratio * 100, 1),
+        }
+    else:
+        evidence["buy_continuity"] = {"available": False}
+
+    evidence["holder_concentration"] = _holder_concentration_change(
+        shareholding_df, big_holder_min_shares, holder_lookback_snapshots,
+    )
+
+    available_evidence = {k: v for k, v in evidence.items() if v.get("available")}
+    confirmed_evidence = {k: v for k, v in available_evidence.items() if v.get("confirmed")}
+
+    common_fields = {
+        "leading_category": leading_category,
+        "leading_streak_days": leading_streak,
+        "streaks": streaks,
+    }
+    core_text = f"{leading_category}連續{leading_streak}個交易日淨買超"
+
+    if not available_evidence:
+        return {"signal": "single_institution_streak", "active": True,
+                "text": core_text + "（缺輔助佐證資料，本次未含買超連續性／持股比例變化驗證）",
+                "light": "green", **common_fields}
+
+    required = min(min_confirm_evidence, len(available_evidence))
+    if len(confirmed_evidence) >= required:
+        parts = []
+        if "buy_continuity" in confirmed_evidence:
+            parts.append(f"近{continuity_lookback_days}日買超天數比例達{confirmed_evidence['buy_continuity']['buy_ratio_pct']}%")
+        if "holder_concentration" in confirmed_evidence:
+            parts.append(f"大戶持股比例近期上升{confirmed_evidence['holder_concentration']['change_pct']}個百分點")
+        return {"signal": "single_institution_streak", "active": True,
+                "text": core_text + "，且" + "、".join(parts) + "，佐證買超具延續性",
+                "light": "green", **common_fields}
+
+    missing = [k for k in available_evidence if k not in confirmed_evidence]
+    missing_labels = {"buy_continuity": "買超連續性", "holder_concentration": "持股比例變化"}
+    missing_text = "、".join(missing_labels[k] for k in missing)
+    return {"signal": None, "active": False,
+            "text": core_text + f"，但輔助佐證僅{len(confirmed_evidence)}/{len(available_evidence)}項（尚缺：{missing_text}），暫不判定為單一法人連買訊號",
+            "light": "yellow", **common_fields}
 
 
 # ------------------------------------------------------------------------
@@ -891,12 +1135,17 @@ def compute_all_signals(stock_id: str, price_df: pd.DataFrame, inst_df: pd.DataF
                          short_term_entry_detail: dict | None = None,
                          short_term_exit_detail: dict | None = None,
                          swing_entry_detail: dict | None = None,
-                         swing_exit_detail: dict | None = None) -> dict:
+                         swing_exit_detail: dict | None = None,
+                         shareholding_df: pd.DataFrame | None = None,
+                         triple_institution_buy_detail: dict | None = None,
+                         single_institution_streak_detail: dict | None = None) -> dict:
     return {
         "ma_cross": detect_ma_cross(price_df),
         "score_transition": detect_score_transition(stock_id, composite_score, thresholds, state_dir),
         "cost_breach": detect_cost_breach(current_price, inst_cost),
         "accumulation": detect_accumulation_signal(price_df, inst_df, lookback_days, accumulation_detail),
+        "triple_institution_buy": detect_triple_institution_buy(price_df, inst_df, lookback_days, triple_institution_buy_detail),
+        "single_institution_streak": detect_single_institution_streak(price_df, inst_df, shareholding_df, single_institution_streak_detail),
         "short_term_entry": detect_short_term_entry(price_df, short_term_entry_detail),
         "short_term_exit": detect_short_term_exit(price_df, short_term_exit_detail),
         "swing_entry": detect_swing_entry(price_df, swing_entry_detail),

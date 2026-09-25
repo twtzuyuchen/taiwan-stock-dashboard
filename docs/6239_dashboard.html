@@ -225,23 +225,23 @@
         <span class="tag caution">區間操作</span>
       </div>
       <div class="meta">
-        分析週期：3-6個月｜風險偏好：穩健｜持股狀態：是｜產出時間：2026-09-24 15:46
+        分析週期：3-6個月｜風險偏好：穩健｜持股狀態：是｜產出時間：2026-09-25 13:14
       </div>
     </div>
     <div>
       <table class="infotable">
         
-        <tr><td class="k">股價日期</td><td class="v">2026-09-24</td></tr>
+        <tr><td class="k">股價日期</td><td class="v">2026-09-25</td></tr>
         
-        <tr><td class="k">融資日期</td><td class="v">2026-09-24</td></tr>
+        <tr><td class="k">融資日期</td><td class="v">2026-09-25</td></tr>
         
-        <tr><td class="k">法人日期</td><td class="v">2026-09-24</td></tr>
+        <tr><td class="k">法人日期</td><td class="v">2026-09-25</td></tr>
         
-        <tr><td class="k">籌碼分佈 CSV 日期</td><td class="v">2026-09-24</td></tr>
+        <tr><td class="k">籌碼分佈 CSV 日期</td><td class="v">2026-09-25</td></tr>
         
-        <tr><td class="k">經營績效 CSV 日期</td><td class="v">2026-09-24</td></tr>
+        <tr><td class="k">經營績效 CSV 日期</td><td class="v">2026-09-25</td></tr>
         
-        <tr><td class="k">SIGNAL_SUMMARY</td><td class="v">2026-09-24T15:46:19</td></tr>
+        <tr><td class="k">SIGNAL_SUMMARY</td><td class="v">2026-09-25T13:14:30</td></tr>
         
       </table>
     </div>
@@ -271,7 +271,7 @@
     <div class="score-grid">
       <div class="score-item">
         <div class="label">綜合評分</div>
-        <div class="score-value"><span class="num">59/100</span><span class="dot yellow"></span></div>
+        <div class="score-value"><span class="num">55/100</span><span class="dot yellow"></span></div>
       </div>
       <div class="score-item">
         <div class="label">風險等級</div>
@@ -436,6 +436,28 @@
       
       <div class="signal-card  neutral">
         <div class="signal-card-head">
+          <span class="name">三大法人同買</span>
+          <span class="kind-tag">狀態型</span>
+        </div>
+        <div class="signal-text neutral">
+          <span class="signal-dot neutral"></span>近20個交易日三大法人同步淨買超僅1天（門檻3天），未觸發三大法人同買訊號
+        </div>
+        
+      </div>
+      
+      <div class="signal-card  neutral">
+        <div class="signal-card-head">
+          <span class="name">單一法人連買</span>
+          <span class="kind-tag">狀態型</span>
+        </div>
+        <div class="signal-text neutral">
+          <span class="signal-dot neutral"></span>目前各法人連續淨買超天數皆未達門檻5天（外資0天、投信0天、自營商0天），未觸發單一法人連買訊號
+        </div>
+        
+      </div>
+      
+      <div class="signal-card  neutral">
+        <div class="signal-card-head">
           <span class="name">短線進場提醒（1-2週）</span>
           <span class="kind-tag">狀態型</span>
         </div>
@@ -497,7 +519,9 @@
     </div>
     <div class="footnote">
       事件型訊號（均線交叉、評分區間轉換）只在「發生變化的當天」出現，隔天若沒有新變化就會顯示「無訊號」；
-      狀態型訊號（主力成本防守價、主力建倉訊號、短線／波段進出場提醒）只要條件持續成立就會一直顯示，不是只出現一次。
+      狀態型訊號（主力成本防守價、主力建倉訊號、三大法人同買、單一法人連買、短線／波段進出場提醒）只要條件
+      持續成立就會一直顯示，不是只出現一次。三大法人同買／單一法人連買是把主力建倉訊號用的三大法人合計買超
+      拆開來看：前者看外資／投信／自營商是否「同一天」同步買超，後者看是否有「單一」法人類別連續多天買超。
       短線（約1-2週）與波段（約1-2個月）進出場提醒以價量關係與K線型態為判斷基礎：進場看「是否貼近近期低點 +
       看漲反轉K線型態（多頭吞噬／槌子線）+ 價漲量增」，波段進場額外多一層中期均線多頭排列的趨勢過濾；
       出場則同時提供「ATR估算的停利停損參考價位」（任何時候都會顯示，方便隨時對照）與「技術反轉警訊」

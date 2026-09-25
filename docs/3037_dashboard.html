@@ -225,23 +225,23 @@
         <span class="tag ">建議布局</span>
       </div>
       <div class="meta">
-        分析週期：3-6個月｜風險偏好：穩健｜持股狀態：是｜產出時間：2026-09-24 15:46
+        分析週期：3-6個月｜風險偏好：穩健｜持股狀態：是｜產出時間：2026-09-25 13:14
       </div>
     </div>
     <div>
       <table class="infotable">
         
-        <tr><td class="k">股價日期</td><td class="v">2026-09-24</td></tr>
+        <tr><td class="k">股價日期</td><td class="v">2026-09-25</td></tr>
         
-        <tr><td class="k">融資日期</td><td class="v">2026-09-24</td></tr>
+        <tr><td class="k">融資日期</td><td class="v">2026-09-25</td></tr>
         
-        <tr><td class="k">法人日期</td><td class="v">2026-09-24</td></tr>
+        <tr><td class="k">法人日期</td><td class="v">2026-09-25</td></tr>
         
-        <tr><td class="k">籌碼分佈 CSV 日期</td><td class="v">2026-09-24</td></tr>
+        <tr><td class="k">籌碼分佈 CSV 日期</td><td class="v">2026-09-25</td></tr>
         
-        <tr><td class="k">經營績效 CSV 日期</td><td class="v">2026-09-24</td></tr>
+        <tr><td class="k">經營績效 CSV 日期</td><td class="v">2026-09-25</td></tr>
         
-        <tr><td class="k">SIGNAL_SUMMARY</td><td class="v">2026-09-24T15:46:04</td></tr>
+        <tr><td class="k">SIGNAL_SUMMARY</td><td class="v">2026-09-25T13:14:06</td></tr>
         
       </table>
     </div>
@@ -271,7 +271,7 @@
     <div class="score-grid">
       <div class="score-item">
         <div class="label">綜合評分</div>
-        <div class="score-value"><span class="num">77/100</span><span class="dot green"></span></div>
+        <div class="score-value"><span class="num">70/100</span><span class="dot green"></span></div>
       </div>
       <div class="score-item">
         <div class="label">風險等級</div>
@@ -300,7 +300,7 @@
       </div>
       <div class="score-item">
         <div class="label">基本面催化</div>
-        <div class="score-value"><span class="pill green">良好</span></div>
+        <div class="score-value"><span class="pill yellow">留意</span></div>
       </div>
     </div>
     <div class="footnote">
@@ -372,8 +372,8 @@
       
       <div class="light-item">
         <div class="name">基本面催化</div>
-        <div class="dot green"></div>
-        <div class="status green">良好</div>
+        <div class="dot yellow"></div>
+        <div class="status yellow">留意</div>
       </div>
       
       <div class="light-item">
@@ -430,6 +430,28 @@
         </div>
         <div class="signal-text neutral">
           <span class="signal-dot neutral"></span>未觸發主力建倉訊號：買超天數比例僅65%（門檻70%）
+        </div>
+        
+      </div>
+      
+      <div class="signal-card active green">
+        <div class="signal-card-head">
+          <span class="name">三大法人同買</span>
+          <span class="kind-tag">狀態型</span>
+        </div>
+        <div class="signal-text ">
+          <span class="signal-dot green"></span>近20個交易日中，外資／投信／自營商三大法人同步淨買超達4天（最近一次為3個交易日前），籌碼面看法一致度高
+        </div>
+        
+      </div>
+      
+      <div class="signal-card active green">
+        <div class="signal-card-head">
+          <span class="name">單一法人連買</span>
+          <span class="kind-tag">狀態型</span>
+        </div>
+        <div class="signal-text ">
+          <span class="signal-dot green"></span>外資連續6個交易日淨買超，且近20日買超天數比例達85.0%，佐證買超具延續性
         </div>
         
       </div>
@@ -497,7 +519,9 @@
     </div>
     <div class="footnote">
       事件型訊號（均線交叉、評分區間轉換）只在「發生變化的當天」出現，隔天若沒有新變化就會顯示「無訊號」；
-      狀態型訊號（主力成本防守價、主力建倉訊號、短線／波段進出場提醒）只要條件持續成立就會一直顯示，不是只出現一次。
+      狀態型訊號（主力成本防守價、主力建倉訊號、三大法人同買、單一法人連買、短線／波段進出場提醒）只要條件
+      持續成立就會一直顯示，不是只出現一次。三大法人同買／單一法人連買是把主力建倉訊號用的三大法人合計買超
+      拆開來看：前者看外資／投信／自營商是否「同一天」同步買超，後者看是否有「單一」法人類別連續多天買超。
       短線（約1-2週）與波段（約1-2個月）進出場提醒以價量關係與K線型態為判斷基礎：進場看「是否貼近近期低點 +
       看漲反轉K線型態（多頭吞噬／槌子線）+ 價漲量增」，波段進場額外多一層中期均線多頭排列的趨勢過濾；
       出場則同時提供「ATR估算的停利停損參考價位」（任何時候都會顯示，方便隨時對照）與「技術反轉警訊」
@@ -587,74 +611,7 @@
     <div class="analyst-banner">⚠ 已動用資本回報率（ROCE）＝ 年度營業利益（作為稅前息前利益 EBIT 的代理，未扣除業外損益）÷ 年底已動用資本（總資產－流動負債）。以「完整會計年度」為單位規則式計算，反映公司運用資本創造獲利的效率；本卡片僅呈現歷史數字，非對未來的預測，也不構成投資建議。</div>
 
     
-    
-
-    <div class="analyst-summary-grid">
-      <div class="analyst-summary-item">
-        <div class="label">最新完整年度 ROCE（2025）</div>
-        <div class="value">3.70%</div>
-      </div>
-      <div class="analyst-summary-item">
-        <div class="label">近5年平均 ROCE</div>
-        <div class="value">9.21%</div>
-      </div>
-      <div class="analyst-summary-item">
-        <div class="label">資料年度範圍</div>
-        <div class="value">2021 － 2025</div>
-      </div>
-    </div>
-
-    <table class="roce-table">
-      <thead>
-        <tr><th>年度</th><th>營業利益（EBIT代理）</th><th>年底已動用資本</th><th>ROCE</th></tr>
-      </thead>
-      <tbody>
-        
-        <tr>
-          <td>2021</td>
-          <td>13,170,291,000</td>
-          <td>120,994,926,000</td>
-          <td class="pos">10.88%</td>
-        </tr>
-        
-        <tr>
-          <td>2022</td>
-          <td>38,171,926,000</td>
-          <td>163,770,866,000</td>
-          <td class="pos">23.31%</td>
-        </tr>
-        
-        <tr>
-          <td>2023</td>
-          <td>8,919,919,000</td>
-          <td>171,758,601,000</td>
-          <td class="pos">5.19%</td>
-        </tr>
-        
-        <tr>
-          <td>2024</td>
-          <td>5,116,677,000</td>
-          <td>172,465,088,000</td>
-          <td class="pos">2.97%</td>
-        </tr>
-        
-        <tr>
-          <td>2025</td>
-          <td>6,674,372,000</td>
-          <td>180,337,041,000</td>
-          <td class="pos">3.70%</td>
-        </tr>
-        
-      </tbody>
-    </table>
-
-    <div class="footnote">
-      資料來源：FinMind TaiwanStockFinancialStatements（損益表，逐季 OperatingIncome 加總為年度EBIT代理，需湊滿4季才算完整會計年度）
-      與 TaiwanStockBalanceSheet（資產負債表，取每年底/Q4快照的總資產與流動負債）。表格中營業利益／已動用資本的金額單位
-      以 FinMind 原始回傳的數字為準（台股財報慣例上多數項目以千元為單位申報），未另外換算，如覺得數字量級不合理，
-      請對照該公司官方財報確認實際單位。已動用資本＝總資產－流動負債，是常見的簡化版 ROCE 算法，未扣除商譽等無形資產調整；
-      跨產業比較時建議搭配產業特性判讀（例如資本密集產業與輕資產產業的合理 ROCE 區間本來就不同）。純歷史數字，非對未來的預測或投資建議。
-    </div>
+    <div class="analyst-unavailable">目前資料不足，無法計算：缺少資產負債表（TaiwanStockBalanceSheet）資料，請確認 fetch_data.py 是否已抓取 balance_sheet 資料集</div>
     
   </div>
 

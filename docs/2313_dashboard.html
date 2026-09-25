@@ -225,23 +225,23 @@
         <span class="tag caution">區間操作</span>
       </div>
       <div class="meta">
-        分析週期：3-6個月｜風險偏好：穩健｜持股狀態：是｜產出時間：2026-09-24 15:46
+        分析週期：3-6個月｜風險偏好：穩健｜持股狀態：是｜產出時間：2026-09-25 13:15
       </div>
     </div>
     <div>
       <table class="infotable">
         
-        <tr><td class="k">股價日期</td><td class="v">2026-09-24</td></tr>
+        <tr><td class="k">股價日期</td><td class="v">2026-09-25</td></tr>
         
-        <tr><td class="k">融資日期</td><td class="v">2026-09-24</td></tr>
+        <tr><td class="k">融資日期</td><td class="v">2026-09-25</td></tr>
         
-        <tr><td class="k">法人日期</td><td class="v">2026-09-24</td></tr>
+        <tr><td class="k">法人日期</td><td class="v">2026-09-25</td></tr>
         
-        <tr><td class="k">籌碼分佈 CSV 日期</td><td class="v">2026-09-24</td></tr>
+        <tr><td class="k">籌碼分佈 CSV 日期</td><td class="v">2026-09-25</td></tr>
         
-        <tr><td class="k">經營績效 CSV 日期</td><td class="v">2026-09-24</td></tr>
+        <tr><td class="k">經營績效 CSV 日期</td><td class="v">2026-09-25</td></tr>
         
-        <tr><td class="k">SIGNAL_SUMMARY</td><td class="v">2026-09-24T15:46:35</td></tr>
+        <tr><td class="k">SIGNAL_SUMMARY</td><td class="v">2026-09-25T13:15:08</td></tr>
         
       </table>
     </div>
@@ -271,16 +271,16 @@
     <div class="score-grid">
       <div class="score-item">
         <div class="label">綜合評分</div>
-        <div class="score-value"><span class="num">55/100</span><span class="dot yellow"></span></div>
+        <div class="score-value"><span class="num">47/100</span><span class="dot yellow"></span></div>
       </div>
       <div class="score-item">
         <div class="label">風險等級</div>
         <div class="score-value"><span class="pill yellow">中</span></div>
       </div>
-      <div class="score-item" title="融資動能 72／融資使用率 100／大戶集中度 —（資料不足的子項已自動略過並重新分配權重）">
+      <div class="score-item" title="融資動能 —／融資使用率 —／大戶集中度 —（資料不足的子項已自動略過並重新分配權重）">
         <div class="label">籌碼乾淨度</div>
-        <div class="score-value"><span class="num">82/100</span><span class="dot green"></span></div>
-        <div class="chip-breakdown">融資動能72‧使用率100‧大戶—</div>
+        <div class="score-value"><span class="num">50/100</span><span class="dot yellow"></span></div>
+        <div class="chip-breakdown">融資動能—‧使用率—‧大戶—</div>
       </div>
       <div class="score-item">
         <div class="label">主力布局分數</div>
@@ -342,8 +342,8 @@
       
       <div class="light-item">
         <div class="name">融資浮額清洗</div>
-        <div class="dot green"></div>
-        <div class="status green">良好</div>
+        <div class="dot yellow"></div>
+        <div class="status yellow">留意</div>
       </div>
       
       <div class="light-item">
@@ -383,7 +383,7 @@
       </div>
       
     </div>
-    <div class="footnote">評分限制：未觸發主力中期或基本面限制</div>
+    <div class="footnote">評分限制：評分受基本面／籌碼轉弱限制，建議降低部位</div>
   </div>
 
   <div class="card">
@@ -430,6 +430,28 @@
         </div>
         <div class="signal-text neutral">
           <span class="signal-dot neutral"></span>未觸發主力建倉訊號：買超天數比例僅50%（門檻70%）；買超力道未加速
+        </div>
+        
+      </div>
+      
+      <div class="signal-card  neutral">
+        <div class="signal-card-head">
+          <span class="name">三大法人同買</span>
+          <span class="kind-tag">狀態型</span>
+        </div>
+        <div class="signal-text neutral">
+          <span class="signal-dot neutral"></span>近20個交易日三大法人同步淨買超僅2天（門檻3天），未觸發三大法人同買訊號
+        </div>
+        
+      </div>
+      
+      <div class="signal-card  neutral">
+        <div class="signal-card-head">
+          <span class="name">單一法人連買</span>
+          <span class="kind-tag">狀態型</span>
+        </div>
+        <div class="signal-text neutral">
+          <span class="signal-dot neutral"></span>目前各法人連續淨買超天數皆未達門檻5天（投信1天、外資0天、自營商0天），未觸發單一法人連買訊號
         </div>
         
       </div>
@@ -497,7 +519,9 @@
     </div>
     <div class="footnote">
       事件型訊號（均線交叉、評分區間轉換）只在「發生變化的當天」出現，隔天若沒有新變化就會顯示「無訊號」；
-      狀態型訊號（主力成本防守價、主力建倉訊號、短線／波段進出場提醒）只要條件持續成立就會一直顯示，不是只出現一次。
+      狀態型訊號（主力成本防守價、主力建倉訊號、三大法人同買、單一法人連買、短線／波段進出場提醒）只要條件
+      持續成立就會一直顯示，不是只出現一次。三大法人同買／單一法人連買是把主力建倉訊號用的三大法人合計買超
+      拆開來看：前者看外資／投信／自營商是否「同一天」同步買超，後者看是否有「單一」法人類別連續多天買超。
       短線（約1-2週）與波段（約1-2個月）進出場提醒以價量關係與K線型態為判斷基礎：進場看「是否貼近近期低點 +
       看漲反轉K線型態（多頭吞噬／槌子線）+ 價漲量增」，波段進場額外多一層中期均線多頭排列的趨勢過濾；
       出場則同時提供「ATR估算的停利停損參考價位」（任何時候都會顯示，方便隨時對照）與「技術反轉警訊」
@@ -532,7 +556,7 @@
       </div>
       <div class="analyst-narrative-block">
         <div class="label">籌碼面解析（自動計算）</div>
-        <div class="text ">近20個交易日三大法人買超天數10天；估算主力成本約240.02元；融資餘額近期減少1.4%；融資使用率11.6%。</div>
+        <div class="text ">近20個交易日三大法人買超天數10天；估算主力成本約240.02元。</div>
       </div>
     </div>
 

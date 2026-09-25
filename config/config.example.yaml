@@ -241,6 +241,24 @@ scoring:
     consolidation_shrink_ratio: 0.6 # 「盤整期量縮至極致」：近期均量需萎縮到前段均量的這個比例以下
     consolidation_range_cap_pct: 5  # 「盤整期量縮至極致」：近期股價波動幅度需收斂在這個百分比以內
 
+  # 三大法人同買細項設定，可省略，省略時採用下列預設值
+  # 兩個條件同時成立才觸發：近期同步買超天數夠多、且最近一次同步買超夠新
+  triple_institution_buy_detail:
+    min_triple_buy_days: 3   # 近 lookback_days 個交易日中，外資/投信/自營商同一天都淨買超的天數門檻
+    recency_days: 3          # 最近一次三大法人同步淨買超，需在近幾個交易日內，訊號才算夠新
+    min_days: 5              # 可比對交易日至少要有這麼多天，才進行判斷
+
+  # 單一法人連買細項設定，可省略，省略時採用下列預設值
+  # 第一層：三大法人類別中連續淨買超天數最長的一類需達門檻；第二層：買超連續性與持股比例變化
+  # 兩項輔助佐證，至少需符合 min_confirm_evidence 項才觸發（資料不足的項目會自動排除，不硬湊）
+  single_institution_streak_detail:
+    min_consecutive_days: 5           # 連續淨買超天數門檻
+    continuity_lookback_days: 20      # 「買超連續性」佐證：拉長到這麼多個交易日檢查買超天數比例
+    continuity_buy_ratio_threshold: 0.6  # 「買超連續性」佐證：買超天數比例需達這個比例以上
+    min_confirm_evidence: 1           # 買超連續性／持股比例變化兩項輔助佐證中，至少要有幾項成立
+    holder_lookback_snapshots: 4      # 「持股比例變化」佐證：比較最近幾次集保股權分散表（每週更新）
+    big_holder_min_shares: 400000     # 「持股比例變化」佐證：大戶門檻，持股張數下限（股數），400000股=400張
+
   # 短線（約1-2週）進場提醒細項設定，可省略，省略時採用下列預設值
   # 三個條件同時成立才會觸發：現價貼近近期低點、低檔區出現看漲反轉K線型態（多頭吞噬／槌子線）、
   # 當日價量關係為價漲量增

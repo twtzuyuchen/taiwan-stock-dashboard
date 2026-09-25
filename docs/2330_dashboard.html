@@ -225,7 +225,7 @@
         <span class="tag caution">區間操作</span>
       </div>
       <div class="meta">
-        分析週期：3-6個月｜風險偏好：穩健｜持股狀態：是｜產出時間：2026-09-25 13:11
+        分析週期：3-6個月｜風險偏好：穩健｜持股狀態：是｜產出時間：2026-09-25 14:24
       </div>
     </div>
     <div>
@@ -241,7 +241,7 @@
         
         <tr><td class="k">經營績效 CSV 日期</td><td class="v">2026-09-25</td></tr>
         
-        <tr><td class="k">SIGNAL_SUMMARY</td><td class="v">2026-09-25T13:11:43</td></tr>
+        <tr><td class="k">SIGNAL_SUMMARY</td><td class="v">2026-09-25T14:24:14</td></tr>
         
       </table>
     </div>
@@ -630,7 +630,10 @@
 
     <table class="roce-table">
       <thead>
-        <tr><th>年度</th><th>營業利益（EBIT代理）</th><th>年底已動用資本</th><th>ROCE</th></tr>
+        <tr>
+          <th>年度</th><th>營業利益（EBIT代理）</th><th>年底已動用資本</th><th>ROCE</th>
+          <th>隱含借款利率</th><th>高於資金成本？</th>
+        </tr>
       </thead>
       <tbody>
         
@@ -639,6 +642,10 @@
           <td>649,980,897,000</td>
           <td>2,986,000,097,000</td>
           <td class="pos">21.77%</td>
+          <td>資料不足</td>
+          <td class="">
+            —
+          </td>
         </tr>
         
         <tr>
@@ -646,6 +653,10 @@
           <td>1,121,278,851,000</td>
           <td>4,020,552,061,000</td>
           <td class="pos">27.89%</td>
+          <td>資料不足</td>
+          <td class="">
+            —
+          </td>
         </tr>
         
         <tr>
@@ -653,6 +664,10 @@
           <td>921,465,606,000</td>
           <td>4,618,787,899,000</td>
           <td class="pos">19.95%</td>
+          <td>資料不足</td>
+          <td class="">
+            —
+          </td>
         </tr>
         
         <tr>
@@ -660,6 +675,10 @@
           <td>1,322,053,050,000</td>
           <td>5,427,413,036,000</td>
           <td class="pos">24.36%</td>
+          <td>資料不足</td>
+          <td class="">
+            —
+          </td>
         </tr>
         
         <tr>
@@ -667,17 +686,47 @@
           <td>1,936,091,677,000</td>
           <td>6,475,004,589,000</td>
           <td class="pos">29.90%</td>
+          <td>資料不足</td>
+          <td class="">
+            —
+          </td>
         </tr>
         
       </tbody>
     </table>
 
+    <div class="analyst-narrative-grid">
+      <div class="analyst-narrative-block">
+        <div class="label">長期趨勢判讀（自動計算）</div>
+        <div class="text ">
+          近5年ROCE呈「大致上升」趨勢，且年度間波動度穩定（變動係數約14.9%），代表資金配置效率隨時間優化
+        </div>
+      </div>
+      <div class="analyst-narrative-block">
+        <div class="label">是否高於資金成本（自動計算，以隱含借款利率近似）</div>
+        <div class="text neutral">
+          損益表或資產負債表中找不到「利息費用」欄位，無法計算隱含借款利率；實際出現的損益表 type 有：['ComprehensiveIncomeConsolidatedNetIncomeAttributedNonControllingInterest', 'CostOfGoodsSold', 'EPS', 'EquityAttributableToOwnersOfParent', 'GrossProfit', 'IncomeAfterTaxes', 'IncomeFromContinuingOperations', 'NoncontrollingInterests', 'OTHNOE', 'OperatingExpenses', 'OperatingIncome', 'OtherComprehensiveIncome', 'PreTaxIncome', 'RealizedGain', 'Revenue', 'TAX', 'TotalConsolidatedProfitForThePeriod', 'TotalNonoperatingIncomeAndExpense']
+        </div>
+      </div>
+    </div>
+
+    <div class="analyst-unavailable" style="margin-top: 6px;">
+      ⚠ 與同業對比：本工具「未」自動計算產業別平均 ROCE。台灣證交所與公開資訊觀測站都沒有現成的產業別平均 ROCE 開放資料，
+      唯一可行的替代方案（用 FinMind 抓同產業別所有上市公司財報自己算平均）需要大量額外 API 呼叫，有超過免費額度的風險，
+      評估後未實作。ROCE 必須放在「同產業群組」中比較才有意義（例如資本密集產業的合理 ROCE 本來就低於輕資產產業），
+      請自行對照同業公開財報或財經資訊網站的數字。
+    </div>
+
     <div class="footnote">
       資料來源：FinMind TaiwanStockFinancialStatements（損益表，逐季 OperatingIncome 加總為年度EBIT代理，需湊滿4季才算完整會計年度）
       與 TaiwanStockBalanceSheet（資產負債表，取每年底/Q4快照的總資產與流動負債）。表格中營業利益／已動用資本的金額單位
       以 FinMind 原始回傳的數字為準（台股財報慣例上多數項目以千元為單位申報），未另外換算，如覺得數字量級不合理，
-      請對照該公司官方財報確認實際單位。已動用資本＝總資產－流動負債，是常見的簡化版 ROCE 算法，未扣除商譽等無形資產調整；
-      跨產業比較時建議搭配產業特性判讀（例如資本密集產業與輕資產產業的合理 ROCE 區間本來就不同）。純歷史數字，非對未來的預測或投資建議。
+      請對照該公司官方財報確認實際單位。已動用資本＝總資產－流動負債，是常見的簡化版 ROCE 算法，未扣除商譽等無形資產調整。
+      長期趨勢：用近5年ROCE逐年變化的方向（持續上升／大致上升／持平／下降）與變動係數（標準差÷平均值，
+      >=30%視為劇烈波動）判斷資金配置效率是否隨時間優化、獲利穩定度是否足夠。隱含借款利率：年度利息費用 ÷ 年底有息負債
+      （短期借款＋長期借款＋應付公司債，抓得到哪些項目就加總哪些），只是用借款成本近似資金成本的簡化代理，
+      不是納入股東權益機會成本的完整加權平均資金成本（WACC），ROCE 高於這個利率只代表報酬覆蓋了借款成本，
+      不代表覆蓋了完整的資金成本。純歷史數字，非對未來的預測或投資建議。
     </div>
     
   </div>

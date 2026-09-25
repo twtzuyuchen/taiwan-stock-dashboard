@@ -225,7 +225,7 @@
         <span class="tag ">建議布局</span>
       </div>
       <div class="meta">
-        分析週期：3-6個月｜風險偏好：穩健｜持股狀態：是｜產出時間：2026-09-25 13:14
+        分析週期：3-6個月｜風險偏好：穩健｜持股狀態：是｜產出時間：2026-09-25 14:25
       </div>
     </div>
     <div>
@@ -241,7 +241,7 @@
         
         <tr><td class="k">經營績效 CSV 日期</td><td class="v">2026-09-25</td></tr>
         
-        <tr><td class="k">SIGNAL_SUMMARY</td><td class="v">2026-09-25T13:14:06</td></tr>
+        <tr><td class="k">SIGNAL_SUMMARY</td><td class="v">2026-09-25T14:25:33</td></tr>
         
       </table>
     </div>
@@ -271,7 +271,7 @@
     <div class="score-grid">
       <div class="score-item">
         <div class="label">綜合評分</div>
-        <div class="score-value"><span class="num">70/100</span><span class="dot green"></span></div>
+        <div class="score-value"><span class="num">77/100</span><span class="dot green"></span></div>
       </div>
       <div class="score-item">
         <div class="label">風險等級</div>
@@ -300,7 +300,7 @@
       </div>
       <div class="score-item">
         <div class="label">基本面催化</div>
-        <div class="score-value"><span class="pill yellow">留意</span></div>
+        <div class="score-value"><span class="pill green">良好</span></div>
       </div>
     </div>
     <div class="footnote">
@@ -372,8 +372,8 @@
       
       <div class="light-item">
         <div class="name">基本面催化</div>
-        <div class="dot yellow"></div>
-        <div class="status yellow">留意</div>
+        <div class="dot green"></div>
+        <div class="status green">良好</div>
       </div>
       
       <div class="light-item">
@@ -611,7 +611,123 @@
     <div class="analyst-banner">⚠ 已動用資本回報率（ROCE）＝ 年度營業利益（作為稅前息前利益 EBIT 的代理，未扣除業外損益）÷ 年底已動用資本（總資產－流動負債）。以「完整會計年度」為單位規則式計算，反映公司運用資本創造獲利的效率；本卡片僅呈現歷史數字，非對未來的預測，也不構成投資建議。</div>
 
     
-    <div class="analyst-unavailable">目前資料不足，無法計算：缺少資產負債表（TaiwanStockBalanceSheet）資料，請確認 fetch_data.py 是否已抓取 balance_sheet 資料集</div>
+    
+
+    <div class="analyst-summary-grid">
+      <div class="analyst-summary-item">
+        <div class="label">最新完整年度 ROCE（2025）</div>
+        <div class="value">3.70%</div>
+      </div>
+      <div class="analyst-summary-item">
+        <div class="label">近5年平均 ROCE</div>
+        <div class="value">9.21%</div>
+      </div>
+      <div class="analyst-summary-item">
+        <div class="label">資料年度範圍</div>
+        <div class="value">2021 － 2025</div>
+      </div>
+    </div>
+
+    <table class="roce-table">
+      <thead>
+        <tr>
+          <th>年度</th><th>營業利益（EBIT代理）</th><th>年底已動用資本</th><th>ROCE</th>
+          <th>隱含借款利率</th><th>高於資金成本？</th>
+        </tr>
+      </thead>
+      <tbody>
+        
+        <tr>
+          <td>2021</td>
+          <td>13,170,291,000</td>
+          <td>120,994,926,000</td>
+          <td class="pos">10.88%</td>
+          <td>資料不足</td>
+          <td class="">
+            —
+          </td>
+        </tr>
+        
+        <tr>
+          <td>2022</td>
+          <td>38,171,926,000</td>
+          <td>163,770,866,000</td>
+          <td class="pos">23.31%</td>
+          <td>資料不足</td>
+          <td class="">
+            —
+          </td>
+        </tr>
+        
+        <tr>
+          <td>2023</td>
+          <td>8,919,919,000</td>
+          <td>171,758,601,000</td>
+          <td class="pos">5.19%</td>
+          <td>資料不足</td>
+          <td class="">
+            —
+          </td>
+        </tr>
+        
+        <tr>
+          <td>2024</td>
+          <td>5,116,677,000</td>
+          <td>172,465,088,000</td>
+          <td class="pos">2.97%</td>
+          <td>資料不足</td>
+          <td class="">
+            —
+          </td>
+        </tr>
+        
+        <tr>
+          <td>2025</td>
+          <td>6,674,372,000</td>
+          <td>180,337,041,000</td>
+          <td class="pos">3.70%</td>
+          <td>資料不足</td>
+          <td class="">
+            —
+          </td>
+        </tr>
+        
+      </tbody>
+    </table>
+
+    <div class="analyst-narrative-grid">
+      <div class="analyst-narrative-block">
+        <div class="label">長期趨勢判讀（自動計算）</div>
+        <div class="text ">
+          近5年ROCE呈「持平震盪」，沒有明顯持續上升或下降的方向，且年度間波動較大（變動係數約82.3%），獲利穩定度不足
+        </div>
+      </div>
+      <div class="analyst-narrative-block">
+        <div class="label">是否高於資金成本（自動計算，以隱含借款利率近似）</div>
+        <div class="text neutral">
+          損益表或資產負債表中找不到「利息費用」欄位，無法計算隱含借款利率；實際出現的損益表 type 有：['ComprehensiveIncomeConsolidatedNetIncomeAttributedNonControllingInterest', 'CostOfGoodsSold', 'EPS', 'EquityAttributableToOwnersOfParent', 'GrossProfit', 'IncomeAfterTaxes', 'IncomeFromContinuingOperations', 'NoncontrollingInterests', 'OTHNOE', 'OperatingExpenses', 'OperatingIncome', 'OtherComprehensiveIncome', 'PreTaxIncome', 'Revenue', 'TAX', 'TotalConsolidatedProfitForThePeriod', 'TotalNonoperatingIncomeAndExpense']
+        </div>
+      </div>
+    </div>
+
+    <div class="analyst-unavailable" style="margin-top: 6px;">
+      ⚠ 與同業對比：本工具「未」自動計算產業別平均 ROCE。台灣證交所與公開資訊觀測站都沒有現成的產業別平均 ROCE 開放資料，
+      唯一可行的替代方案（用 FinMind 抓同產業別所有上市公司財報自己算平均）需要大量額外 API 呼叫，有超過免費額度的風險，
+      評估後未實作。ROCE 必須放在「同產業群組」中比較才有意義（例如資本密集產業的合理 ROCE 本來就低於輕資產產業），
+      請自行對照同業公開財報或財經資訊網站的數字。
+    </div>
+
+    <div class="footnote">
+      資料來源：FinMind TaiwanStockFinancialStatements（損益表，逐季 OperatingIncome 加總為年度EBIT代理，需湊滿4季才算完整會計年度）
+      與 TaiwanStockBalanceSheet（資產負債表，取每年底/Q4快照的總資產與流動負債）。表格中營業利益／已動用資本的金額單位
+      以 FinMind 原始回傳的數字為準（台股財報慣例上多數項目以千元為單位申報），未另外換算，如覺得數字量級不合理，
+      請對照該公司官方財報確認實際單位。已動用資本＝總資產－流動負債，是常見的簡化版 ROCE 算法，未扣除商譽等無形資產調整。
+      長期趨勢：用近5年ROCE逐年變化的方向（持續上升／大致上升／持平／下降）與變動係數（標準差÷平均值，
+      >=30%視為劇烈波動）判斷資金配置效率是否隨時間優化、獲利穩定度是否足夠。隱含借款利率：年度利息費用 ÷ 年底有息負債
+      （短期借款＋長期借款＋應付公司債，抓得到哪些項目就加總哪些），只是用借款成本近似資金成本的簡化代理，
+      不是納入股東權益機會成本的完整加權平均資金成本（WACC），ROCE 高於這個利率只代表報酬覆蓋了借款成本，
+      不代表覆蓋了完整的資金成本。純歷史數字，非對未來的預測或投資建議。
+    </div>
     
   </div>
 

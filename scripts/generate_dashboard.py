@@ -253,6 +253,12 @@ def build_context(stock_id: str, stock_name: str, watch_cfg: dict, analysis: dic
         roce_years=roce.get("years", []),
         roce_avg=roce.get("avg_roce_pct"),
         roce_latest=roce.get("latest_roce_pct"),
+        # 長期趨勢判讀（持續上升/下降、波動度）：見 capital_returns.py 的 _classify_trend()
+        roce_trend=roce.get("trend", {"available": False}),
+        # 是否高於隱含借款利率（資金成本的簡化代理，非完整WACC）
+        roce_cost_of_capital_available=roce.get("cost_of_capital_available", False),
+        roce_cost_of_capital_reason=roce.get("cost_of_capital_reason"),
+        roce_cost_of_capital_narrative=roce.get("latest_cost_of_capital_narrative"),
     )
 
 
@@ -423,14 +429,31 @@ def demo_analysis(stock_id: str) -> dict:
             "reason": None,
             "note": None,
             "years": [
-                {"year": 2021, "ebit": 587_400_000, "capital_employed": 2_010_000_000, "roce_pct": 29.22},
-                {"year": 2022, "ebit": 649_200_000, "capital_employed": 2_240_000_000, "roce_pct": 28.98},
-                {"year": 2023, "ebit": 512_600_000, "capital_employed": 2_380_000_000, "roce_pct": 21.54},
-                {"year": 2024, "ebit": 601_800_000, "capital_employed": 2_510_000_000, "roce_pct": 23.97},
-                {"year": 2025, "ebit": 668_900_000, "capital_employed": 2_690_000_000, "roce_pct": 24.87},
+                {"year": 2021, "ebit": 587_400_000, "capital_employed": 2_010_000_000, "roce_pct": 29.22,
+                 "implied_borrowing_rate_pct": 2.15, "value_creating": True},
+                {"year": 2022, "ebit": 649_200_000, "capital_employed": 2_240_000_000, "roce_pct": 28.98,
+                 "implied_borrowing_rate_pct": 2.30, "value_creating": True},
+                {"year": 2023, "ebit": 512_600_000, "capital_employed": 2_380_000_000, "roce_pct": 21.54,
+                 "implied_borrowing_rate_pct": 2.42, "value_creating": True},
+                {"year": 2024, "ebit": 601_800_000, "capital_employed": 2_510_000_000, "roce_pct": 23.97,
+                 "implied_borrowing_rate_pct": 2.55, "value_creating": True},
+                {"year": 2025, "ebit": 668_900_000, "capital_employed": 2_690_000_000, "roce_pct": 24.87,
+                 "implied_borrowing_rate_pct": 2.68, "value_creating": True},
             ],
             "avg_roce_pct": 25.72,
             "latest_roce_pct": 24.87,
+            "trend": {
+                "available": True,
+                "direction": "大致上升",
+                "std_pct": 3.11,
+                "cv_pct": 12.1,
+                "volatility_high": False,
+                "narrative": "近5年ROCE呈「大致上升」趨勢，且年度間波動度穩定（變動係數約12.1%），代表資金配置效率隨時間優化",
+            },
+            "cost_of_capital_available": True,
+            "cost_of_capital_reason": None,
+            "latest_cost_of_capital_narrative": "最新年度（2025）ROCE 24.87% 高於估算的隱含借款利率 2.68%，顯示這一年資本運用的報酬有覆蓋借款成本並創造超額價值"
+                                                 "（此處僅以借款成本近似資金成本，未納入股東權益的機會成本，不是完整的加權平均資金成本 WACC）",
         },
     }
 

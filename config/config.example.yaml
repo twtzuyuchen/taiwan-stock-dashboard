@@ -329,6 +329,9 @@ scoring:
   # ROCE = 年度營業利益（EBIT代理）÷ 年底已動用資本（總資產－流動負債），見 scripts/capital_returns.py。
   roce_detail:
     years: 5   # 顯示最近幾個「完整會計年度」的 ROCE 趨勢（需搭配 finmind.roce_lookback_days 抓夠長的歷史資料）
+    # 長期趨勢判讀用的波動度門檻：變動係數（近幾年ROCE標準差 ÷ 平均值的絕對值）達到這個比例
+    # 以上，就判定為「劇烈波動」（獲利穩定度不足），否則視為波動度穩定。0.3 = 30%。
+    volatility_cv_threshold: 0.3
 
 output:
   dashboard_dir: "output"

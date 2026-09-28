@@ -87,15 +87,14 @@
 
   .light-grid {
     display: grid;
-    grid-template-columns: repeat(7, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 12px;
   }
-  @media (max-width: 900px) { .light-grid { grid-template-columns: repeat(4, 1fr); } }
   @media (max-width: 560px) { .light-grid { grid-template-columns: repeat(2, 1fr); } }
   .light-item {
     border: 1px solid var(--border);
     border-radius: 10px;
-    padding: 14px 10px;
+    padding: 14px 12px;
     text-align: center;
   }
   .light-item .name { font-size: 12.5px; color: var(--text-secondary); margin-bottom: 10px; }
@@ -104,6 +103,7 @@
   .light-item .status.green { color: var(--good); }
   .light-item .status.yellow { color: #8a5a00; }
   .light-item .status.red { color: var(--critical); }
+  .light-item .desc { font-size: 11.5px; line-height: 1.5; color: var(--text-secondary); margin-top: 8px; text-align: left; }
 
   .cost-panel {
     display: grid;
@@ -225,23 +225,23 @@
         <span class="tag caution">區間操作</span>
       </div>
       <div class="meta">
-        分析週期：1-3個月｜風險偏好：積極｜持股狀態：否｜產出時間：2026-09-25 15:47
+        分析週期：1-3個月｜風險偏好：積極｜持股狀態：否｜產出時間：2026-09-28 09:25
       </div>
     </div>
     <div>
       <table class="infotable">
         
-        <tr><td class="k">股價日期</td><td class="v">2026-09-25</td></tr>
+        <tr><td class="k">股價日期</td><td class="v">2026-09-28</td></tr>
         
-        <tr><td class="k">融資日期</td><td class="v">2026-09-25</td></tr>
+        <tr><td class="k">融資日期</td><td class="v">2026-09-28</td></tr>
         
-        <tr><td class="k">法人日期</td><td class="v">2026-09-25</td></tr>
+        <tr><td class="k">法人日期</td><td class="v">2026-09-28</td></tr>
         
-        <tr><td class="k">籌碼分佈 CSV 日期</td><td class="v">2026-09-25</td></tr>
+        <tr><td class="k">籌碼分佈 CSV 日期</td><td class="v">2026-09-28</td></tr>
         
-        <tr><td class="k">經營績效 CSV 日期</td><td class="v">2026-09-25</td></tr>
+        <tr><td class="k">經營績效 CSV 日期</td><td class="v">2026-09-28</td></tr>
         
-        <tr><td class="k">SIGNAL_SUMMARY</td><td class="v">2026-09-25T15:47:37</td></tr>
+        <tr><td class="k">SIGNAL_SUMMARY</td><td class="v">2026-09-28T09:25:50</td></tr>
         
       </table>
     </div>
@@ -344,42 +344,49 @@
         <div class="name">融資浮額清洗</div>
         <div class="dot green"></div>
         <div class="status green">良好</div>
+        <div class="desc">綜合近期融資餘額增減、融資使用率（是否接近追繳/斷頭風險）、大戶持股集中度趨勢三項，評估浮動籌碼是否洗清</div>
       </div>
       
       <div class="light-item">
         <div class="name">籌碼集中度</div>
         <div class="dot red"></div>
         <div class="status red">警示</div>
+        <div class="desc">以近 N 個交易日三大法人買超天數佔比，衡量籌碼是否集中在主力（法人）買方</div>
       </div>
       
       <div class="light-item">
         <div class="name">主力承接</div>
         <div class="dot red"></div>
         <div class="status red">警示</div>
+        <div class="desc">觀察三大法人近期買超力道是否轉強（近半段 vs 前半段買超力道比較），力道增強代表主力持續進場承接</div>
       </div>
       
       <div class="light-item">
         <div class="name">技術趨勢</div>
         <div class="dot yellow"></div>
         <div class="status yellow">留意</div>
+        <div class="desc">以5日、20日、60日均線排列判斷多空：均線多頭排列為偏多，空頭排列為偏空，糾結交叉則為盤整</div>
       </div>
       
       <div class="light-item">
         <div class="name">長期均線乖離</div>
         <div class="dot green"></div>
         <div class="status green">安全</div>
+        <div class="desc">股價偏離60日均線的幅度，乖離率絕對值達20%以上視為偏離過大，追高或追空風險較高</div>
       </div>
       
       <div class="light-item">
         <div class="name">基本面催化</div>
         <div class="dot green"></div>
         <div class="status green">良好</div>
+        <div class="desc">以最新月營收年增率為主要評分依據，並參考本益比河流位階（僅供參考、未計入評分），營收年增幅度越大分數越高</div>
       </div>
       
       <div class="light-item">
         <div class="name">綜合風險</div>
         <div class="dot yellow"></div>
         <div class="status yellow">留意</div>
+        <div class="desc">由籌碼乾淨度、主力布局、技術面、基本面四大構面依權重加總的綜合評分，反映整體風險等級</div>
       </div>
       
     </div>
@@ -589,7 +596,7 @@
         </div>
         <div class="analyst-scenario-body">
           <div class="k">盤勢特徵</div><div class="v">收盤價站穩跌破 1477.58 元（近20日支撐 × 0.5% 緩衝）</div>
-          <div class="k">統計說明</div><div class="v">歷史上符合條件的站穩突破事件只有 3 次，少於門檻 8 次，樣本太少不具參考意義（次一關鍵支撐位約 1000.0 元，近60日低點）</div>
+          <div class="k">統計說明</div><div class="v">歷史上符合條件的站穩突破事件只有 2 次，少於門檻 8 次，樣本太少不具參考意義（次一關鍵支撐位約 1000.0 元，近60日低點）</div>
         </div>
       </div>
       

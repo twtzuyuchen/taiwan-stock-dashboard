@@ -63,14 +63,21 @@ def build_context(stock_id: str, stock_name: str, watch_cfg: dict, analysis: dic
     ]
 
     lights = [
-        {"name": "融資浮額清洗", "light": chip["light"], "status": LIGHT_LABELS[chip["light"]]},
-        {"name": "籌碼集中度", "light": inst["light"], "status": LIGHT_LABELS[inst["light"]]},
-        {"name": "主力承接", "light": inst["light"], "status": LIGHT_LABELS[inst["light"]]},
-        {"name": "技術趨勢", "light": tech["light"], "status": LIGHT_LABELS[tech["light"]]},
+        {"name": "融資浮額清洗", "light": chip["light"], "status": LIGHT_LABELS[chip["light"]],
+         "desc": "綜合近期融資餘額增減、融資使用率（是否接近追繳/斷頭風險）、大戶持股集中度趨勢三項，評估浮動籌碼是否洗清"},
+        {"name": "籌碼集中度", "light": inst["light"], "status": LIGHT_LABELS[inst["light"]],
+         "desc": "以近 N 個交易日三大法人買超天數佔比，衡量籌碼是否集中在主力（法人）買方"},
+        {"name": "主力承接", "light": inst["light"], "status": LIGHT_LABELS[inst["light"]],
+         "desc": "觀察三大法人近期買超力道是否轉強（近半段 vs 前半段買超力道比較），力道增強代表主力持續進場承接"},
+        {"name": "技術趨勢", "light": tech["light"], "status": LIGHT_LABELS[tech["light"]],
+         "desc": "以5日、20日、60日均線排列判斷多空：均線多頭排列為偏多，空頭排列為偏空，糾結交叉則為盤整"},
         {"name": "長期均線乖離", "light": "green" if tech.get("bias_safe", True) else "red",
-         "status": "安全" if tech.get("bias_safe", True) else "偏離過大"},
-        {"name": "基本面催化", "light": fund["light"], "status": LIGHT_LABELS[fund["light"]]},
-        {"name": "綜合風險", "light": composite_light, "status": LIGHT_LABELS[composite_light]},
+         "status": "安全" if tech.get("bias_safe", True) else "偏離過大",
+         "desc": "股價偏離60日均線的幅度，乖離率絕對值達20%以上視為偏離過大，追高或追空風險較高"},
+        {"name": "基本面催化", "light": fund["light"], "status": LIGHT_LABELS[fund["light"]],
+         "desc": "以最新月營收年增率為主要評分依據，並參考本益比河流位階（僅供參考、未計入評分），營收年增幅度越大分數越高"},
+        {"name": "綜合風險", "light": composite_light, "status": LIGHT_LABELS[composite_light],
+         "desc": "由籌碼乾淨度、主力布局、技術面、基本面四大構面依權重加總的綜合評分，反映整體風險等級"},
     ]
 
     signals = analysis.get("signals", {})

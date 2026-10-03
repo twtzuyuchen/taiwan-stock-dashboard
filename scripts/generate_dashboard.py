@@ -100,7 +100,13 @@ def build_context(stock_id: str, stock_name: str, watch_cfg: dict, analysis: dic
         if sig.get("stop_loss_price") is not None:
             levels.append({"label": "停損參考價", "value": f"{sig['stop_loss_price']:.2f} 元"})
         if sig.get("take_profit_price") is not None:
-            levels.append({"label": "停利參考價", "value": f"{sig['take_profit_price']:.2f} 元"})
+            levels.append({"label": "第一停利參考價", "value": f"{sig['take_profit_price']:.2f} 元"})
+        if sig.get("take_profit_price_2") is not None:
+            levels.append({"label": "第二停利參考價", "value": f"{sig['take_profit_price_2']:.2f} 元"})
+        if sig.get("risk_reward_ratio") is not None:
+            levels.append({"label": "風險報酬比（第一停利）", "value": f"1 : {sig['risk_reward_ratio']:.2f}"})
+        if sig.get("risk_reward_ratio_2") is not None:
+            levels.append({"label": "風險報酬比（第二停利）", "value": f"1 : {sig['risk_reward_ratio_2']:.2f}"})
         return levels
 
     signal_cards = [
@@ -183,8 +189,19 @@ def build_context(stock_id: str, stock_name: str, watch_cfg: dict, analysis: dic
     outlook_key_levels = outlook.get("key_levels", {})
     outlook_technical = outlook.get("technical_narrative", {})
     outlook_chip = outlook.get("chip_narrative", {})
+    outlook_fund = outlook.get("fundamental_narrative", {})
 
     roce = analysis.get("capital_returns", {"available": False})
+
+    tf = analysis.get("timeframe_alignment", {"available": False})
+    eff = tech.get("efficiency", {"available": False})
+    vol = tech.get("volatility", {"available": False})
+
+    def _tf_label(block):
+        if not block or block.get("direction") is None:
+            return "—"
+        note = f"（{block['note']}）" if block.get("note") else ""
+        return f"{block['return_pct']:+.1f}%・{block['direction']}{note}"
 
     return dict(
         is_demo=is_demo,
@@ -251,7 +268,31 @@ def build_context(stock_id: str, stock_name: str, watch_cfg: dict, analysis: dic
         ao_technical_text=outlook_technical.get("text") or outlook_technical.get("reason"),
         ao_chip_available=outlook_chip.get("available", False),
         ao_chip_text=outlook_chip.get("text") or outlook_chip.get("reason"),
+        ao_fund_available=outlook_fund.get("available", False),
+        ao_fund_text=outlook_fund.get("text") or outlook_fund.get("reason"),
         ao_scenarios=outlook.get("scenarios", []),
+        # 多時間尺度對齊（輔助判讀，不納入 composite_score，也沒有獨立燈號）：
+        # 見 analyze.py 的 compute_timeframe_alignment()。
+        tf_available=tf.get("available", False),
+        tf_reason=tf.get("reason"),
+        tf_short_text=_tf_label(tf.get("short")),
+        tf_swing_text=_tf_label(tf.get("swing")),
+        tf_mid_text=_tf_label(tf.get("mid")),
+        tf_aligned=tf.get("aligned"),
+        tf_conflicting=tf.get("conflicting"),
+        tf_narrative=tf.get("narrative"),
+        # 技術面效率指標＋ATR歷史波動度分位（輔助判讀，不納入 composite_score，也沒有獨立燈號）：
+        # 見 analyze.py 的 _compute_trend_efficiency() / _compute_volatility_percentile()。
+        eff_available=eff.get("available", False),
+        eff_reason=eff.get("reason"),
+        eff_text=eff.get("text"),
+        eff_label=eff.get("label"),
+        eff_ratio=eff.get("efficiency_ratio"),
+        vol_available=vol.get("available", False),
+        vol_reason=vol.get("reason"),
+        vol_text=vol.get("text"),
+        vol_label=vol.get("label"),
+        vol_percentile=vol.get("percentile"),
         # 資本回報與獲利品質（卡片6）：ROCE 近5個完整會計年度趨勢，完全由 analyze.py 的
         # compute_roce_history() 自動計算（見 scripts/capital_returns.py），不需要任何人工設定。
         roce_available=roce.get("available", False),
@@ -304,8 +345,33 @@ def demo_analysis(stock_id: str) -> dict:
             "cost": 68.4, "current_price": 71.2, "unrealized_pct": 4.09,
             "buy_days": 7, "total_days": 10, "score": 92, "light": "green",
         },
-        "technical": {"trend": "偏多", "bias_pct": 8.3, "bias_safe": True, "score": 65, "light": "yellow"},
-        "fundamental": {"revenue_yoy_pct": 18.4, "per_percentile": 42.0, "score": 78, "light": "green"},
+        "technical": {
+            "trend": "偏多", "bias_pct": 8.3, "bias_safe": True, "score": 65, "light": "yellow",
+            "efficiency": {
+                "available": True, "efficiency_ratio": 0.58, "window_days": 20,
+                "label": "高效率趨勢",
+                "text": "近20個交易日效率指標為0.58（淨漲跌幅佔總波動路徑的比例），數值偏高代表走勢方向清楚、來回雜訊相對少，屬於較乾淨的趨勢走勢。",
+            },
+            "volatility": {
+                "available": True, "atr": 2.35, "percentile": 72.0, "sample_size": 240,
+                "label": "波動度中性",
+                "text": "目前ATR處於近240個交易日自身歷史分布的第72百分位，波動度水準大致落在自身歷史的中段，無明顯異常放大或收斂。",
+            },
+        },
+        "fundamental": {
+            "revenue_yoy_pct": 18.4, "per_percentile": 42.0, "score": 78, "light": "green",
+            "revenue_momentum": {
+                "available": True,
+                "latest_yoy_pct": 18.4,
+                "recent_3m_avg_yoy_pct": 15.2,
+                "prior_3m_avg_yoy_pct": 9.8,
+                "acceleration_pct": 5.4,
+                "positive_ratio_6m_pct": 100.0,
+                "consecutive_positive_months": 8,
+                "months_covered": 18,
+                "label": "營收成長加速",
+            },
+        },
         "signals": {
             "ma_cross": {
                 "signal": "golden_cross",
@@ -366,10 +432,14 @@ def demo_analysis(stock_id: str) -> dict:
                 "signal": None,
                 "active": False,
                 "horizon": "短線（約1-2週）",
-                "text": "停損參考價 69.30 元（現價-1.2倍ATR）、停利參考價 73.60 元（現價+2.0倍ATR）；目前無技術反轉警訊",
+                "text": "停損參考價 69.30 元（現價-1.2倍ATR）、第一停利參考價 73.60 元（現價+2.0倍ATR，風險報酬比約1:2.26）、"
+                         "第二停利參考價 76.48 元（現價+3.2倍ATR，風險報酬比約1:3.80）；目前無技術反轉警訊",
                 "light": "green",
                 "stop_loss_price": 69.3,
                 "take_profit_price": 73.6,
+                "take_profit_price_2": 76.48,
+                "risk_reward_ratio": 2.26,
+                "risk_reward_ratio_2": 3.80,
             },
             "swing_entry": {
                 "signal": None,
@@ -382,11 +452,15 @@ def demo_analysis(stock_id: str) -> dict:
                 "signal": "swing_exit_warning",
                 "active": True,
                 "horizon": "波段（約1-2個月）",
-                "text": "停損參考價 65.80 元（現價-2.0倍ATR）、停利參考價 82.10 元（現價+3.5倍ATR）；"
+                "text": "停損參考價 65.80 元（現價-2.0倍ATR）、第一停利參考價 82.10 元（現價+3.5倍ATR，風險報酬比約1:2.02）、"
+                         "第二停利參考價 90.60 元（現價+5.0倍ATR，風險報酬比約1:3.59）；"
                          "技術反轉警訊：2026-08-11 於近高點出現流星線（長上影線），建議留意獲利了結或執行停損",
                 "light": "red",
                 "stop_loss_price": 65.8,
                 "take_profit_price": 82.1,
+                "take_profit_price_2": 90.6,
+                "risk_reward_ratio": 2.02,
+                "risk_reward_ratio_2": 3.59,
             },
         },
         "analyst_outlook": {
@@ -407,6 +481,11 @@ def demo_analysis(stock_id: str) -> dict:
                 "available": True,
                 "text": "近20個交易日三大法人買超天數14天；估算主力成本約68.40元；融資餘額近期減少8.2%；"
                         "融資使用率22.5%；大戶持股比例46.8%，較上次上升1.60個百分點。",
+            },
+            "fundamental_narrative": {
+                "available": True,
+                "text": "營收動能判讀：營收成長加速。最新月營收年增率+18.4%；近3個月平均年增率+15.2%；"
+                        "近3個月平均年增率較前3個月加快5.4個百分點，成長動能在加速；連續8個月正年增；近6個月正年增比例100%。",
             },
             "scenarios": [
                 {
@@ -461,6 +540,15 @@ def demo_analysis(stock_id: str) -> dict:
             "cost_of_capital_reason": None,
             "latest_cost_of_capital_narrative": "最新年度（2025）ROCE 24.87% 高於估算的隱含借款利率 2.68%，顯示這一年資本運用的報酬有覆蓋借款成本並創造超額價值"
                                                  "（此處僅以借款成本近似資金成本，未納入股東權益的機會成本，不是完整的加權平均資金成本 WACC）",
+        },
+        "timeframe_alignment": {
+            "available": True,
+            "short": {"return_pct": 1.8, "direction": "盤整", "window_days": 5},
+            "swing": {"return_pct": 6.4, "direction": "偏多", "window_days": [20, 40], "note": None},
+            "mid": {"return_pct": 9.1, "direction": "偏多", "window_days": [60, 120], "note": None},
+            "aligned": False,
+            "conflicting": False,
+            "narrative": "短線「盤整」、波段「偏多」、中期「偏多」尚未完全一致（其中至少一個時間尺度為盤整），走勢方向尚待更明確的確認訊號。",
         },
     }
 

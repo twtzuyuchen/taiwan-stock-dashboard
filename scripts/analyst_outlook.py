@@ -258,6 +258,49 @@ def generate_chip_narrative(chip: dict, inst_cost: dict) -> dict:
     return {"available": True, "text": "；".join(parts) + "。"}
 
 
+def generate_fundamental_narrative(fund: dict) -> dict:
+    """基本面解析敘述文字：完全由 analyze.py 的 compute_fundamental() 已經算好的營收動能
+    數字（revenue_momentum：近3個月平均年增率、加速度、連續正年增月數、近6個月正年增
+    比例）組成一段話，不是新的計算邏輯。任一子項缺資料就跳過那句，不會硬湊；
+    revenue_momentum 整組不可用時才回傳 available=False。"""
+    momentum = (fund or {}).get("revenue_momentum") or {}
+    if not momentum.get("available"):
+        return {"available": False, "reason": "月營收歷史資料不足（需至少13個月以上資料才能算年增率）"}
+
+    parts = []
+    yoy = momentum.get("latest_yoy_pct")
+    if yoy is not None:
+        parts.append(f"最新月營收年增率{yoy:+.1f}%")
+
+    recent3 = momentum.get("recent_3m_avg_yoy_pct")
+    if recent3 is not None:
+        parts.append(f"近3個月平均年增率{recent3:+.1f}%")
+
+    accel = momentum.get("acceleration_pct")
+    if accel is not None:
+        if accel > 0:
+            parts.append(f"近3個月平均年增率較前3個月加快{accel:.1f}個百分點，成長動能在加速")
+        elif accel < 0:
+            parts.append(f"近3個月平均年增率較前3個月放緩{abs(accel):.1f}個百分點，成長動能在減速")
+        else:
+            parts.append("近3個月平均年增率與前3個月持平")
+
+    streak = momentum.get("consecutive_positive_months")
+    if streak is not None:
+        parts.append(f"連續{streak}個月正年增" if streak > 0 else "最新月並非正年增")
+
+    ratio6 = momentum.get("positive_ratio_6m_pct")
+    if ratio6 is not None:
+        parts.append(f"近6個月正年增比例{ratio6:.0f}%")
+
+    text = "；".join(parts) + "。" if parts else "營收資料不足，無法組成完整敘述"
+    label = momentum.get("label")
+    if label:
+        text = f"營收動能判讀：{label}。" + text
+
+    return {"available": True, "text": text}
+
+
 def _direction_scenario(direction_key: str, name: str, tone: str, key_levels: dict, breakout: dict) -> dict:
     """把 up/down 其中一個方向的突破情境資料，組成卡片要顯示的格式（不含任何「建議」字樣，
     只描述客觀價位與歷史事件統計）。"""
@@ -323,7 +366,7 @@ def compute_scenario_cards(key_levels: dict, breakout: dict) -> list[dict]:
 
 
 def compute_analyst_outlook(price_df: pd.DataFrame, tech: dict, chip: dict, inst_cost: dict,
-                             detail_config: dict | None = None) -> dict:
+                             fund: dict | None = None, detail_config: dict | None = None) -> dict:
     """卡片5的總入口：組合上面所有子計算，回傳樣板要用的完整結構。"""
     detail_config = detail_config or {}
     key_level_detail = detail_config.get("key_level_detail", {})
@@ -335,6 +378,7 @@ def compute_analyst_outlook(price_df: pd.DataFrame, tech: dict, chip: dict, inst
     breakout = compute_stock_breakout_scenarios(price_df, key_levels, breakout_detail)
     technical_narrative = generate_technical_narrative(price_df, tech, key_levels, narrative_detail)
     chip_narrative = generate_chip_narrative(chip, inst_cost)
+    fundamental_narrative = generate_fundamental_narrative(fund)
     scenarios = compute_scenario_cards(key_levels, breakout)
 
     return {
@@ -344,5 +388,6 @@ def compute_analyst_outlook(price_df: pd.DataFrame, tech: dict, chip: dict, inst
         "key_levels": key_levels,
         "technical_narrative": technical_narrative,
         "chip_narrative": chip_narrative,
+        "fundamental_narrative": fundamental_narrative,
         "scenarios": scenarios,
     }

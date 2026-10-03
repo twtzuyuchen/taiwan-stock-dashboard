@@ -881,9 +881,11 @@ def detect_short_term_entry(price_df: pd.DataFrame, detail_config: dict | None =
 
 def detect_short_term_exit(price_df: pd.DataFrame, detail_config: dict | None = None) -> dict:
     """短線（約1-2週）出場提醒（狀態型）：同時提供兩種出場依據——
-    1) 停利停損參考價位：以現價為基準，用短線 ATR（預設回溯10個交易日）估算正常波動大小，
+    1) 分段停利停損參考價位：以現價為基準，用短線 ATR（預設回溯10個交易日）估算正常波動大小，
        停損參考價 = 現價 - ATR * stop_atr_multiplier（預設1.2倍），
-       停利參考價 = 現價 + ATR * take_profit_atr_multiplier（預設2.0倍）；
+       第一停利參考價 = 現價 + ATR * take_profit_atr_multiplier（預設2.0倍，較近的分批獲利了結點），
+       第二停利參考價 = 現價 + ATR * take_profit_2_atr_multiplier（預設3.2倍，較遠的最終目標），
+       並各自算出對應的風險報酬比（(停利參考價-現價) / (現價-停損參考價)）；
        只要有近期股價資料就能算，跟是否觸發過進場訊號無關，任何時候都可以拿來對照手上部位
     2) 技術反轉警訊：現價貼近近 high_lookback_days（預設10個交易日）高點時，若出現看跌反轉
        K線型態（空頭吞噬或流星線），或當日價量關係為「價跌量增」，視為該留意獲利了結或
@@ -894,6 +896,7 @@ def detect_short_term_exit(price_df: pd.DataFrame, detail_config: dict | None = 
     atr_days = detail_config.get("atr_days", 10)
     stop_atr_multiplier = detail_config.get("stop_atr_multiplier", 1.2)
     take_profit_atr_multiplier = detail_config.get("take_profit_atr_multiplier", 2.0)
+    take_profit_2_atr_multiplier = detail_config.get("take_profit_2_atr_multiplier", 3.2)
     high_lookback_days = detail_config.get("high_lookback_days", 10)
     near_high_pct = detail_config.get("near_high_pct", 6.0)
     pattern_lookback_days = detail_config.get("pattern_lookback_days", 5)
@@ -914,6 +917,11 @@ def detect_short_term_exit(price_df: pd.DataFrame, detail_config: dict | None = 
 
     stop_loss_price = recent_close - atr * stop_atr_multiplier
     take_profit_price = recent_close + atr * take_profit_atr_multiplier
+    take_profit_price_2 = recent_close + atr * take_profit_2_atr_multiplier
+
+    risk = recent_close - stop_loss_price
+    risk_reward_ratio = round((take_profit_price - recent_close) / risk, 2) if risk > 0 else None
+    risk_reward_ratio_2 = round((take_profit_price_2 - recent_close) / risk, 2) if risk > 0 else None
 
     high_window = df.tail(high_lookback_days)
     period_high = float(high_window["max"].astype(float).max())
@@ -931,11 +939,20 @@ def detect_short_term_exit(price_df: pd.DataFrame, detail_config: dict | None = 
         and vol_rel["volume_ratio"] >= volume_warn_multiplier
     )
 
-    base_text = f"停損參考價 {stop_loss_price:.2f} 元（現價-{stop_atr_multiplier}倍ATR）、停利參考價 {take_profit_price:.2f} 元（現價+{take_profit_atr_multiplier}倍ATR）"
+    base_text = (
+        f"停損參考價 {stop_loss_price:.2f} 元（現價-{stop_atr_multiplier}倍ATR）、"
+        f"第一停利參考價 {take_profit_price:.2f} 元（現價+{take_profit_atr_multiplier}倍ATR"
+        + (f"，風險報酬比約1:{risk_reward_ratio:.2f}" if risk_reward_ratio is not None else "") + "）、"
+        f"第二停利參考價 {take_profit_price_2:.2f} 元（現價+{take_profit_2_atr_multiplier}倍ATR"
+        + (f"，風險報酬比約1:{risk_reward_ratio_2:.2f}" if risk_reward_ratio_2 is not None else "") + "）"
+    )
     common_fields = {
         "horizon": "短線（約1-2週）",
         "stop_loss_price": round(stop_loss_price, 2),
         "take_profit_price": round(take_profit_price, 2),
+        "take_profit_price_2": round(take_profit_price_2, 2),
+        "risk_reward_ratio": risk_reward_ratio,
+        "risk_reward_ratio_2": risk_reward_ratio_2,
     }
 
     warnings = []
@@ -1040,9 +1057,10 @@ def detect_swing_entry(price_df: pd.DataFrame, detail_config: dict | None = None
 
 def detect_swing_exit(price_df: pd.DataFrame, detail_config: dict | None = None) -> dict:
     """波段（約1-2個月）出場提醒（狀態型）：同時提供兩種出場依據——
-    1) 停利停損參考價位：邏輯與短線出場提醒相同，但改用較長的 ATR 回溯天數（預設20個
-       交易日）與較寬的倍數（停損預設2.0倍ATR、停利預設3.5倍ATR），反映波段操作能承受
-       較大波動、停損距離也拉得比短線更遠
+    1) 分段停利停損參考價位：邏輯與短線出場提醒相同，但改用較長的 ATR 回溯天數（預設20個
+       交易日）與較寬的倍數（停損預設2.0倍ATR、第一停利預設3.5倍ATR、第二停利預設5.0倍
+       ATR），反映波段操作能承受較大波動、停損距離也拉得比短線更遠；同樣會附上對應第一/
+       第二停利的風險報酬比
     2) 技術反轉警訊：除了「看跌反轉K線型態」「價跌量增」之外，額外加入「中期均線死亡
        交叉」（trend_ma_fast 由上往下穿越 trend_ma_slow）——短線出場只看價格轉折，波段
        出場則多看一層「波段格局本身是否轉弱」
@@ -1052,6 +1070,7 @@ def detect_swing_exit(price_df: pd.DataFrame, detail_config: dict | None = None)
     atr_days = detail_config.get("atr_days", 20)
     stop_atr_multiplier = detail_config.get("stop_atr_multiplier", 2.0)
     take_profit_atr_multiplier = detail_config.get("take_profit_atr_multiplier", 3.5)
+    take_profit_2_atr_multiplier = detail_config.get("take_profit_2_atr_multiplier", 5.0)
     high_lookback_days = detail_config.get("high_lookback_days", 20)
     near_high_pct = detail_config.get("near_high_pct", 8.0)
     pattern_lookback_days = detail_config.get("pattern_lookback_days", 10)
@@ -1074,6 +1093,11 @@ def detect_swing_exit(price_df: pd.DataFrame, detail_config: dict | None = None)
 
     stop_loss_price = recent_close - atr * stop_atr_multiplier
     take_profit_price = recent_close + atr * take_profit_atr_multiplier
+    take_profit_price_2 = recent_close + atr * take_profit_2_atr_multiplier
+
+    risk = recent_close - stop_loss_price
+    risk_reward_ratio = round((take_profit_price - recent_close) / risk, 2) if risk > 0 else None
+    risk_reward_ratio_2 = round((take_profit_price_2 - recent_close) / risk, 2) if risk > 0 else None
 
     high_window = df.tail(high_lookback_days)
     period_high = float(high_window["max"].astype(float).max())
@@ -1100,11 +1124,20 @@ def detect_swing_exit(price_df: pd.DataFrame, detail_config: dict | None = None)
         curr_diff = ma_fast.iloc[-1] - ma_slow.iloc[-1]
         trend_break = bool(prev_diff >= 0 and curr_diff < 0)
 
-    base_text = f"停損參考價 {stop_loss_price:.2f} 元（現價-{stop_atr_multiplier}倍ATR）、停利參考價 {take_profit_price:.2f} 元（現價+{take_profit_atr_multiplier}倍ATR）"
+    base_text = (
+        f"停損參考價 {stop_loss_price:.2f} 元（現價-{stop_atr_multiplier}倍ATR）、"
+        f"第一停利參考價 {take_profit_price:.2f} 元（現價+{take_profit_atr_multiplier}倍ATR"
+        + (f"，風險報酬比約1:{risk_reward_ratio:.2f}" if risk_reward_ratio is not None else "") + "）、"
+        f"第二停利參考價 {take_profit_price_2:.2f} 元（現價+{take_profit_2_atr_multiplier}倍ATR"
+        + (f"，風險報酬比約1:{risk_reward_ratio_2:.2f}" if risk_reward_ratio_2 is not None else "") + "）"
+    )
     common_fields = {
         "horizon": "波段（約1-2個月）",
         "stop_loss_price": round(stop_loss_price, 2),
         "take_profit_price": round(take_profit_price, 2),
+        "take_profit_price_2": round(take_profit_price_2, 2),
+        "risk_reward_ratio": risk_reward_ratio,
+        "risk_reward_ratio_2": risk_reward_ratio_2,
     }
 
     warnings = []

@@ -32,6 +32,11 @@ import pandas as pd
 import yaml
 from jinja2 import Environment, FileSystemLoader
 
+from price_level_stats import (
+    compute_key_levels as _compute_key_levels_generic,
+    compute_breakout_scenarios as _compute_breakout_scenarios_generic,
+)
+
 INDEX_LABELS = {
     "nasdaq": "納斯達克綜合指數",
     "sox": "費城半導體指數",
@@ -263,141 +268,29 @@ def compute_futures_basis(txf_summary: dict, twii_summary: dict) -> dict:
 
 def compute_key_levels(twii_df: pd.DataFrame, detail_config: dict | None = None) -> dict:
     """完全獨立於美股連動判斷之外，純粹用台股加權指數自身的價格行為算出的關鍵點位：
-    近期高低點（支撐／壓力）、均線、以及用 ATR（真實波動幅度）估算的今日可能波動區間。"""
+    近期高低點（支撐／壓力）、均線、以及用 ATR（真實波動幅度）估算的今日可能波動區間。
+    核心算法見 price_level_stats.compute_key_levels()（整合清理：這段邏輯原本跟
+    analyst_outlook.py 的 compute_stock_key_levels() 各寫一份，現已抽出共用，數值與
+    行為完全不變）。"""
     detail_config = detail_config or {}
     range_days = detail_config.get("recent_range_days", 20)
     atr_days = detail_config.get("atr_days", 14)
-
-    required = {"date", "close", "high", "low"}
-    if twii_df.empty or not required.issubset(twii_df.columns) or len(twii_df) < max(range_days, atr_days) + 1:
-        return {"available": False,
-                "reason": f"台股加權指數歷史資料不足（需要至少 {max(range_days, atr_days) + 1} 個交易日）"}
-
-    df = twii_df.sort_values("date").copy()
-    prev_close = float(df["close"].iloc[-1])
-
-    recent = df.tail(range_days)
-    resistance = float(recent["high"].max())
-    support = float(recent["low"].min())
-
-    ma5 = float(df["close"].tail(5).mean()) if len(df) >= 5 else None
-    ma20 = float(df["close"].tail(20).mean()) if len(df) >= 20 else None
-    ma60 = float(df["close"].tail(60).mean()) if len(df) >= 60 else None
-
-    high, low, close = df["high"], df["low"], df["close"]
-    prev_close_series = close.shift(1)
-    true_range = pd.concat([
-        high - low,
-        (high - prev_close_series).abs(),
-        (low - prev_close_series).abs(),
-    ], axis=1).max(axis=1)
-    atr = float(true_range.tail(atr_days).mean())
-
-    return {
-        "available": True,
-        "prev_close": round(prev_close, 1),
-        "resistance": round(resistance, 1),
-        "support": round(support, 1),
-        "range_days": range_days,
-        "ma5": round(ma5, 1) if ma5 else None,
-        "ma20": round(ma20, 1) if ma20 else None,
-        "ma60": round(ma60, 1) if ma60 else None,
-        "atr": round(atr, 1),
-        "atr_days": atr_days,
-        "expected_range_low": round(prev_close - atr, 1),
-        "expected_range_high": round(prev_close + atr, 1),
-    }
-
-
-def _historical_breakout_stats(df: pd.DataFrame, range_days: int, follow_through_days: int,
-                                buffer_pct: float, direction: str, min_samples: int) -> dict:
-    """在台股加權指數的歷史資料裡，找出過去所有「收盤價站穩突破近 range_days 日高／低點」的事件
-    （站穩＝超出當時的區間高／低點達 buffer_pct 緩衝以上，不是隨便碰一下就算），
-    量測這些事件發生後，接下來 follow_through_days 個交易日的報酬分佈。
-    這是純粹的歷史事件統計（event study），不是預測模型；事件之間可能重疊（例如連續上漲時
-    每天都符合條件），樣本並非完全獨立，只能當作方向性的歷史頻率參考，不是嚴謹的統計推論。"""
-    highs, lows, closes = df["high"].to_numpy(), df["low"].to_numpy(), df["close"].to_numpy()
-    n = len(df)
-    fwd_returns = []
-    for i in range(range_days, n - follow_through_days):
-        window_high = highs[i - range_days:i].max()
-        window_low = lows[i - range_days:i].min()
-        c = closes[i]
-        triggered = (
-            c > window_high * (1 + buffer_pct / 100) if direction == "up"
-            else c < window_low * (1 - buffer_pct / 100)
-        )
-        if triggered:
-            fwd_returns.append((closes[i + follow_through_days] - c) / c * 100)
-
-    if len(fwd_returns) < min_samples:
-        return {"available": False, "sample_size": len(fwd_returns),
-                "reason": f"歷史上符合條件的站穩突破事件只有 {len(fwd_returns)} 次，少於門檻 {min_samples} 次，樣本太少不具參考意義"}
-
-    arr = np.array(fwd_returns)
-    continued_mask = arr > 0 if direction == "up" else arr < 0
-    return {
-        "available": True,
-        "sample_size": int(len(arr)),
-        "avg_return_pct": round(float(arr.mean()), 2),
-        "median_return_pct": round(float(np.median(arr)), 2),
-        "pct_continued": round(float(continued_mask.mean() * 100), 1),
-    }
+    return _compute_key_levels_generic(
+        twii_df, range_days, atr_days, high_col="high", low_col="low", round_digits=1,
+        price_field="prev_close", insufficient_data_label="台股加權指數歷史資料",
+    )
 
 
 def compute_breakout_scenarios(twii_df: pd.DataFrame, key_levels: dict, detail_config: dict | None = None) -> dict:
     """如果加權指數「跌破／漲過」上面關鍵點位卡片算出的近期支撐／壓力，並且站穩（收盤價超出緩衝
     百分比，不是盤中曇花一現），下一個要留意的關鍵點位在哪裡、歷史上出現類似情況後接下來大概怎麼走。
-
-    次一層關鍵點位：用比近期支撐/壓力更長的回溯天數（extended_range_days）找更高／更低的歷史價位；
-    找不到更極端的價位時（例如近期高點剛好也是長期新高），會明講「需留意創新高/新低後的價格發現階段」，
-    不會硬湊一個數字出來。後續可能走勢：用歷史事件統計（見 _historical_breakout_stats），不是預測模型。"""
-    detail_config = detail_config or {}
-    if not key_levels.get("available"):
-        return {"available": False, "reason": "上游關鍵點位資料不足，無法計算突破情境"}
-
-    confirm_buffer_pct = detail_config.get("confirm_buffer_pct", 0.3)
-    extended_range_days = detail_config.get("extended_range_days", 60)
-    follow_through_days = detail_config.get("follow_through_days", 5)
-    min_event_samples = detail_config.get("min_event_samples", 8)
-
-    df = twii_df.sort_values("date").reset_index(drop=True)
-    range_days = key_levels["range_days"]
-    resistance = key_levels["resistance"]
-    support = key_levels["support"]
-
-    if len(df) >= extended_range_days:
-        extended_high = float(df["high"].tail(extended_range_days).max())
-        extended_low = float(df["low"].tail(extended_range_days).min())
-    else:
-        extended_high = extended_low = None
-
-    next_resistance = extended_high if extended_high and extended_high > resistance * 1.001 else None
-    next_support = extended_low if extended_low and extended_low < support * 0.999 else None
-
-    up_stats = _historical_breakout_stats(df, range_days, follow_through_days, confirm_buffer_pct, "up", min_event_samples)
-    down_stats = _historical_breakout_stats(df, range_days, follow_through_days, confirm_buffer_pct, "down", min_event_samples)
-
-    return {
-        "available": True,
-        "confirm_buffer_pct": confirm_buffer_pct,
-        "extended_range_days": extended_range_days,
-        "follow_through_days": follow_through_days,
-        "up": {
-            "trigger_price": round(resistance * (1 + confirm_buffer_pct / 100), 1),
-            "next_level": round(next_resistance, 1) if next_resistance else None,
-            "next_level_label": (f"近{extended_range_days}日高點" if next_resistance
-                                  else "近期高點已是近期區間內相對高點，需留意創新高後的價格發現階段（缺乏歷史高點參考）"),
-            "stats": up_stats,
-        },
-        "down": {
-            "trigger_price": round(support * (1 - confirm_buffer_pct / 100), 1),
-            "next_level": round(next_support, 1) if next_support else None,
-            "next_level_label": (f"近{extended_range_days}日低點" if next_support
-                                  else "近期低點已是近期區間內相對低點，需留意創新低後的價格發現階段（缺乏歷史低點參考）"),
-            "stats": down_stats,
-        },
-    }
+    核心算法見 price_level_stats.compute_breakout_scenarios()（整合清理：這段邏輯原本跟
+    analyst_outlook.py 的 compute_stock_breakout_scenarios() 各寫一份，現已抽出共用，
+    數值與行為完全不變）。"""
+    return _compute_breakout_scenarios_generic(
+        twii_df, key_levels, detail_config, high_col="high", low_col="low",
+        round_digits=1, default_confirm_buffer_pct=0.3,
+    )
 
 
 def compute_market_overview(config: dict, cache_dir: str = "output/cache") -> dict:

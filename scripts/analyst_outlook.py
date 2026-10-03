@@ -9,15 +9,17 @@ analyst_outlook.py
 
 這個模組改成完全用「已經在抓的資料」自動算出客觀內容，讓每一檔追蹤股票都會顯示這張卡片：
 
-  1) 關鍵支撐／壓力位與ATR預期波動區間 —— 邏輯跟「今日大盤/期貨情境」頁面的
-     compute_key_levels() 完全相同，只是套用在個股價格，不是加權指數。
+  1) 關鍵支撐／壓力位與ATR預期波動區間 —— 跟「今日大盤/期貨情境」頁面（market_overview.py）
+     套用在加權指數的算法完全相同，只是這裡套用在個股價格；共用核心算法見
+     price_level_stats.compute_key_levels()（整合清理：原本兩邊各寫一份，已抽出共用）。
   2) 技術面解析 —— 把 analyze.py 已經算好的技術趨勢（均線多空排列、乖離率）與這裡新算的
      近期高低點、成交量趨勢，組成一段敘述文字，不是新的計算邏輯，只是換句話說。
   3) 籌碼面解析 —— 把 analyze.py 已經算好的主力成本、籌碼乾淨度子項（融資動能、融資使用率、
      大戶持股）組成一段敘述文字，同樣不是新邏輯。
-  4) 情境A/B/C —— 邏輯跟「今日大盤/期貨情境」頁面的 compute_breakout_scenarios() /
-     _historical_breakout_stats() 完全相同（事件研究法：歷史上每次「收盤價站穩突破近期
-     高/低點」之後，接下來幾個交易日平均報酬與正報酬比例），套用在個股價格。用「歷史事件
+  4) 情境A/B/C —— 跟「今日大盤/期貨情境」頁面的突破情境分析（事件研究法：歷史上每次
+     「收盤價站穩突破近期高/低點」之後，接下來幾個交易日平均報酬與正報酬比例）完全相同，
+     套用在個股價格；共用核心算法見 price_level_stats.compute_breakout_scenarios() 與
+     historical_breakout_stats()（整合清理：原本兩邊各寫一份，已抽出共用）。用「歷史事件
      統計」取代原本分析師報告裡主觀的「發生機率：高/中/低」，並且不產生「建議買賣」文字
      ——跟儀表板其他卡片一樣，只呈現規則式計算出的客觀資訊，實際進出場判斷留給使用者自己。
 
@@ -27,8 +29,12 @@ analyst_outlook.py
 """
 from __future__ import annotations
 
-import numpy as np
 import pandas as pd
+
+from price_level_stats import (
+    compute_key_levels as _compute_key_levels_generic,
+    compute_breakout_scenarios as _compute_breakout_scenarios_generic,
+)
 
 _OHLC_COLS = {"open", "max", "min", "close"}
 
@@ -36,49 +42,16 @@ _OHLC_COLS = {"open", "max", "min", "close"}
 def compute_stock_key_levels(price_df: pd.DataFrame, detail_config: dict | None = None) -> dict:
     """個股關鍵支撐/壓力位與ATR預期波動區間。邏輯與 market_overview.py 的
     compute_key_levels() 完全相同，只是這裡的價格欄位是 max/min（FinMind TaiwanStockPrice
-    的原始欄位名稱），不是 high/low。"""
+    的原始欄位名稱），不是 high/low。核心算法見 price_level_stats.compute_key_levels()
+    （整合清理：這段邏輯原本跟 market_overview.py 各寫一份，現已抽出共用，數值與行為
+    完全不變）。"""
     detail_config = detail_config or {}
     range_days = detail_config.get("recent_range_days", 20)
     atr_days = detail_config.get("atr_days", 14)
-
-    required = {"date", "close", "max", "min"}
-    min_rows = max(range_days, atr_days) + 1
-    if price_df.empty or not required.issubset(price_df.columns) or len(price_df) < min_rows:
-        return {"available": False, "reason": f"個股歷史股價資料不足（需要至少 {min_rows} 個交易日）"}
-
-    df = price_df.sort_values("date").copy()
-    current_price = float(df["close"].iloc[-1])
-
-    recent = df.tail(range_days)
-    resistance = float(recent["max"].astype(float).max())
-    support = float(recent["min"].astype(float).min())
-
-    close = df["close"].astype(float)
-    ma5 = float(close.tail(5).mean()) if len(df) >= 5 else None
-    ma20 = float(close.tail(20).mean()) if len(df) >= 20 else None
-    ma60 = float(close.tail(60).mean()) if len(df) >= 60 else None
-
-    high, low = df["max"].astype(float), df["min"].astype(float)
-    prev_close = close.shift(1)
-    true_range = pd.concat(
-        [high - low, (high - prev_close).abs(), (low - prev_close).abs()], axis=1
-    ).max(axis=1)
-    atr = float(true_range.tail(atr_days).mean())
-
-    return {
-        "available": True,
-        "current_price": round(current_price, 2),
-        "resistance": round(resistance, 2),
-        "support": round(support, 2),
-        "range_days": range_days,
-        "ma5": round(ma5, 2) if ma5 else None,
-        "ma20": round(ma20, 2) if ma20 else None,
-        "ma60": round(ma60, 2) if ma60 else None,
-        "atr": round(atr, 2),
-        "atr_days": atr_days,
-        "expected_range_low": round(current_price - atr, 2),
-        "expected_range_high": round(current_price + atr, 2),
-    }
+    return _compute_key_levels_generic(
+        price_df, range_days, atr_days, high_col="max", low_col="min", round_digits=2,
+        price_field="current_price", insufficient_data_label="個股歷史股價資料",
+    )
 
 
 def compute_price_change(price_df: pd.DataFrame) -> dict:
@@ -92,94 +65,17 @@ def compute_price_change(price_df: pd.DataFrame) -> dict:
     return {"available": True, "price": round(latest, 2), "change_pct": round((latest - prev) / prev * 100, 2)}
 
 
-def _historical_breakout_stats(df: pd.DataFrame, range_days: int, follow_through_days: int,
-                                buffer_pct: float, direction: str, min_samples: int) -> dict:
-    """個股版本的歷史事件統計，邏輯與 market_overview.py 的 _historical_breakout_stats()
-    完全相同（見該處docstring），只是這裡吃的欄位是 max/min 不是 high/low。純粹的歷史事件
-    統計（event study），不是預測模型；事件之間可能重疊，樣本並非完全獨立，只能當作方向性
-    的歷史頻率參考，不是嚴謹的統計推論。"""
-    highs = df["max"].astype(float).to_numpy()
-    lows = df["min"].astype(float).to_numpy()
-    closes = df["close"].astype(float).to_numpy()
-    n = len(df)
-    fwd_returns = []
-    for i in range(range_days, n - follow_through_days):
-        window_high = highs[i - range_days:i].max()
-        window_low = lows[i - range_days:i].min()
-        c = closes[i]
-        triggered = (
-            c > window_high * (1 + buffer_pct / 100) if direction == "up"
-            else c < window_low * (1 - buffer_pct / 100)
-        )
-        if triggered:
-            fwd_returns.append((closes[i + follow_through_days] - c) / c * 100)
-
-    if len(fwd_returns) < min_samples:
-        return {"available": False, "sample_size": len(fwd_returns),
-                "reason": f"歷史上符合條件的站穩突破事件只有 {len(fwd_returns)} 次，少於門檻 {min_samples} 次，樣本太少不具參考意義"}
-
-    arr = np.array(fwd_returns)
-    continued_mask = arr > 0 if direction == "up" else arr < 0
-    return {
-        "available": True,
-        "sample_size": int(len(arr)),
-        "avg_return_pct": round(float(arr.mean()), 2),
-        "median_return_pct": round(float(np.median(arr)), 2),
-        "pct_continued": round(float(continued_mask.mean() * 100), 1),
-    }
-
-
 def compute_stock_breakout_scenarios(price_df: pd.DataFrame, key_levels: dict,
                                       detail_config: dict | None = None) -> dict:
     """個股版本的突破/跌破情境分析，邏輯與 market_overview.py 的 compute_breakout_scenarios()
     完全相同：如果股價「漲過／跌破」關鍵支撐壓力並站穩，下一個關鍵點位在哪、歷史上出現
-    類似情況後接下來平均怎麼走（歷史事件統計，不是預測）。"""
-    detail_config = detail_config or {}
-    if not key_levels.get("available"):
-        return {"available": False, "reason": "上游關鍵點位資料不足，無法計算突破情境"}
-
-    confirm_buffer_pct = detail_config.get("confirm_buffer_pct", 0.5)
-    extended_range_days = detail_config.get("extended_range_days", 60)
-    follow_through_days = detail_config.get("follow_through_days", 5)
-    min_event_samples = detail_config.get("min_event_samples", 8)
-
-    df = price_df.sort_values("date").reset_index(drop=True)
-    range_days = key_levels["range_days"]
-    resistance = key_levels["resistance"]
-    support = key_levels["support"]
-
-    if len(df) >= extended_range_days:
-        extended_high = float(df["max"].astype(float).tail(extended_range_days).max())
-        extended_low = float(df["min"].astype(float).tail(extended_range_days).min())
-    else:
-        extended_high = extended_low = None
-
-    next_resistance = extended_high if extended_high and extended_high > resistance * 1.001 else None
-    next_support = extended_low if extended_low and extended_low < support * 0.999 else None
-
-    up_stats = _historical_breakout_stats(df, range_days, follow_through_days, confirm_buffer_pct, "up", min_event_samples)
-    down_stats = _historical_breakout_stats(df, range_days, follow_through_days, confirm_buffer_pct, "down", min_event_samples)
-
-    return {
-        "available": True,
-        "confirm_buffer_pct": confirm_buffer_pct,
-        "extended_range_days": extended_range_days,
-        "follow_through_days": follow_through_days,
-        "up": {
-            "trigger_price": round(resistance * (1 + confirm_buffer_pct / 100), 2),
-            "next_level": round(next_resistance, 2) if next_resistance else None,
-            "next_level_label": (f"近{extended_range_days}日高點" if next_resistance
-                                  else "近期高點已是近期區間內相對高點，需留意創新高後的價格發現階段（缺乏歷史高點參考）"),
-            "stats": up_stats,
-        },
-        "down": {
-            "trigger_price": round(support * (1 - confirm_buffer_pct / 100), 2),
-            "next_level": round(next_support, 2) if next_support else None,
-            "next_level_label": (f"近{extended_range_days}日低點" if next_support
-                                  else "近期低點已是近期區間內相對低點，需留意創新低後的價格發現階段（缺乏歷史低點參考）"),
-            "stats": down_stats,
-        },
-    }
+    類似情況後接下來平均怎麼走（歷史事件統計，不是預測）。核心算法見
+    price_level_stats.compute_breakout_scenarios()（整合清理：這段邏輯原本跟
+    market_overview.py 各寫一份，現已抽出共用，數值與行為完全不變）。"""
+    return _compute_breakout_scenarios_generic(
+        price_df, key_levels, detail_config, high_col="max", low_col="min",
+        round_digits=2, default_confirm_buffer_pct=0.5,
+    )
 
 
 def generate_technical_narrative(price_df: pd.DataFrame, tech: dict, key_levels: dict,

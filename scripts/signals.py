@@ -296,6 +296,43 @@ def _detect_consolidation_volume_shrink(price_df: pd.DataFrame,
             "text": f"近{recent_days}日均量為前段的{recent_vol_avg / prior_vol_avg * 100:.0f}%、波動幅度{recent_range_pct:.1f}%，尚未達量縮極致"}
 
 
+def compute_institutional_daily_net(price_df: pd.DataFrame, inst_df: pd.DataFrame,
+                                     lookback_days: int) -> pd.DataFrame:
+    """三大法人合計每日買超/賣超股數，跟股價對齊、取最近 lookback_days 個交易日
+    （整合清理：這段「法人買賣超跟股價合併、取近N日」的邏輯原本在 analyze.py 的
+    compute_institutional_cost() 跟這個檔案的 detect_accumulation_signal() 兩處各寫一份，
+    現在抽出共用）。回傳合併後的 DataFrame，欄位含 date、net（買超股數，可能為負）、close。"""
+    inst = inst_df.copy()
+    inst["net"] = inst["buy"] - inst["sell"]
+    daily_net = inst.groupby("date")["net"].sum().reset_index()
+    merged = pd.merge(daily_net, price_df[["date", "close"]], on="date", how="inner")
+    return merged.sort_values("date").tail(lookback_days)
+
+
+def compute_buy_ratio_and_momentum(merged: pd.DataFrame, n: int) -> dict:
+    """買超天數比例＋買超力道趨勢（近半段 vs 前半段買超力道）共用計算（整合清理：
+    原本在 compute_institutional_cost() 跟 detect_accumulation_signal() 兩處各寫一份，
+    現在抽出共用）。n 由呼叫端傳入（兩處呼叫端對「沒有資料時 n 該是多少」的防呆方式
+    不同，所以不在這裡自己算 len(merged)，維持各自原本的邊界行為）。
+    回傳 buy_ratio（買超天數佔比）、momentum_ratio（recent_strength/(recent+earlier)，
+    連續值，兩邊都是0時回傳0.5代表中性）、recent_strength／earlier_strength（原始加總，
+    供需要用原始數值比較大小的呼叫端使用，避免多繞一層除法產生浮點數誤差）、buy_days
+    （買超的那些交易日資料列）。"""
+    buy_days = merged[merged["net"] > 0]
+    buy_ratio = len(buy_days) / n
+    half = max(1, n // 2)
+    recent_strength = float(merged.tail(half)["net"].clip(lower=0).sum())
+    earlier_strength = float(merged.head(n - half)["net"].clip(lower=0).sum())
+    momentum_ratio = 0.5
+    if recent_strength + earlier_strength > 0:
+        momentum_ratio = recent_strength / (recent_strength + earlier_strength)
+    return {
+        "buy_ratio": buy_ratio, "momentum_ratio": momentum_ratio,
+        "recent_strength": recent_strength, "earlier_strength": earlier_strength,
+        "buy_days": buy_days,
+    }
+
+
 def detect_accumulation_signal(price_df: pd.DataFrame, inst_df: pd.DataFrame,
                                 lookback_days: int = 20, detail_config: dict | None = None) -> dict:
     """主力建倉訊號（狀態型）：判斷邏輯分兩層。
@@ -321,12 +358,7 @@ def detect_accumulation_signal(price_df: pd.DataFrame, inst_df: pd.DataFrame,
         return {"signal": None, "active": False, "text": "資料不足，無法判斷主力建倉訊號", "light": None}
 
     price_df = price_df.sort_values("date")
-    inst = inst_df.copy()
-    inst["net"] = inst["buy"] - inst["sell"]
-    daily_net = inst.groupby("date")["net"].sum().reset_index()
-
-    merged = pd.merge(daily_net, price_df[["date", "close"]], on="date", how="inner")
-    merged = merged.sort_values("date").tail(lookback_days)
+    merged = compute_institutional_daily_net(price_df, inst_df, lookback_days)
 
     n = len(merged)
     if n < min_days:
@@ -334,13 +366,9 @@ def detect_accumulation_signal(price_df: pd.DataFrame, inst_df: pd.DataFrame,
                 "text": f"近期可比對資料只有 {n} 個交易日，少於門檻 {min_days} 天，暫不判斷主力建倉訊號",
                 "light": None}
 
-    buy_days = merged[merged["net"] > 0]
-    buy_ratio = len(buy_days) / n
-
-    half = max(1, n // 2)
-    recent_strength = merged.tail(half)["net"].clip(lower=0).sum()
-    earlier_strength = merged.head(n - half)["net"].clip(lower=0).sum()
-    accelerating = bool(recent_strength > earlier_strength)
+    ratio_info = compute_buy_ratio_and_momentum(merged, n)
+    buy_ratio = ratio_info["buy_ratio"]
+    accelerating = bool(ratio_info["recent_strength"] > ratio_info["earlier_strength"])
 
     price_change_pct = float((merged["close"].iloc[-1] - merged["close"].iloc[0]) / merged["close"].iloc[0] * 100)
 
@@ -816,6 +844,108 @@ def _atr(price_df: pd.DataFrame, atr_days: int) -> float | None:
     return float(atr) if pd.notna(atr) else None
 
 
+def _pullback_entry_checks(df: pd.DataFrame, low_lookback_days: int, near_low_pct: float,
+                            pattern_lookback_days: int, vol_baseline_days: int,
+                            volume_confirm_multiplier: float) -> dict:
+    """短線／波段進場提醒共用的核心數值判斷（整合清理：原本這段邏輯在 detect_short_term_entry
+    與 detect_swing_entry 兩處幾乎逐字重複，只有回溯天數跟文字措辭不同，現在抽出共用）：
+    現價是否貼近/拉回至近 low_lookback_days 個交易日低點（含 near_low_pct 緩衝）、低檔區近
+    pattern_lookback_days 個交易日內是否出現看漲反轉K線型態、今日是否為價漲量增且量能達
+    volume_confirm_multiplier 倍以上均量。只回傳結構化的判斷結果（數值、K線/量能細節），
+    不組文字——短線跟波段的措辭略有不同（例如「貼近低點」vs「拉回至低點附近」），交由
+    呼叫端自己組文字，避免把措辭也綁死在共用函式裡。三項獨立計算、不互相短路，跟原本
+    的行為一致（就算「貼近低點」沒過，仍然會計算K線跟量能的結果）。"""
+    recent_close = float(df["close"].iloc[-1])
+    low_window = df.tail(low_lookback_days)
+    period_low = float(low_window["min"].astype(float).min())
+    low_bound = period_low * (1 + near_low_pct / 100)
+    near_low_ok = recent_close <= low_bound
+
+    candle = _detect_bullish_reversal_candle(df.tail(pattern_lookback_days + 1), low_bound)
+    candle_ok = bool(candle.get("available") and candle.get("confirmed"))
+
+    vol_rel = _volume_price_relationship(df, vol_baseline_days)
+    volume_ok = bool(
+        vol_rel.get("available") and vol_rel.get("label") == "價漲量增"
+        and vol_rel.get("volume_ratio", 0) >= volume_confirm_multiplier
+    )
+
+    return {
+        "recent_close": recent_close, "period_low": period_low, "low_bound": low_bound,
+        "near_low_ok": near_low_ok, "candle": candle, "candle_ok": candle_ok,
+        "vol_rel": vol_rel, "volume_ok": volume_ok,
+    }
+
+
+def _compute_atr_exit_levels(recent_close: float, atr: float, stop_atr_multiplier: float,
+                              take_profit_atr_multiplier: float,
+                              take_profit_2_atr_multiplier: float) -> dict:
+    """短線／波段出場提醒共用的「分段停利停損參考價位」核心算法（整合清理：原本這段
+    ATR換算與風險報酬比計算、以及對應的說明文字格式，在 detect_short_term_exit 與
+    detect_swing_exit 兩處逐字重複，只有傳入的 ATR 回溯天數跟倍數不同，現在抽出共用）。
+    停損參考價 = 現價 - ATR * stop_atr_multiplier；
+    第一停利參考價（較近、適合分批獲利了結）= 現價 + ATR * take_profit_atr_multiplier；
+    第二停利參考價（較遠的最終目標）= 現價 + ATR * take_profit_2_atr_multiplier；
+    風險報酬比 = (停利參考價 - 現價) / (現價 - 停損參考價)。"""
+    stop_loss_price = recent_close - atr * stop_atr_multiplier
+    take_profit_price = recent_close + atr * take_profit_atr_multiplier
+    take_profit_price_2 = recent_close + atr * take_profit_2_atr_multiplier
+
+    risk = recent_close - stop_loss_price
+    risk_reward_ratio = round((take_profit_price - recent_close) / risk, 2) if risk > 0 else None
+    risk_reward_ratio_2 = round((take_profit_price_2 - recent_close) / risk, 2) if risk > 0 else None
+
+    base_text = (
+        f"停損參考價 {stop_loss_price:.2f} 元（現價-{stop_atr_multiplier}倍ATR）、"
+        f"第一停利參考價 {take_profit_price:.2f} 元（現價+{take_profit_atr_multiplier}倍ATR"
+        + (f"，風險報酬比約1:{risk_reward_ratio:.2f}" if risk_reward_ratio is not None else "") + "）、"
+        f"第二停利參考價 {take_profit_price_2:.2f} 元（現價+{take_profit_2_atr_multiplier}倍ATR"
+        + (f"，風險報酬比約1:{risk_reward_ratio_2:.2f}" if risk_reward_ratio_2 is not None else "") + "）"
+    )
+    return {
+        "stop_loss_price": round(stop_loss_price, 2),
+        "take_profit_price": round(take_profit_price, 2),
+        "take_profit_price_2": round(take_profit_price_2, 2),
+        "risk_reward_ratio": risk_reward_ratio,
+        "risk_reward_ratio_2": risk_reward_ratio_2,
+        "base_text": base_text,
+    }
+
+
+def _detect_exit_reversal_warnings(df: pd.DataFrame, high_lookback_days: int, near_high_pct: float,
+                                    pattern_lookback_days: int, vol_baseline_days: int,
+                                    volume_warn_multiplier: float) -> tuple[list[str], dict]:
+    """短線／波段出場提醒共用的「技術反轉警訊」核心判斷（整合清理：原本這段邏輯在
+    detect_short_term_exit 與 detect_swing_exit 兩處逐字重複，只有回溯天數不同，現在抽出
+    共用；波段出場額外疊加的「中期均線死亡交叉」判斷不在這裡，由呼叫端自己再加）：
+    現價貼近近 high_lookback_days 個交易日高點時，是否出現看跌反轉K線型態（空頭吞噬或
+    流星線），或今日是否為價跌量增且量能達 volume_warn_multiplier 倍以上均量。
+    回傳 (警訊文字列表, 價量關係字典)，價量關係字典一併回傳給呼叫端，避免重複計算。"""
+    recent_close = float(df["close"].iloc[-1])
+    high_window = df.tail(high_lookback_days)
+    period_high = float(high_window["max"].astype(float).max())
+    high_bound = period_high * (1 - near_high_pct / 100)
+
+    reversal_hit = None
+    if recent_close >= high_bound:
+        candle = _detect_bearish_reversal_candle(df.tail(pattern_lookback_days + 1), high_bound)
+        if candle.get("confirmed"):
+            reversal_hit = candle
+
+    vol_rel = _volume_price_relationship(df, vol_baseline_days)
+    volume_warn = bool(
+        vol_rel.get("available") and vol_rel["label"] == "價跌量增"
+        and vol_rel["volume_ratio"] >= volume_warn_multiplier
+    )
+
+    warnings = []
+    if reversal_hit:
+        warnings.append(f"{reversal_hit['pattern_date']} 於近高點出現{reversal_hit['pattern_name']}")
+    if volume_warn:
+        warnings.append(f"今日價跌量增（量能達均量{vol_rel['volume_ratio'] * 100:.0f}%），賣壓浮現")
+    return warnings, vol_rel
+
+
 def detect_short_term_entry(price_df: pd.DataFrame, detail_config: dict | None = None) -> dict:
     """短線（約1-2週）進場提醒（狀態型）：三個條件同時成立才觸發——
     1) 現價貼近近 low_lookback_days（預設10個交易日≈2週）交易日低點（含 near_low_pct 緩衝）
@@ -837,31 +967,27 @@ def detect_short_term_entry(price_df: pd.DataFrame, detail_config: dict | None =
                 "horizon": "短線（約1-2週）"}
 
     df = price_df.sort_values("date").reset_index(drop=True)
-    recent_close = float(df["close"].iloc[-1])
-    low_window = df.tail(low_lookback_days)
-    period_low = float(low_window["min"].astype(float).min())
-    low_bound = period_low * (1 + near_low_pct / 100)
+    checks = _pullback_entry_checks(df, low_lookback_days, near_low_pct, pattern_lookback_days,
+                                     vol_baseline_days, volume_confirm_multiplier)
+    period_low, low_bound, recent_close = checks["period_low"], checks["low_bound"], checks["recent_close"]
+    candle, vol_rel = checks["candle"], checks["vol_rel"]
 
     reasons_failed = []
-    if recent_close > low_bound:
+    if not checks["near_low_ok"]:
         reasons_failed.append(f"現價{recent_close:.2f}元未貼近近{low_lookback_days}個交易日低點{period_low:.2f}元（需落在{low_bound:.2f}元以下）")
 
-    candle = _detect_bullish_reversal_candle(df.tail(pattern_lookback_days + 1), low_bound)
     if not candle.get("available"):
         reasons_failed.append(candle.get("text", "K線型態資料不足"))
-    elif not candle.get("confirmed"):
+    elif not checks["candle_ok"]:
         reasons_failed.append(f"近{pattern_lookback_days}個交易日低檔區無看漲反轉K線型態")
 
-    vol_rel = _volume_price_relationship(df, vol_baseline_days)
     if not vol_rel.get("available"):
         reasons_failed.append("成交量資料不足，無法確認價量關係")
-    else:
-        volume_ok = vol_rel["label"] == "價漲量增" and vol_rel["volume_ratio"] >= volume_confirm_multiplier
-        if not volume_ok:
-            reasons_failed.append(
-                f"今日價量關係為「{vol_rel['label']}」（量能為均量{vol_rel['volume_ratio'] * 100:.0f}%），"
-                f"未達價漲量增且量能≥均量{volume_confirm_multiplier * 100:.0f}%的確認門檻"
-            )
+    elif not checks["volume_ok"]:
+        reasons_failed.append(
+            f"今日價量關係為「{vol_rel['label']}」（量能為均量{vol_rel['volume_ratio'] * 100:.0f}%），"
+            f"未達價漲量增且量能≥均量{volume_confirm_multiplier * 100:.0f}%的確認門檻"
+        )
 
     if reasons_failed:
         return {"signal": None, "active": False, "horizon": "短線（約1-2週）",
@@ -915,61 +1041,30 @@ def detect_short_term_exit(price_df: pd.DataFrame, detail_config: dict | None = 
         return {"signal": None, "active": False, "text": "ATR資料不足，無法估算短線停利停損價位", "light": None,
                 "horizon": "短線（約1-2週）"}
 
-    stop_loss_price = recent_close - atr * stop_atr_multiplier
-    take_profit_price = recent_close + atr * take_profit_atr_multiplier
-    take_profit_price_2 = recent_close + atr * take_profit_2_atr_multiplier
+    levels = _compute_atr_exit_levels(recent_close, atr, stop_atr_multiplier,
+                                       take_profit_atr_multiplier, take_profit_2_atr_multiplier)
+    warnings, vol_rel = _detect_exit_reversal_warnings(df, high_lookback_days, near_high_pct,
+                                                         pattern_lookback_days, vol_baseline_days,
+                                                         volume_warn_multiplier)
 
-    risk = recent_close - stop_loss_price
-    risk_reward_ratio = round((take_profit_price - recent_close) / risk, 2) if risk > 0 else None
-    risk_reward_ratio_2 = round((take_profit_price_2 - recent_close) / risk, 2) if risk > 0 else None
-
-    high_window = df.tail(high_lookback_days)
-    period_high = float(high_window["max"].astype(float).max())
-    high_bound = period_high * (1 - near_high_pct / 100)
-
-    reversal_hit = None
-    if recent_close >= high_bound:
-        candle = _detect_bearish_reversal_candle(df.tail(pattern_lookback_days + 1), high_bound)
-        if candle.get("confirmed"):
-            reversal_hit = candle
-
-    vol_rel = _volume_price_relationship(df, vol_baseline_days)
-    volume_warn = bool(
-        vol_rel.get("available") and vol_rel["label"] == "價跌量增"
-        and vol_rel["volume_ratio"] >= volume_warn_multiplier
-    )
-
-    base_text = (
-        f"停損參考價 {stop_loss_price:.2f} 元（現價-{stop_atr_multiplier}倍ATR）、"
-        f"第一停利參考價 {take_profit_price:.2f} 元（現價+{take_profit_atr_multiplier}倍ATR"
-        + (f"，風險報酬比約1:{risk_reward_ratio:.2f}" if risk_reward_ratio is not None else "") + "）、"
-        f"第二停利參考價 {take_profit_price_2:.2f} 元（現價+{take_profit_2_atr_multiplier}倍ATR"
-        + (f"，風險報酬比約1:{risk_reward_ratio_2:.2f}" if risk_reward_ratio_2 is not None else "") + "）"
-    )
     common_fields = {
         "horizon": "短線（約1-2週）",
-        "stop_loss_price": round(stop_loss_price, 2),
-        "take_profit_price": round(take_profit_price, 2),
-        "take_profit_price_2": round(take_profit_price_2, 2),
-        "risk_reward_ratio": risk_reward_ratio,
-        "risk_reward_ratio_2": risk_reward_ratio_2,
+        "stop_loss_price": levels["stop_loss_price"],
+        "take_profit_price": levels["take_profit_price"],
+        "take_profit_price_2": levels["take_profit_price_2"],
+        "risk_reward_ratio": levels["risk_reward_ratio"],
+        "risk_reward_ratio_2": levels["risk_reward_ratio_2"],
     }
-
-    warnings = []
-    if reversal_hit:
-        warnings.append(f"{reversal_hit['pattern_date']} 於近高點出現{reversal_hit['pattern_name']}")
-    if volume_warn:
-        warnings.append(f"今日價跌量增（量能達均量{vol_rel['volume_ratio'] * 100:.0f}%），賣壓浮現")
 
     if warnings:
         return {
             "signal": "short_term_exit_warning", "active": True, "light": "red",
-            "text": base_text + "；技術反轉警訊：" + "；".join(warnings) + "，建議留意獲利了結或執行停損",
+            "text": levels["base_text"] + "；技術反轉警訊：" + "；".join(warnings) + "，建議留意獲利了結或執行停損",
             **common_fields,
         }
     return {
         "signal": None, "active": False, "light": "green",
-        "text": base_text + "；目前無技術反轉警訊",
+        "text": levels["base_text"] + "；目前無技術反轉警訊",
         **common_fields,
     }
 
@@ -1014,29 +1109,26 @@ def detect_swing_entry(price_df: pd.DataFrame, detail_config: dict | None = None
             f"{trend_ma_slow}日均線{ma_slow.iloc[-1]:.2f}元），波段格局尚未轉多"
         )
 
-    recent_close = float(close.iloc[-1])
-    low_window = df.tail(pullback_lookback_days)
-    period_low = float(low_window["min"].astype(float).min())
-    low_bound = period_low * (1 + near_low_pct / 100)
-    if recent_close > low_bound:
+    checks = _pullback_entry_checks(df, pullback_lookback_days, near_low_pct, pattern_lookback_days,
+                                     vol_baseline_days, volume_confirm_multiplier)
+    period_low, low_bound, recent_close = checks["period_low"], checks["low_bound"], checks["recent_close"]
+    candle, vol_rel = checks["candle"], checks["vol_rel"]
+
+    if not checks["near_low_ok"]:
         reasons_failed.append(f"現價{recent_close:.2f}元未拉回至近{pullback_lookback_days}個交易日低點{period_low:.2f}元附近（需落在{low_bound:.2f}元以下）")
 
-    candle = _detect_bullish_reversal_candle(df.tail(pattern_lookback_days + 1), low_bound)
     if not candle.get("available"):
         reasons_failed.append(candle.get("text", "K線型態資料不足"))
-    elif not candle.get("confirmed"):
+    elif not checks["candle_ok"]:
         reasons_failed.append(f"近{pattern_lookback_days}個交易日拉回區間無看漲反轉K線型態")
 
-    vol_rel = _volume_price_relationship(df, vol_baseline_days)
     if not vol_rel.get("available"):
         reasons_failed.append("成交量資料不足，無法確認價量關係")
-    else:
-        volume_ok = vol_rel["label"] == "價漲量增" and vol_rel["volume_ratio"] >= volume_confirm_multiplier
-        if not volume_ok:
-            reasons_failed.append(
-                f"今日價量關係為「{vol_rel['label']}」（量能為均量{vol_rel['volume_ratio'] * 100:.0f}%），"
-                f"未達價漲量增且量能≥均量{volume_confirm_multiplier * 100:.0f}%的確認門檻"
-            )
+    elif not checks["volume_ok"]:
+        reasons_failed.append(
+            f"今日價量關係為「{vol_rel['label']}」（量能為均量{vol_rel['volume_ratio'] * 100:.0f}%），"
+            f"未達價漲量增且量能≥均量{volume_confirm_multiplier * 100:.0f}%的確認門檻"
+        )
 
     if reasons_failed:
         return {"signal": None, "active": False, "horizon": "波段（約1-2個月）",
@@ -1091,30 +1183,13 @@ def detect_swing_exit(price_df: pd.DataFrame, detail_config: dict | None = None)
         return {"signal": None, "active": False, "text": "ATR資料不足，無法估算波段停利停損價位", "light": None,
                 "horizon": "波段（約1-2個月）"}
 
-    stop_loss_price = recent_close - atr * stop_atr_multiplier
-    take_profit_price = recent_close + atr * take_profit_atr_multiplier
-    take_profit_price_2 = recent_close + atr * take_profit_2_atr_multiplier
+    levels = _compute_atr_exit_levels(recent_close, atr, stop_atr_multiplier,
+                                       take_profit_atr_multiplier, take_profit_2_atr_multiplier)
+    warnings, vol_rel = _detect_exit_reversal_warnings(df, high_lookback_days, near_high_pct,
+                                                         pattern_lookback_days, vol_baseline_days,
+                                                         volume_warn_multiplier)
 
-    risk = recent_close - stop_loss_price
-    risk_reward_ratio = round((take_profit_price - recent_close) / risk, 2) if risk > 0 else None
-    risk_reward_ratio_2 = round((take_profit_price_2 - recent_close) / risk, 2) if risk > 0 else None
-
-    high_window = df.tail(high_lookback_days)
-    period_high = float(high_window["max"].astype(float).max())
-    high_bound = period_high * (1 - near_high_pct / 100)
-
-    reversal_hit = None
-    if recent_close >= high_bound:
-        candle = _detect_bearish_reversal_candle(df.tail(pattern_lookback_days + 1), high_bound)
-        if candle.get("confirmed"):
-            reversal_hit = candle
-
-    vol_rel = _volume_price_relationship(df, vol_baseline_days)
-    volume_warn = bool(
-        vol_rel.get("available") and vol_rel["label"] == "價跌量增"
-        and vol_rel["volume_ratio"] >= volume_warn_multiplier
-    )
-
+    # 波段出場額外疊加的警訊：中期均線死亡交叉（短線出場沒有這一項，只看價格轉折）
     close = df["close"].astype(float)
     ma_fast = close.rolling(trend_ma_fast).mean()
     ma_slow = close.rolling(trend_ma_slow).mean()
@@ -1123,40 +1198,27 @@ def detect_swing_exit(price_df: pd.DataFrame, detail_config: dict | None = None)
         prev_diff = ma_fast.iloc[-2] - ma_slow.iloc[-2]
         curr_diff = ma_fast.iloc[-1] - ma_slow.iloc[-1]
         trend_break = bool(prev_diff >= 0 and curr_diff < 0)
-
-    base_text = (
-        f"停損參考價 {stop_loss_price:.2f} 元（現價-{stop_atr_multiplier}倍ATR）、"
-        f"第一停利參考價 {take_profit_price:.2f} 元（現價+{take_profit_atr_multiplier}倍ATR"
-        + (f"，風險報酬比約1:{risk_reward_ratio:.2f}" if risk_reward_ratio is not None else "") + "）、"
-        f"第二停利參考價 {take_profit_price_2:.2f} 元（現價+{take_profit_2_atr_multiplier}倍ATR"
-        + (f"，風險報酬比約1:{risk_reward_ratio_2:.2f}" if risk_reward_ratio_2 is not None else "") + "）"
-    )
-    common_fields = {
-        "horizon": "波段（約1-2個月）",
-        "stop_loss_price": round(stop_loss_price, 2),
-        "take_profit_price": round(take_profit_price, 2),
-        "take_profit_price_2": round(take_profit_price_2, 2),
-        "risk_reward_ratio": risk_reward_ratio,
-        "risk_reward_ratio_2": risk_reward_ratio_2,
-    }
-
-    warnings = []
-    if reversal_hit:
-        warnings.append(f"{reversal_hit['pattern_date']} 於近高點出現{reversal_hit['pattern_name']}")
-    if volume_warn:
-        warnings.append(f"今日價跌量增（量能達均量{vol_rel['volume_ratio'] * 100:.0f}%），賣壓浮現")
     if trend_break:
         warnings.append(f"{trend_ma_fast}日均線下穿{trend_ma_slow}日均線，波段中期趨勢轉弱")
+
+    common_fields = {
+        "horizon": "波段（約1-2個月）",
+        "stop_loss_price": levels["stop_loss_price"],
+        "take_profit_price": levels["take_profit_price"],
+        "take_profit_price_2": levels["take_profit_price_2"],
+        "risk_reward_ratio": levels["risk_reward_ratio"],
+        "risk_reward_ratio_2": levels["risk_reward_ratio_2"],
+    }
 
     if warnings:
         return {
             "signal": "swing_exit_warning", "active": True, "light": "red",
-            "text": base_text + "；技術反轉警訊：" + "；".join(warnings) + "，建議留意獲利了結或執行停損",
+            "text": levels["base_text"] + "；技術反轉警訊：" + "；".join(warnings) + "，建議留意獲利了結或執行停損",
             **common_fields,
         }
     return {
         "signal": None, "active": False, "light": "green",
-        "text": base_text + "；目前無技術反轉警訊",
+        "text": levels["base_text"] + "；目前無技術反轉警訊",
         **common_fields,
     }
 

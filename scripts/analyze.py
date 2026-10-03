@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 import yaml
 
-from signals import compute_all_signals
+from signals import compute_all_signals, compute_institutional_daily_net, compute_buy_ratio_and_momentum
 from analyst_outlook import compute_analyst_outlook
 from capital_returns import compute_roce_history
 
@@ -27,24 +27,26 @@ def _read_cache(cache_dir: str, stock_id: str, key: str) -> pd.DataFrame:
 
 def compute_institutional_cost(price_df: pd.DataFrame, inst_df: pd.DataFrame,
                                 lookback_days: int = 10) -> dict:
-    """計算近 N 個交易日的主力（三大法人合計）持倉成本與布局分數。"""
+    """計算近 N 個交易日的主力（三大法人合計）持倉成本與布局分數。
+    買超天數比例／買超力道趨勢的共用計算見 signals.py 的 compute_institutional_daily_net()
+    與 compute_buy_ratio_and_momentum()（整合清理：原本這兩段在這裡跟 signals.py 的
+    detect_accumulation_signal() 各寫一份，現已抽出共用，數值與行為完全不變）。"""
     if price_df.empty or inst_df.empty:
         return {"cost": None, "current_price": None, "unrealized_pct": None,
                 "buy_days": 0, "score": 0}
 
     price_df = price_df.sort_values("date")
-    inst_df = inst_df.copy()
-
     # FinMind InstitutionalInvestorsBuySell 欄位: date, stock_id, name(投信/外資/自營商...), buy, sell
-    inst_df["net"] = inst_df["buy"] - inst_df["sell"]
-    daily_net = inst_df.groupby("date")["net"].sum().reset_index()
+    merged = compute_institutional_daily_net(price_df, inst_df, lookback_days)
 
-    merged = pd.merge(daily_net, price_df[["date", "close"]], on="date", how="inner")
-    merged = merged.sort_values("date").tail(lookback_days)
+    # 主力布局分數：買超天數比例(50%) + 買超力道趨勢(50%)
+    n = len(merged) or 1
+    ratio_info = compute_buy_ratio_and_momentum(merged, n)
+    buy_days = ratio_info["buy_days"]
+    buy_ratio = ratio_info["buy_ratio"]
+    momentum = ratio_info["momentum_ratio"]
 
-    buy_days = merged[merged["net"] > 0]
     total_shares = buy_days["net"].sum()
-
     if total_shares <= 0:
         cost = None
     else:
@@ -54,17 +56,6 @@ def compute_institutional_cost(price_df: pd.DataFrame, inst_df: pd.DataFrame,
     unrealized_pct = None
     if cost and current_price:
         unrealized_pct = round((current_price - cost) / cost * 100, 2)
-
-    # 主力布局分數：買超天數比例(50%) + 買超力道趨勢(50%)
-    n = len(merged) or 1
-    buy_ratio = len(buy_days) / n
-    # 力道趨勢：近半段 vs 前半段 買超股數合計，若加速買超則加分
-    half = max(1, n // 2)
-    recent_strength = merged.tail(half)["net"].clip(lower=0).sum()
-    earlier_strength = merged.head(n - half)["net"].clip(lower=0).sum()
-    momentum = 0.5
-    if recent_strength + earlier_strength > 0:
-        momentum = recent_strength / (recent_strength + earlier_strength)
 
     score = round((buy_ratio * 0.5 + momentum * 0.5) * 100)
 

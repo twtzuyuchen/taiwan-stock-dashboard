@@ -270,12 +270,13 @@ scoring:
     volume_confirm_multiplier: 1.3    # 當日成交量需達到均量的幾倍，且屬價漲量增，才算量能確認
 
   # 短線（約1-2週）出場提醒細項設定，可省略，省略時採用下列預設值
-  # 停利停損參考價位用 ATR（真實波動幅度）估算，任何時候都會顯示；技術反轉警訊
+  # 分段停利停損參考價位用 ATR（真實波動幅度）估算，任何時候都會顯示；技術反轉警訊
   # （看跌反轉K線型態或價跌量增）額外標示是否該留意獲利了結或停損
   short_term_exit_detail:
     atr_days: 10                      # ATR 回溯天數
     stop_atr_multiplier: 1.2          # 停損參考價 = 現價 - ATR * 這個倍數
-    take_profit_atr_multiplier: 2.0   # 停利參考價 = 現價 + ATR * 這個倍數
+    take_profit_atr_multiplier: 2.0   # 第一停利參考價（較近、適合分批獲利了結）= 現價 + ATR * 這個倍數
+    take_profit_2_atr_multiplier: 3.2 # 第二停利參考價（較遠的最終目標）= 現價 + ATR * 這個倍數，須大於上面那個倍數
     high_lookback_days: 10            # 「近期高點」回溯幾個交易日，判斷是否貼近高檔
     near_high_pct: 6                  # 現價需落在近期高點下方這個百分比以內，才算「貼近高點」
     pattern_lookback_days: 5          # 看跌反轉K線型態需在近幾個交易日內出現
@@ -300,7 +301,8 @@ scoring:
   swing_exit_detail:
     atr_days: 20                      # ATR 回溯天數（約1個月）
     stop_atr_multiplier: 2.0          # 停損參考價 = 現價 - ATR * 這個倍數
-    take_profit_atr_multiplier: 3.5   # 停利參考價 = 現價 + ATR * 這個倍數
+    take_profit_atr_multiplier: 3.5   # 第一停利參考價（較近、適合分批獲利了結）= 現價 + ATR * 這個倍數
+    take_profit_2_atr_multiplier: 5.0 # 第二停利參考價（較遠的最終目標）= 現價 + ATR * 這個倍數，須大於上面那個倍數
     high_lookback_days: 20            # 「近期高點」回溯幾個交易日
     near_high_pct: 8
     pattern_lookback_days: 10
@@ -332,6 +334,31 @@ scoring:
     # 長期趨勢判讀用的波動度門檻：變動係數（近幾年ROCE標準差 ÷ 平均值的絕對值）達到這個比例
     # 以上，就判定為「劇烈波動」（獲利穩定度不足），否則視為波動度穩定。0.3 = 30%。
     volatility_cv_threshold: 0.3
+
+  # 「多時間尺度對齊」輔助判讀細項設定（卡片5，輔助證據，不計入綜合評分），可省略，省略時採用下列預設值。
+  # 短線／波段／中期分別計算報酬率並判斷方向，三者一致視為「對齊」，方向互相矛盾則特別提示（見 scripts/analyze.py）。
+  timeframe_alignment_detail:
+    short_window_days: 5          # 短線報酬回溯天數（約1週）
+    swing_window_short_days: 20   # 波段報酬回溯天數之一（約1個月），與下面這項取平均
+    swing_window_long_days: 40    # 波段報酬回溯天數之二（約2個月）
+    mid_window_short_days: 60     # 中期報酬回溯天數之一（約3個月），與下面這項取平均
+    mid_window_long_days: 120     # 中期報酬回溯天數之二（約6個月），資料不足時自動退回只用60日
+    short_threshold_pct: 2.0      # 短線報酬達這個百分比（絕對值）以上才算偏多/偏空
+    swing_threshold_pct: 4.0      # 波段報酬門檻
+    mid_threshold_pct: 6.0        # 中期報酬門檻
+
+  # 技術面效率指標＋ATR歷史波動度分位（卡片5，輔助判讀，不計入綜合評分），可省略，省略時採用下列預設值。
+  # 效率指標衡量走勢乾不乾淨（淨漲跌幅佔總波動路徑的比例），波動度分位把目前ATR放回這檔股票
+  # 自己的歷史分布中比較（見 scripts/analyze.py 的 _compute_trend_efficiency() / _compute_volatility_percentile()）。
+  technical_efficiency_detail:
+    efficiency_window_days: 20          # 效率指標計算窗口（近幾個交易日的淨漲跌幅 vs 總波動路徑）
+    efficiency_high_threshold: 0.5      # 效率指標達這個值以上，視為「高效率趨勢」（走勢乾淨）
+    efficiency_low_threshold: 0.25      # 效率指標低於這個值，視為「低效率」（雜訊大／橫盤整理）
+    atr_days: 14                        # ATR（真實波動幅度）回溯天數，與「分析師關鍵價位」卡片一致
+    volatility_percentile_lookback_days: 240  # 波動度歷史分位比較窗口（約1年交易日）
+    volatility_percentile_min_samples: 60     # 至少需要這麼多筆ATR歷史樣本才計算百分位，不夠就明講樣本不足
+    volatility_high_percentile: 80      # ATR歷史百分位達到這個值以上，視為「波動度偏高」
+    volatility_low_percentile: 20       # ATR歷史百分位低於這個值，視為「波動度偏低」
 
 output:
   dashboard_dir: "output"
